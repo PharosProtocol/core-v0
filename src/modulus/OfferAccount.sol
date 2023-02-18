@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.17;
 
-import "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 /**
  * An account holding Lender capital that can be taken as a loan. An Offer Account has only
@@ -13,14 +13,18 @@ import "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
  * NOTE: "The automatic getters that are made for structs return all members in the struct except for members that are mappings and arrays"
  */
 struct OfferAccount {
-    // bytes32 id; // redundant
     address lender;
     // Term sheets with which *new* positions can be opened.
     bytes32[] allowedTermSheets;
-    // Current balance of assets.
+    // Current balance of assets that can be loaned out.
     mapping(address => uint256) assets;
+
+    // Borrowers that can take this Offer.
+    address[] allowedBorrowers;
     // Terminals that can be deployed into.
     address[] allowedTerminals;
+    // Collateral assets that can be provided.
+    address[] allowedCollateralAssets;
 }
 
 // enum status;
@@ -47,10 +51,19 @@ contract OfferAccountRegistry {
         // accounts[id] = OfferAccount({lender: msg.sender, allowedTermSheets: termSheets});
         OfferAccount storage account = accounts[id];
         account.lender = msg.sender;
-        account.allowedTermSheets = termSheets;
+        setOfferTermSheets(id, termSheets);
         accountCount++;
         emit OfferAccountCreated(msg.sender, id);
         addOfferAssets(id, assets, amounts);
+    }
+
+    function setOfferTermSheets(bytes32 id, bytes32[] calldata termSheets) public {
+        // NOTE: Do we want to do checks here and guarantee that all Offers are valid? Or at position creation?
+        // for (uint256 i; i < termSheets.length; i++) {
+        //     // Check that term sheet is compatible with offer.
+
+        // }
+        accounts[id].allowedTermSheets = termSheets;
     }
 
     function addOfferAssets(bytes32 id, address[] calldata assets, uint256[] calldata amounts) public {
