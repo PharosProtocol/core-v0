@@ -33,13 +33,13 @@ struct OfferAccount {
  *
  */
 contract OfferAccountRegistry {
-    event OfferAccountCreated(address, bytes32);
-    event OfferAssetsAdded(bytes32, address, uint256);
-    event OfferAssetsRemoved(bytes32, address, uint256);
-
     mapping(bytes32 => OfferAccount) private accounts; // Disable getters/setters
     uint256 public accountCount;
     // mapping(address => bytes32[]) lenderOfferAccounts;
+
+    event OfferAccountCreated(address, bytes32);
+    event OfferAssetsAdded(bytes32, address, uint256);
+    event OfferAssetsRemoved(bytes32, address, uint256);
 
     function createOfferAccount(
         bytes32 id,

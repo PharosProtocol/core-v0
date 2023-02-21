@@ -30,12 +30,12 @@ struct RequestAccount {
  *
  */
 contract RequestAccountRegistry {
+    mapping(bytes32 => RequestAccount) public accounts;
+    // uint256 internal accountCount;
+
     event RequestAccountCreated(address, bytes32);
     event RequestAssetsAdded(bytes32, address, uint256);
     event RequestAssetsRemoved(bytes32, address, uint256);
-
-    mapping(bytes32 => RequestAccount) public accounts;
-    uint256 public accountCount;
 
     function createRequestAccount(
         bytes32 id,
@@ -52,7 +52,7 @@ contract RequestAccountRegistry {
         account.allowedTerminals = allowedTerminals;
         account.collateralizationRatio = collateralizationRatio;
 
-        accountCount++;
+        // accountCount++;
         emit RequestAccountCreated(msg.sender, id);
         setRequestTermSheets(id, termSheets);
         addRequestAssets(id, assets, amounts);
