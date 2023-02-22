@@ -27,15 +27,9 @@ import "lib/openzeppelin-contracts/contracts/proxy/utils/Initializable.sol";
  *
  * The asset that the position was entered with must be used for valuation and exiting.
  */
-interface ITerminal {
-    function initialize(address borrower, address asset, uint256 amount) external; // onlyRole(PROTOCOL_ROLE)
-
-    // Remove value from position(s) and return as interfaceAsset. If amount(s) is 0 exit full positon.
-    function exit() external returns (uint256 exitAmount); // onlyRole(PROTOCOL_ROLE)
-
-    // Public Helpers.
-    function getAllowedAssets() external view returns (address[] memory);
-    function getPositionValue() external view returns (address asset, uint256 amount);
+interface IPositionFactory {
+    function initialize(address borrower) external; // onlyRole(PROTOCOL_ROLE)
+    function createPosition(address borrower) external returns (address addr);
 }
 
 /// How do we ensure third party Terminals meet our standards? Likely need to audit each to get a certification, but
@@ -47,26 +41,17 @@ interface ITerminal {
 /*
  * This contract is used to create Minimal Proxy Contracts that connect to an already deployed Terminal.
  */
-abstract contract Terminal is AccessControl, Initializable, ITerminal {
+abstract contract PositionFactory is AccessControl, Initializable, IPositionFactory {
     bytes32 internal constant BORROWER_ROLE = keccak256("BORROWER_ROLE");
     bytes32 internal constant PROTOCOL_ROLE = keccak256("PROTOCOL_ROLE");
     address public constant PROTOCOL_ADDRESS = C.MODULEND_ADDR; // Modulus address
-    // Assets that can be used to open a Position.
-    // address[] public constant ALLOWED_ASSETS;
-    // Having an updateable status means having an owner, which feels like it doesn't scale / it degrades permissionlessness.
-    // enum Status {
-    //     Active,
-    //     Deprecated
-    // }
+
+    event PositionCreated(address position);
 
     constructor() {
         // Do not allow initialization in implementation contract.
         _disableInitializers();
     }
-
-    // Deploy assets within the terminal as a new position.
-    // Assumes assets have already been delivered to the terminal.
-    function enter(address asset, uint256 amount) internal virtual;
 
     /// Functions defined below will always be the same, in all terminals. They will use state of clones.
 
@@ -74,22 +59,17 @@ abstract contract Terminal is AccessControl, Initializable, ITerminal {
      * Will be called on all proxy clones immediately after creation.
      * "When used with inheritance, manual care must be taken to not invoke a parent initializer twice, or to ensure that all initializers are idempotent" <- idk what this is about, but sounds relevant.
      */
-    function initialize(address borrower, address asset, uint256 amount) external initializer {
+    function initialize(address borrower) external initializer {
         _grantRole(PROTOCOL_ROLE, PROTOCOL_ADDRESS);
         _grantRole(BORROWER_ROLE, borrower);
-        enter(asset, amount);
     }
 
     /*
      * Create Minimum Proxy Implementation for this implementation contract.
      */
-    function createTerminalClone(address borrower, address asset, uint256 amount)
-        external
-        onlyRole(PROTOCOL_ROLE)
-        returns (address addr)
-    {
+    function createPosition(address borrower) external onlyRole(PROTOCOL_ROLE) returns (address addr) {
         addr = Clones.clone(address(this));
-        ITerminal proxy = ITerminal(addr);
-        proxy.initialize(borrower, asset, amount);
+        IPositionFactory(addr).initialize(borrower);
+        emit PositionCreated(addr);
     }
 }
