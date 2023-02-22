@@ -10,6 +10,8 @@ library C {
 
     address internal constant MODULEND_ADDR = address(100);
 
+    address internal constant UNI_V2_ROUTER02 = address(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
+
     address internal constant UNI_V3_POOL_USDC_ETH = address(0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640);
 
     uint32 internal constant CURVE_VALUATOR_TYPE_ID = 1;
