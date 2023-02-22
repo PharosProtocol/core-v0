@@ -40,6 +40,7 @@ contract UniV2HoldTerminal is IUniV2HoldTerminal, PositionFactory {
     event UniV2HoldPositionEntered(address asset, uint256 amount);
     event UniV2HoldPositionExited(address asset, uint256 amount);
 
+    // TODO: Should pass in args as bytes and decode them here if call is expected to come from modulus.
     // NOTE: What if enter is triggered by Lender (or anyone else but borrower) and they set amountOutMin very low to
     //       create sandwhich opportunity or increase odds of liquidation? Could even do it in a loop to drain all
     //       Request capital to 0.
