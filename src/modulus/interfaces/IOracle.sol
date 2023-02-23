@@ -10,5 +10,5 @@ interface IOracle {
     /*
      * Return value of asset in USDC.
      */
-    function getValue() external pure returns (uint256);
+    function getValue(bytes calldata data) external view returns (uint256);
 }
