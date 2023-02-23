@@ -1,8 +1,5 @@
-# Modulon
-Modulon is a protocol that enables leveraged lending of assets via independent and customizable loa terms. The protocol enables anyone to define a novel set of loa terms, which includes a list of approved uses of borrowed funds. Approved use cases range from simply holding a volatile asset to entering an advanced on-chain position. Lenders and borrowers who find an existing set of terms agreeable can opt to supply or borrow funds from linked pools, respectively.
+# Modulend
+Modulend is a marketplace protocol built on top of [Modulus](./src/modulus/README.md). Modulus enables customizable peer-to-peer lending and Modulend is the marketplace that helps prospective lenders and borrowers to find each other under mutually
+agreeable terms.  
 
-Loa terms can be customized for risk tolerance by adjusting collateralization, liquidation mechanisms, approved uses of borrowed capital, and more. Each set of terms is unique from the others and does not impact existing loans or supply pools.
-
-## Architecture Design
-https://www.figma.com/file/0rnDtlA49rKndhsagzxplD/MODULEND-Architecture?node-id=0%3A1&t=b1vk0xE08f6pKOCr-0
 
