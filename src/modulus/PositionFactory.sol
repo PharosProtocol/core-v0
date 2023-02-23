@@ -28,8 +28,7 @@ import "lib/openzeppelin-contracts/contracts/proxy/utils/Initializable.sol";
  * The asset that the position was entered with must be used for valuation and exiting.
  */
 interface IPositionFactory {
-    function initialize(address borrower) external; // onlyRole(PROTOCOL_ROLE)
-    function createPosition(address borrower) external returns (address addr);
+    function initialize(address borrower) external;
 }
 
 /// How do we ensure third party Terminals meet our standards? Likely need to audit each to get a certification, but
@@ -57,7 +56,7 @@ abstract contract PositionFactory is AccessControl, Initializable, IPositionFact
 
     /*
      * Will be called on all proxy clones immediately after creation.
-     * "When used with inheritance, manual care must be taken to not invoke a parent initializer twice, or to ensure that all initializers are idempotent" <- idk what this is about, but sounds relevant.
+     * NOTE "When used with inheritance, manual care must be taken to not invoke a parent initializer twice, or to ensure that all initializers are idempotent" <- idk what this is about, but sounds relevant.
      */
     function initialize(address borrower) external initializer {
         _grantRole(PROTOCOL_ROLE, PROTOCOL_ADDRESS);
@@ -66,8 +65,9 @@ abstract contract PositionFactory is AccessControl, Initializable, IPositionFact
 
     /*
      * Create Minimum Proxy Implementation for this implementation contract.
+     * This does not *enter* the position.
      */
-    function createPosition(address borrower) external onlyRole(PROTOCOL_ROLE) returns (address addr) {
+    function createPosition(address borrower) internal returns (address addr) {
         addr = Clones.clone(address(this));
         IPositionFactory(addr).initialize(borrower);
         emit PositionCreated(addr);
