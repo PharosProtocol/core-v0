@@ -14,6 +14,9 @@ import "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
  */
 struct OfferAccount {
     address lender;
+
+    // Status enum: active, paused (no new positions)
+
     // Term sheets with which *new* positions can be opened.
     bytes32[] allowedTermSheets;
     // Current balance of assets that can be loaned out.

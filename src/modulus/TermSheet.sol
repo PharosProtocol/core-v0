@@ -25,43 +25,69 @@ struct Terms {
     uint256 liquidatorReward;
     /* Cost Parameters */
     uint256 maxDuration; // seconds
-    uint256 interestRateRatio; // per second
-    uint256 loanFee;
-    uint256 profitShareRatio;
+        // uint256 interestRateRatio; // per second
+        // uint256 loanFee;
+        // uint256 profitShareRatio;
+}
+
+struct AssessorCall {
+    address assessor;
+    bytes data;
 }
 
 // How to value an asset.
+// NOTE - instead of using bytes here should oracle instances be deployed as MPCs with params set in state by initializer?
 struct OracleCall {
     address oracle;
     bytes data;
 }
 
-contract RequestAccountRegistry {
-    mapping(bytes32 => TermSheet) public sheets;
+// contract RequestAccountRegistry {
+//     mapping(bytes32 => TermSheet) public sheets;
 
-    event TermSheetCreated(bytes32);
+//     event TermSheetCreated(bytes32);
 
-    // NOTE: Passing in individual pieces overfills stacks limit
-    //          What will happen to stack if these arrays are long?
-    function createTermSheet(
-        bytes32 id,
-        Terms calldata terms,
-        address[] calldata assets,
-        address[] calldata oracles,
-        bytes[] calldata datas
-    ) public {
-        TermSheet storage sheet = sheets[id];
-        require(sheet.terms.maxCollateralizationRatio > 0);
-        require(terms.maxCollateralizationRatio > 0);
-        sheet.terms = terms;
-        for (uint256 i; i < assets.length; i++) {
-            sheet.oracles[assets[i]] = OracleCall({oracle: oracles[i], data: datas[i]});
-        }
-    }
+//     // NOTE: Passing in individual pieces overfills stacks limit
+//     //          What will happen to stack if these arrays are long?
+//     function createTermSheet(
+//         bytes32 id,
+//         Terms calldata terms,
+//         address[] calldata assets,
+//         address[] calldata oracles,
+//         bytes[] calldata datas
+//     ) public {
+//         TermSheet storage sheet = sheets[id];
+//         require(sheet.terms.maxCollateralizationRatio > 0);
+//         require(terms.maxCollateralizationRatio > 0);
+//         sheet.terms = terms;
+//         for (uint256 i; i < assets.length; i++) {
+//             sheet.oracles[assets[i]] = OracleCall({oracle: oracles[i], data: datas[i]});
+//         }
+//     }
 
-    function getValue(bytes32 termSheet, address asset) public view returns (uint256) {
-        // OracleCall oracleCall = sheets[termSheet].oracles[asset];
-        return IOracle(sheets[termSheet].oracles[asset].oracle).getValue(sheets[termSheet].oracles[asset].data);
-    }
-}
+//     function getValue(bytes32 termSheet, address asset) public view returns (uint256) {
+//         // OracleCall oracleCall = sheets[termSheet].oracles[asset];
+//         return IOracle(sheets[termSheet].oracles[asset].oracle).getValue(sheets[termSheet].oracles[asset].data);
+//     }
 
+//     struct Agreement {
+//         bytes32 termSheet,
+//         bytes32 offerAccount,
+//         bytes32 requestAccount,
+//         address terminal,
+//         address loanAsset,
+//         uint256 loanAmount,
+//         address collateralAsset
+//     }
+
+//     // Create position from mututaully agreed Offer and Request.
+//     function agree(
+//         bytes32 termSheet,
+//         bytes32 offerAccount,
+//         bytes32 requestAccount,
+//         address terminal,
+//         address loanAsset,
+//         uint256 loanAmount,
+//         address collateralAsset
+//     ) {}
+// }
