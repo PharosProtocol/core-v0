@@ -2,7 +2,9 @@
 
 pragma solidity 0.8.17;
 
-import {CloneFactory} from "src/modulus/CloneFactory.sol";
+import "src/protocol/C.sol";
+import {CloneFactory} from "src/modules/CloneFactory.sol";
+import "lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
 
 /// Should their be a second layer of MPC for terminals? One layer for parameters and one layer for positions.
 
@@ -29,10 +31,14 @@ interface IPosition {
     function getInitState() external view returns (address, uint256, uint256);
 }
 
-abstract contract Position is IPosition, CloneFactory {
+abstract contract PositionFactory is IPosition, AccessControl, CloneFactory {
+    bytes32 internal constant PROTOCOL_ROLE = keccak256("PROTOCOL_ROLE");
+    address public constant PROTOCOL_ADDRESS = C.MODULEND_ADDR; // Modulus address
+
     InitState internal initState;
 
     function initialize(bytes calldata arguments) external override {
+        _grantRole(PROTOCOL_ROLE, PROTOCOL_ADDRESS);
         enter(arguments);
     }
 

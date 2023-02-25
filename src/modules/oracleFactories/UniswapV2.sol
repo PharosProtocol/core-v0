@@ -2,19 +2,19 @@
 
 pragma solidity 0.8.17;
 
-import {CloneFactory} from "src/modulus/CloneFactory.sol";
-import {Oracle} from "src/modulus/Oracle.sol";
+import {OracleFactory} from "src/modules/OracleFactory.sol";
 
 import "lib/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 
 /// NOTE: Should define argument invariants to confirm that clones are valid for UI.
+/// Path should start with USDC, end with asset of interest
 
 /*
  * This is an implementation contract that represents one method of computing asset prices.
  * It will create a clone for each unique set of arguments used (path, slippage).
  * Modulus will interact directly with the clone using only the standard functions.
  */
-contract UniswapV2Oracle is Oracle {
+contract UniswapV2Oracle is OracleFactory {
     address private constant UNI_V2_ROUTER02 = address(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
     uint256 private constant RATIO_BASE = 1e18;
 
@@ -23,7 +23,8 @@ contract UniswapV2Oracle is Oracle {
     // Max allowed slippage at each step of path.
     uint256 private stepSlippageRatio;
 
-    function initializeArguments(bytes calldata arguments) internal override initializer {
+    // Must be initializer.
+    function setArguments(bytes calldata arguments) internal override initializer {
         (path, stepSlippageRatio) = abi.decode(arguments, (address[], uint256));
     }
 

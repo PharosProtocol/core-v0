@@ -2,9 +2,8 @@
 
 pragma solidity 0.8.17;
 
-import "src/modulus/C.sol";
+import "src/protocol/C.sol";
 
-import "lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
 import {Clones} from "lib/openzeppelin-contracts/contracts/proxy/Clones.sol";
 import "lib/openzeppelin-contracts/contracts/proxy/utils/Initializable.sol";
 
@@ -26,17 +25,13 @@ import "lib/openzeppelin-contracts/contracts/proxy/utils/Initializable.sol";
  */
 
 interface ICloneFactory {
-    function setProtocolRole() external;
     function initialize(bytes calldata arguments) external;
 }
 
 /*
  * The CloneFactory is used to spawn clones and call their initializer to set instance-specific arguments.
  */
-abstract contract CloneFactory is AccessControl, Initializable, ICloneFactory {
-    bytes32 internal constant PROTOCOL_ROLE = keccak256("PROTOCOL_ROLE");
-    address public constant PROTOCOL_ADDRESS = C.MODULEND_ADDR; // Modulus address
-
+abstract contract CloneFactory is Initializable, ICloneFactory {
     event CloneCreated(address clone, bytes arguments);
 
     constructor() {
@@ -45,13 +40,6 @@ abstract contract CloneFactory is AccessControl, Initializable, ICloneFactory {
     }
 
     /// Functions defined below will use state of clones.
-
-    /* 
-     * Set protocol role to be Modulus protocol.
-     */
-    function setProtocolRole() external {
-        _grantRole(PROTOCOL_ROLE, PROTOCOL_ADDRESS);
-    }
 
     /*
      * Must be called on all proxy clones immediately after creation.
@@ -66,7 +54,6 @@ abstract contract CloneFactory is AccessControl, Initializable, ICloneFactory {
     function createClone(bytes calldata arguments) internal returns (address addr) {
         addr = Clones.clone(address(this));
         ICloneFactory cloneFactory = ICloneFactory(addr);
-        cloneFactory.setProtocolRole();
         cloneFactory.initialize(arguments);
         emit CloneCreated(addr, arguments); // Emitted from Implementation Contract address.
     }

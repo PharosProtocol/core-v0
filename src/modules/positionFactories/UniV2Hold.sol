@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.17;
 
-import {Position} from "src/modulus/Position.sol";
+import {PositionFactory} from "src/modules/PositionFactory.sol";
 
 import "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import "lib/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
@@ -23,7 +23,7 @@ import "lib/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
  * arbitrarily complex functions can be implemented, but the terminal creator will be responsible for providing a UI
  * to handle these interactions.
  */
-contract UniV2HoldTerminal is Position {
+contract UniV2HoldTerminal is PositionFactory {
     address public constant UNI_V2_ROUTER02 = address(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
     address[] private exitPath;
     uint256 private amountHeld;

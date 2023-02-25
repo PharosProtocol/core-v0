@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.17;
 
-import {CloneFactory} from "src/modulus/CloneFactory.sol";
+import {CloneFactory} from "src/modules/CloneFactory.sol";
 
 /**
  * Assessors are implemented using the Minimal Proxy Contract standard (https://eips.ethereum.org/EIPS/eip-1167).
@@ -16,24 +16,24 @@ import {CloneFactory} from "src/modulus/CloneFactory.sol";
  * Each Assessor clone is used to determine the cost of a loan.
  */
 interface IAssessor {
-    function getCost(address position) external returns (uint256);
+    function getCost(address position) external view returns (uint256);
 
     // Comparison operators are used so that Offers/Request can define a range of Assessors.
     function getCreationArguments() external view returns (bytes memory);
-    function isGTE(bytes calldata altArguments) external returns (bool);
-    function isLTE(bytes calldata altArguments) external returns (bool);
+    function isGTE(bytes calldata altArguments) external view returns (bool);
+    function isLTE(bytes calldata altArguments) external view returns (bool);
 }
 
-abstract contract Assessor is IAssessor, CloneFactory {
+abstract contract AssessorFactory is IAssessor, CloneFactory {
     bytes internal creationArguments;
 
     // Initialization logic used in all clones of all Assessors.
     function initialize(bytes calldata arguments) external override initializer {
         creationArguments = arguments;
-        initializeArguments();
+        setArguments();
     }
 
-    function initializeArguments() internal virtual;
+    function setArguments() internal virtual;
 
     function getCreationArguments() external view override returns (bytes memory) {
         return creationArguments;

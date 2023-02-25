@@ -9,7 +9,7 @@ Should we use data arguments or not?
 
 # Oracles
 Oracles are standalone contracts that report the value of an asset using custom logic. Users are able to permissionlessly deploy and use Oracles in Modulus. Oracles should adhere to the standard
-shown in IOracle.sol.
+shown in IOracleFactory.sol.
 
 ## Use with Modulend
 An Oracle can be permissionlessly deployed and used publicly within Modulus. However, in the interest of user security, there are additional steps an Oracle creator will need to take before Modulend will advertise the Oracle (or any Term Sheets using it).

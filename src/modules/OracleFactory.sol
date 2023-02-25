@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.17;
 
-import {CloneFactory} from "src/modulus/CloneFactory.sol";
+import {CloneFactory} from "src/modules/CloneFactory.sol";
 
 /**
  * Oracles are implemented using the Minimal Proxy Contract standard (https://eips.ethereum.org/EIPS/eip-1167).
@@ -21,11 +21,11 @@ interface IOracle {
     function getValue(uint256 amount) external returns (uint256);
 }
 
-abstract contract Oracle is IOracle, CloneFactory {
+abstract contract OracleFactory is IOracle, CloneFactory {
     // Initialization logic used in all clones of all Oracles.
     function initialize(bytes calldata arguments) external override initializer {
-        initializeArguments(arguments);
+        setArguments(arguments);
     }
 
-    function initializeArguments(bytes calldata arguments) internal virtual;
+    function setArguments(bytes calldata arguments) internal virtual;
 }
