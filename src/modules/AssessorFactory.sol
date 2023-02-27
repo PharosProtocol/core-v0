@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.17;
 
-import {CloneFactory} from "src/modules/CloneFactory.sol";
+import {Factory} from "src/modules/Factory.sol";
 
 /**
  * Assessors are implemented using the Minimal Proxy Contract standard (https://eips.ethereum.org/EIPS/eip-1167).
@@ -24,7 +24,7 @@ interface IAssessor {
     function isLTE(bytes calldata altArguments) external view returns (bool);
 }
 
-abstract contract AssessorFactory is IAssessor, CloneFactory {
+abstract contract AssessorFactory is IAssessor, Factory {
     bytes internal creationArguments;
 
     // Initialization logic used in all clones of all Assessors.
