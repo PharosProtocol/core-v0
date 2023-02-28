@@ -8,3 +8,9 @@
 [submodule "lib/v2-periphery"]
 	path = lib/v2-periphery
 	url = https://github.com/Uniswap/v2-periphery
+[submodule "lib/Tractor"]
+	path = lib/Tractor
+	url = https://github.com/funderberker/Tractor
+[submodule "lib/tractor"]
+	path = lib/tractor
+	url = https://github.com/funderberker/tractor
