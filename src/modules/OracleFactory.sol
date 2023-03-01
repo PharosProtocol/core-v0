@@ -18,7 +18,7 @@ import {Factory} from "src/modules/Factory.sol";
  */
 interface IOracle {
     // function getValue() external;
-    function getValue(uint256 amount) external returns (uint256);
+    function getValue(uint256 amount) external view returns (uint256);
 }
 
 abstract contract OracleFactory is IOracle, Factory {
