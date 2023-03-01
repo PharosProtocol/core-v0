@@ -24,19 +24,28 @@ import "lib/openzeppelin-contracts/contracts/proxy/utils/Initializable.sol";
  *    minimal set of features in the standard interface.
  */
 
-interface IFactory {
+interface IClone {
     function initialize(bytes calldata arguments) external;
+}
+
+interface IFactory {
+    function createClone(bytes calldata arguments) external returns (address addr);
 }
 
 /*
  * The Factory is used to spawn clones and call their initializer to set instance-specific arguments.
  */
-abstract contract Factory is Initializable, IFactory {
+abstract contract Factory is Initializable, IClone, IFactory {
+    // The address of the underlying factory for a clone to reference. Be aware that a hostile contract creator could
+    // spoof this to be any address - do not trust unverified contracts.
+    address immutable FACTORY_ADDR;
+
     event CloneCreated(address clone, bytes arguments);
 
     constructor() {
         // Do not allow initialization in implementation contract.
         _disableInitializers();
+        FACTORY_ADDR = address(this);
     }
 
     /// Functions defined below will use state of clones.
@@ -51,10 +60,10 @@ abstract contract Factory is Initializable, IFactory {
      * Create clone of this implementation contract, set protocol role, and initialize it by setting arguments
      * in clone state.
      */
-    function createClone(bytes calldata arguments) internal returns (address addr) {
+    function createClone(bytes calldata arguments) external returns (address addr) {
         addr = Clones.clone(address(this));
-        IFactory factory = IFactory(addr);
-        factory.initialize(arguments);
+        IClone clone = IClone(addr);
+        clone.initialize(arguments);
         emit CloneCreated(addr, arguments); // Emitted from Implementation Contract address.
     }
 }

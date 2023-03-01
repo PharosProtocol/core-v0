@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.17;
 
-import {AssessorFactory} from "src/modules/AssessorFactory.sol";
+import {AssessorFactory, IAssessor} from "src/modules/AssessorFactory.sol";
 import {IPosition} from "src/modules/PositionFactory.sol";
 
 /*s
@@ -17,8 +17,11 @@ contract StandardAssessor is AssessorFactory {
 
     // Initialization logic used by all clones of ~this~ Assessor.
     function setArguments() internal override initializer {
-        (originationFeeRatio, interestRatio, profitShareRatio) =
-            abi.decode(creationArguments, (uint256, uint256, uint256));
+        (originationFeeRatio, interestRatio, profitShareRatio) = decodeArguments(creationArguments);
+    }
+
+    function decodeArguments(bytes memory arguments) public pure returns (uint256, uint256, uint256) {
+        return abi.decode(arguments, (uint256, uint256, uint256));
     }
 
     function getCost(address position) external view override returns (uint256) {
@@ -32,13 +35,19 @@ contract StandardAssessor is AssessorFactory {
         return originationFee + interest + profitShare;
     }
 
-    function isGTE(bytes calldata altArguments) external view override returns (bool) {
-        (uint256 ofr, uint256 ir, uint256 psr) = abi.decode(altArguments, (uint256, uint256, uint256));
-        return (originationFeeRatio >= ofr && interestRatio >= ir && profitShareRatio >= psr) ? true : false;
+    function isGT(address assessor) external view override returns (bool) {
+        IAssessor a = IAssessor(assessor);
+        // NOTE: Factory address could be spoofed by a hostile contract. Need a better check.
+        // require(FACTORY_ADDR == a.FACTORY_ADDRESS);
+        (uint256 ofr, uint256 ir, uint256 psr) = decodeArguments(a.getCreationArguments());
+        return (originationFeeRatio > ofr && interestRatio > ir && profitShareRatio > psr) ? true : false;
     }
 
-    function isLTE(bytes calldata altArguments) external view override returns (bool) {
-        (uint256 ofr, uint256 ir, uint256 psr) = abi.decode(altArguments, (uint256, uint256, uint256));
-        return (originationFeeRatio <= ofr && interestRatio <= ir && profitShareRatio <= psr) ? true : false;
+    function isLT(address assessor) external view override returns (bool) {
+        IAssessor a = IAssessor(assessor);
+        // NOTE: Factory address could be spoofed by a hostile contract. Need a better check.
+        // require(FACTORY_ADDR == a.FACTORY_ADDRESS);
+        (uint256 ofr, uint256 ir, uint256 psr) = decodeArguments(a.getCreationArguments());
+        return (originationFeeRatio < ofr && interestRatio < ir && profitShareRatio < psr) ? true : false;
     }
 }

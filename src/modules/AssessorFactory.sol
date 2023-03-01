@@ -17,11 +17,12 @@ import {Factory} from "src/modules/Factory.sol";
  */
 interface IAssessor {
     function getCost(address position) external view returns (uint256);
+    function decodeArguments(bytes memory arguments) external pure returns (uint256, uint256, uint256);
 
     // Comparison operators are used so that Offers/Request can define a range of Assessors.
     function getCreationArguments() external view returns (bytes memory);
-    function isGTE(bytes calldata altArguments) external view returns (bool);
-    function isLTE(bytes calldata altArguments) external view returns (bool);
+    function isGT(address assessor) external view returns (bool);
+    function isLT(address assessor) external view returns (bool);
 }
 
 abstract contract AssessorFactory is IAssessor, Factory {

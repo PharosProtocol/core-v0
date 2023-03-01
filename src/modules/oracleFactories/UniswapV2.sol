@@ -28,7 +28,7 @@ contract UniswapV2Oracle is OracleFactory {
         (path, stepSlippageRatio) = abi.decode(arguments, (address[], uint256));
     }
 
-    function getValue(uint256 amount) external override returns (uint256) {
+    function getValue(uint256 amount) external view override returns (uint256) {
         IUniswapV2Router02 router = IUniswapV2Router02(UNI_V2_ROUTER02);
         uint256[] memory outAmounts = router.getAmountsOut(amount, path);
         return outAmounts[outAmounts.length - 1] * (outAmounts.length - 1) * stepSlippageRatio / RATIO_BASE;

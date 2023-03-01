@@ -17,7 +17,7 @@ contract StaticPriceOracle is OracleFactory {
         (value) = abi.decode(arguments, (uint256));
     }
 
-    function getValue(uint256 amount) external override returns (uint256) {
+    function getValue(uint256 amount) external view override returns (uint256) {
         return amount * value;
     }
 }
