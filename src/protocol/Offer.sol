@@ -3,27 +3,52 @@
 pragma solidity 0.8.17;
 
 import "lib/tractor/Tractor.sol";
+import {IFactory} from "src/modules/Factory.sol";
+import {IAssessor} from "src/modules/AssessorFactory.sol";
+// import {ILiquidator} from "src/modules/LiquidatorFactory.sol";
 
-struct Order {
-    address owner;
+// This struct is used to identify an item shared in both lender and borrower arrays.
+struct IndexPair {
+    uint128 lender;
+    uint128 borrower;
+}
+
+struct Offer {
     bool isBorrowRequest;
-    address allowedCollateral; // bytes32 allowedCollateralAssetSet;
-    uint256 allowedAmount; // mapping(address => uint256) assets;
+    address[] allowedCollateralAssets; // bytes32 allowedCollateralAssetSet;
+    address[] allowedLendAssets; // bytes32 allowedCollateralAssetSet;
     /* Modules */
-    bytes32 oracleSet;
-    address minAssessor; // Least expensive assessor of this type willing to use
-    address maxAssessor; // Most expensive assessor of this type willing to use
-    bytes32 terminalSet;
-    address minLiquidator; // Least expensive liquidator instance of this type willing to use
-    address maxLiquidator; // Most expensive liquidator instance of this type willing to use
-    /* Scope */
-    uint256 minCollateralizationRatio;
+    address[] allowedTakers;
+    address[] allowedOracles; // bytes32 oracleSet;
+    address[] allowedTerminals; // bytes32 terminalSet;
+    address[2] assessorRange; // Least to most expensive assessor instances of same type willing to use
+    address[2] liquidatorRange; // Least to most expensive liquidator instances of same type willing to use
+    uint256[2] collateralizationRatioRange; // Min and max collateralization ratio
+    uint256[2] durationLimitRange; // Min and max collateralization ratio
+}
+
+// Data configured by operator who calls transaction to create position.
+struct PositionConfig {
+    address lender;
+    address borrower;
+    IndexPair terminalIdx; // address (position factory)
+    bytes callData; // Set by operator, not verified by modulus.
+    bytes32 lendAccount;
+    IndexPair lendAssetIdx; // address
+    IndexPair lendOracleIdx; // address
+    uint256 lendAmount;
+    bytes32 borrowAccount;
+    IndexPair collateralAssetIdx; // address
+    IndexPair collateralOracleIdx; // address
+    uint256 collateralizationRatio;
+    address assessor;
+    address liquidator;
+    uint256 durationLimit;
+}
+
+struct PositionRecord {
     uint256 maxCollateralizationRatio;
-    uint256 minDurationLimit;
-    uint256 maxDurationLimit;
-    address[] allowedFillers;
-    /* logistics */
-    uint256 deadline;
+    uint256 maxCloseTime;
 }
 
 /**
@@ -36,21 +61,119 @@ struct Order {
  * Offers are created without affecting state via signatures. Therefore, an offer that has been confirmed to be
  * authentic via its signature but is not yet stored here is known to still have its full value available.
  */
-contract OrderBook is Tractor {
+contract Basin is Tractor {
     enum BlueprintDataType {OFFER}
 
-    event CreatedPosition(address operator, bytes32 lendOffer, bytes32 borrowOffer, address position);
+    string constant PROTOCOL_NAME = "modulus";
+    string constant PROTOCOL_VERSION = "1.0.0";
 
-    /**
-     * @notice Fill lend offer and borrow offer at mutually agreeable terms.
-     * @param   lendOffer  .
-     * @param   borrowOffer  .
-     * @param   position  .
-     */
-    function createPosition(Blueprint calldata lendOffer, Blueprint calldata borrowOffer, Position calldata position)
-        verifySignature(lendOffer)
-        verifySignature(borrowOffer)
-        checkMetadataIncrementNonce(lendOffer)
-        checkMetadataIncrementNonce(borrowOffer)
-    {}
+    event CreatedPosition(address operator, address position, bytes32 lendOffer, bytes32 borrowOffer);
+
+    constructor() Tractor(PROTOCOL_NAME, PROTOCOL_VERSION) {}
+
+    function createPosition(
+        PositionConfig calldata position,
+        SignedBlueprint calldata lendBlueprint,
+        SignedBlueprint calldata borrowBlueprint
+    )
+        external
+        verifySignature(lendBlueprint)
+        verifySignature(borrowBlueprint)
+        verifyUseBlueprint(lendBlueprint)
+        verifyUseBlueprint(borrowBlueprint)
+    {
+        Offer memory lendOffer;
+        Offer memory borrowOffer;
+        // Block scoping to satisfy stack limit.
+        {
+            (, bytes calldata lendBlueprintData) = decodeDataField(lendBlueprint.blueprint.data);
+            (, bytes calldata borrowBlueprintData) = decodeDataField(borrowBlueprint.blueprint.data);
+            lendOffer = abi.decode(lendBlueprintData, (Offer));
+            borrowOffer = abi.decode(borrowBlueprintData, (Offer));
+        }
+
+        // Check blueprint data. Verify Lender and Borrower.
+        require(lendBlueprint.blueprint.publisher == position.lender);
+        require(lendOffer.isBorrowRequest == false);
+        require(borrowBlueprint.blueprint.publisher == position.borrower);
+        require(borrowOffer.isBorrowRequest == true);
+        // Verify that position is compatible with both offers.
+        verifyCompatibility(position, lendOffer, borrowOffer);
+
+        IFactory terminal = IFactory(lendOffer.allowedTerminals[position.terminalIdx.lender]);
+        emit CreatedPosition(
+            msg.sender,
+            terminal.createClone(position.callData),
+            lendBlueprint.blueprintHash,
+            borrowBlueprint.blueprintHash
+            );
+    }
+
+    function verifyCompatibility(PositionConfig calldata position, Offer memory lendOffer, Offer memory borrowOffer)
+        public
+        view
+    {
+        // Check that position indices on both offers reference same components.
+        _verifyMatchedReferences(position, lendOffer, borrowOffer);
+        // Check that position is compatible with both offers.
+        _verifyCompatible(position, lendOffer, position.borrower);
+        _verifyCompatible(position, borrowOffer, position.lender);
+    }
+
+    // Verify Lender and Borrower both reference same components.
+    function _verifyMatchedReferences(
+        PositionConfig calldata position,
+        Offer memory lendOffer,
+        Offer memory borrowOffer
+    ) private pure {
+        require(
+            lendOffer.allowedLendAssets[position.lendAssetIdx.lender]
+                == borrowOffer.allowedLendAssets[position.lendAssetIdx.borrower]
+        );
+        require(
+            lendOffer.allowedOracles[position.lendOracleIdx.lender]
+                == borrowOffer.allowedOracles[position.lendOracleIdx.borrower]
+        );
+        require(
+            lendOffer.allowedCollateralAssets[position.collateralAssetIdx.lender]
+                == borrowOffer.allowedCollateralAssets[position.collateralAssetIdx.borrower]
+        );
+        require(
+            lendOffer.allowedOracles[position.collateralOracleIdx.lender]
+                == borrowOffer.allowedOracles[position.collateralOracleIdx.borrower]
+        );
+        require(
+            lendOffer.allowedTerminals[position.terminalIdx.lender]
+                == borrowOffer.allowedTerminals[position.terminalIdx.borrower]
+        );
+    }
+
+    function _verifyCompatible(PositionConfig calldata position, Offer memory offer, address taker) private view {
+        // Taker is allowed.
+        for (uint256 i; i < offer.allowedTakers.length; i++) {
+            if (taker == offer.allowedTakers[i]) break;
+            require(false); // NOTE seems like bad practice. idk.
+        }
+
+        // Assessor within range.
+        IAssessor a = IAssessor(position.assessor);
+        require(!a.isLT(offer.assessorRange[0]) && !a.isGT(offer.assessorRange[1]));
+
+        // TODO: implement liquidator factory.
+        // // Liquidator within range.
+        // ILiquidator l = ILiquidator(position.liquidator);
+        // require(!l.isLT(offer.liquidatorRange[0]) && !l.isGT(offer.liquidatorRange[1]));
+
+        // Collateralization ratio within range.
+        require(
+            position.collateralizationRatio >= offer.collateralizationRatioRange[0]
+                && position.collateralizationRatio <= offer.collateralizationRatioRange[1]
+        );
+
+        // Duration limit within range.
+        require(
+            position.durationLimit >= offer.durationLimitRange[0]
+                && position.durationLimit <= offer.durationLimitRange[1]
+        );
+    }
 }
