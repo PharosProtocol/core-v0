@@ -14,3 +14,7 @@
 [submodule "lib/tractor"]
 	path = lib/tractor
 	url = https://github.com/funderberker/tractor
+[submodule "lib/v3-periphery"]
+	path = lib/v3-periphery
+	url = https://github.com/Uniswap/v3-periphery
+	branch = v1.3.0
