@@ -2,19 +2,20 @@
 
 pragma solidity 0.8.17;
 
-import {OracleFactory} from "src/modules/OracleFactory.sol";
+import {Factory} from "src/modules/Factory.sol";
+import {IOracle} from "src/modules/OracleFactory.sol";
 
 /*
  * This is an implementation contract that represents one method of computing asset prices.
- * It will create a clone for each unique set of arguments used (path, slippage).
+ * It will create a clone for each unique set of parameters used (path, slippage).
  * Modulus will interact directly with the clone using only the standard functions.
  */
-contract StaticPriceOracle is OracleFactory {
+contract StaticPriceOracle is IOracle, Factory {
     // Static value to assign each NFT.
     uint256 private value;
 
-    function setArguments(bytes calldata arguments) internal override initializer {
-        (value) = abi.decode(arguments, (uint256));
+    function initialize(bytes calldata parameters) external override initializer {
+        (value) = abi.decode(parameters, (uint256));
     }
 
     function getValue(uint256 amount) external view override returns (uint256) {

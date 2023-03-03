@@ -37,12 +37,12 @@ abstract contract PositionFactory is IPosition, AccessControl, Factory {
 
     InitState internal initState;
 
-    function initialize(bytes calldata arguments) external override {
+    function initialize(bytes calldata parameters) external override {
         _grantRole(PROTOCOL_ROLE, PROTOCOL_ADDRESS);
-        enter(arguments);
+        enter(parameters);
     }
 
-    function enter(bytes calldata arguments) internal virtual;
+    function enter(bytes calldata parameters) internal virtual;
 
     function getInitState() external view override returns (address, uint256, uint256) {
         return (initState.asset, initState.amount, initState.time);

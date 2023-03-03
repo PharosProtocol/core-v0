@@ -2,12 +2,10 @@
 
 pragma solidity 0.8.17;
 
-import {Factory} from "src/modules/Factory.sol";
-
 /**
  * Oracles are implemented using the Minimal Proxy Contract standard (https://eips.ethereum.org/EIPS/eip-1167).
  * Each unique Implementation Contract represents one computation method for assessing value of assets.
- * Each clone represents different set of call arguments to the valuation Method, likely including which asset is being
+ * Each clone represents different set of call parameters to the valuation Method, likely including which asset is being
  * valued.
  * Each Implementation Contract must implement the functionionality of the standard Oracle Interface defined here.
  * Implementations may also offer additional non-essential functionality beyond the standard interface.
@@ -19,13 +17,4 @@ import {Factory} from "src/modules/Factory.sol";
 interface IOracle {
     // function getValue() external;
     function getValue(uint256 amount) external view returns (uint256);
-}
-
-abstract contract OracleFactory is IOracle, Factory {
-    // Initialization logic used in all clones of all Oracles.
-    function initialize(bytes calldata arguments) external override initializer {
-        setArguments(arguments);
-    }
-
-    function setArguments(bytes calldata arguments) internal virtual;
 }

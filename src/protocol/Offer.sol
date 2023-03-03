@@ -3,7 +3,7 @@
 pragma solidity 0.8.17;
 
 import "lib/tractor/Tractor.sol";
-import {IFactory} from "src/modules/Factory.sol";
+import {IComparableParameterFactory, IFactory} from "src/modules/Factory.sol";
 import {IAssessor} from "src/modules/AssessorFactory.sol";
 // import {ILiquidator} from "src/modules/LiquidatorFactory.sol";
 
@@ -21,6 +21,7 @@ struct Offer {
     address[] allowedTakers;
     address[] allowedOracles; // bytes32 oracleSet;
     address[] allowedTerminals; // bytes32 terminalSet;
+    bytes[] terminalCallData; // used from borrower
     address[2] assessorRange; // Least to most expensive assessor instances of same type willing to use
     address[2] liquidatorRange; // Least to most expensive liquidator instances of same type willing to use
     uint256[2] collateralizationRatioRange; // Min and max collateralization ratio
@@ -31,8 +32,9 @@ struct Offer {
 struct PositionConfig {
     address lender;
     address borrower;
+    IndexPair takerIdx;
     IndexPair terminalIdx; // address (position factory)
-    bytes callData; // Set by operator, not verified by modulus.
+    // bytes callData; // Set by operator, not verified by modulus. /// NOTE cannot have here, operator may be hostile.
     bytes32 lendAccount;
     IndexPair lendAssetIdx; // address
     IndexPair lendOracleIdx; // address
@@ -41,6 +43,7 @@ struct PositionConfig {
     IndexPair collateralAssetIdx; // address
     IndexPair collateralOracleIdx; // address
     uint256 collateralizationRatio;
+    address assessorFactory;
     address assessor;
     address liquidator;
     uint256 durationLimit;
@@ -84,7 +87,7 @@ contract Basin is Tractor {
     {
         Offer memory lendOffer;
         Offer memory borrowOffer;
-        // Block scoping to satisfy stack limit.
+        // Block scoping to avoid stack limit.
         {
             (, bytes calldata lendBlueprintData) = decodeDataField(lendBlueprint.blueprint.data);
             (, bytes calldata borrowBlueprintData) = decodeDataField(borrowBlueprint.blueprint.data);
@@ -92,32 +95,54 @@ contract Basin is Tractor {
             borrowOffer = abi.decode(borrowBlueprintData, (Offer));
         }
 
-        // Check blueprint data. Verify Lender and Borrower.
-        require(lendBlueprint.blueprint.publisher == position.lender);
-        require(lendOffer.isBorrowRequest == false);
-        require(borrowBlueprint.blueprint.publisher == position.borrower);
-        require(borrowOffer.isBorrowRequest == true);
         // Verify that position is compatible with both offers.
-        verifyCompatibility(position, lendOffer, borrowOffer);
+        verifyCompatibility(position, lendOffer, borrowOffer, lendBlueprint.blueprint, borrowBlueprint.blueprint);
 
-        IFactory terminal = IFactory(lendOffer.allowedTerminals[position.terminalIdx.lender]);
         emit CreatedPosition(
             msg.sender,
-            terminal.createClone(position.callData),
+            IFactory(borrowOffer.allowedTerminals[position.terminalIdx.borrower]).createClone(
+                borrowOffer.terminalCallData[position.terminalIdx.borrower]
+            ),
             lendBlueprint.blueprintHash,
             borrowBlueprint.blueprintHash
             );
     }
 
-    function verifyCompatibility(PositionConfig calldata position, Offer memory lendOffer, Offer memory borrowOffer)
-        public
-        view
-    {
+    function verifyCompatibility(
+        PositionConfig calldata position,
+        Offer memory lendOffer,
+        Offer memory borrowOffer,
+        Blueprint calldata lendBlueprint,
+        Blueprint calldata borrowBlueprint
+    ) public view {
+        _verifyLenderAndBorrower(position, lendOffer, borrowOffer, lendBlueprint, borrowBlueprint);
         // Check that position indices on both offers reference same components.
         _verifyMatchedReferences(position, lendOffer, borrowOffer);
         // Check that position is compatible with both offers.
-        _verifyCompatible(position, lendOffer, position.borrower);
-        _verifyCompatible(position, borrowOffer, position.lender);
+        _verifyCompatible(position, lendOffer);
+        _verifyCompatible(position, borrowOffer);
+    }
+
+    function _verifyLenderAndBorrower(
+        PositionConfig calldata position,
+        Offer memory lendOffer,
+        Offer memory borrowOffer,
+        Blueprint calldata lendBlueprint,
+        Blueprint calldata borrowBlueprint
+    ) private pure {
+        // Check blueprint data. Verify Lender and Borrower.
+        require(lendBlueprint.publisher == position.lender);
+        require(lendOffer.isBorrowRequest == false);
+        require(borrowBlueprint.publisher == position.borrower);
+        require(borrowOffer.isBorrowRequest == true);
+
+        // Takers are allowed.
+        if (lendOffer.allowedTakers.length > 0) {
+            require(lendOffer.allowedTakers[position.takerIdx.lender] == position.borrower);
+        }
+        if (borrowOffer.allowedTakers.length > 0) {
+            require(borrowOffer.allowedTakers[position.takerIdx.borrower] == position.lender);
+        }
     }
 
     // Verify Lender and Borrower both reference same components.
@@ -148,16 +173,11 @@ contract Basin is Tractor {
         );
     }
 
-    function _verifyCompatible(PositionConfig calldata position, Offer memory offer, address taker) private view {
-        // Taker is allowed.
-        for (uint256 i; i < offer.allowedTakers.length; i++) {
-            if (taker == offer.allowedTakers[i]) break;
-            require(false); // NOTE seems like bad practice. idk.
-        }
-
+    function _verifyCompatible(PositionConfig calldata position, Offer memory offer) private view {
         // Assessor within range.
-        IAssessor a = IAssessor(position.assessor);
-        require(!a.isLT(offer.assessorRange[0]) && !a.isGT(offer.assessorRange[1]));
+        IComparableParameterFactory af = IComparableParameterFactory(position.assessorFactory);
+        require(!af.isLT(position.assessor, offer.assessorRange[0])); // fails is assessor is not from factory.
+        require(!af.isGT(position.assessor, offer.assessorRange[1]));
 
         // TODO: implement liquidator factory.
         // // Liquidator within range.

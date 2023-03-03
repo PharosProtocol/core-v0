@@ -10,7 +10,7 @@ pragma solidity 0.8.17;
  */
 
 /*
- * An OracleFactory may be trusted, but the arguments provided to one of its instances may be hostile, so a user must
+ * An OracleFactory may be trusted, but the parameters provided to one of its instances may be hostile, so a user must
  * select exactly which Oracle instances they are willing to use. Rather than have each account store the same
  * mapping of addresses they can be grouped and found here.
  */

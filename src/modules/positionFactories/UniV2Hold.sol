@@ -9,7 +9,7 @@ import "lib/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 
 /*
  * This contract serves as a demonstration of how to implement a Modulus Terminal.
- * Terminals should be deisgned as Minimal Proxy Contracts with an arbitrary number of proxy contracts. Each MPC
+ * Terminals should be designed as Minimal Proxy Contracts with an arbitrary number of proxy contracts. Each MPC
  * represents one position that has been open through the Terminal. This allows for the capital of multiple positions
  * to remain isolated from each other even when deployed in the same terminal.
  *
@@ -17,7 +17,7 @@ import "lib/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
  * a terminal can offer an arbitrary set of additional methods that act as wrappers for the underlying protocol;
  * however, the Modulend marketplace cannot be updated to support all possible actions in all possible terminals. Users
  * will automatically have the ability to call functions listed in the interface as well as any public functions that do
- * not require arguments. These additional argumentless function calls can be used to wrap functionality of the
+ * not require parameters. These additional argumentless function calls can be used to wrap functionality of the
  * underlying protocol to enable simple updating and interaction with a position - we recommend they are named in a
  * self documenting fashion, so that users can be programatically informed of their purpose. Further,
  * arbitrarily complex functions can be implemented, but the terminal creator will be responsible for providing a UI
@@ -33,9 +33,9 @@ contract UniV2HoldTerminal is PositionFactory {
     event UniV2HoldPositionEntered(address asset, uint256 amount);
     event UniV2HoldPositionExited(address asset, uint256 amount);
 
-    function enter(bytes calldata arguments) internal override initializer {
+    function enter(bytes calldata parameters) internal override initializer {
         (uint256 amountIn, uint256 amountOutMin, address[] memory path, uint256 deadline) =
-            abi.decode(arguments, (uint256, uint256, address[], uint256));
+            abi.decode(parameters, (uint256, uint256, address[], uint256));
 
         for (uint256 i; i < path.length; i++) {
             exitPath.push(path[i]);
@@ -52,7 +52,7 @@ contract UniV2HoldTerminal is PositionFactory {
     }
 
     // NOTE: What if enter is triggered by Lender (or anyone else but borrower) and they set amountOutMin very low to
-    //       create sandwhich opportunity or increase odds of liquidation? Could even do it in a loop to drain all
+    //       create sandwich opportunity or increase odds of liquidation? Could even do it in a loop to drain all
     //       Request capital to 0.
 
     // TODO: can add recipient in certain scenarios to save an ERC20 transfer.
