@@ -7,6 +7,9 @@ import {IComparableParameterFactory, IFactory} from "src/modules/Factory.sol";
 import {IAssessor} from "src/modules/AssessorFactory.sol";
 // import {ILiquidator} from "src/modules/LiquidatorFactory.sol";
 
+// NOTE to allow smart contract order creation:
+//      https://eips.ethereum.org/EIPS/eip-1271
+
 // This struct is used to identify an item shared in both lender and borrower arrays.
 struct IndexPair {
     uint128 lender;

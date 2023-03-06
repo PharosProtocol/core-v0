@@ -7,7 +7,6 @@ import {IOracle} from "src/modules/OracleFactory.sol";
 
 import "lib/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 
-/// NOTE: Should define argument invariants to confirm that clones are valid for UI.
 /// Path should start with USDC, end with asset of interest
 
 /*

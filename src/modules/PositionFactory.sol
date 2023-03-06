@@ -33,7 +33,7 @@ interface IPosition {
 
 abstract contract PositionFactory is IPosition, AccessControl, Factory {
     bytes32 internal constant PROTOCOL_ROLE = keccak256("PROTOCOL_ROLE");
-    address public constant PROTOCOL_ADDRESS = C.MODULEND_ADDR; // Modulus address
+    address public constant PROTOCOL_ADDRESS = address(1); // Modulus address
 
     InitState internal initState;
 
