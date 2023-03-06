@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.17;
+pragma solidity 0.8.15;
 
 import {IAssessor} from "src/modules/AssessorFactory.sol";
 import {IPosition} from "src/modules/PositionFactory.sol";
