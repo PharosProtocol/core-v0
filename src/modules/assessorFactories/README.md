@@ -2,7 +2,7 @@
 Assessors are standalone contracts that calculate the current cost of a loan using custom logic. Users are able to permissionlessly deploy and use Assessors in Modulus. Assessors should adhere to the standard
 shown in IAssessorFactory.sol.
 
-## Use with Modulend
+## Use with Pharos
 An Assessors can be permissionlessly deployed and used publicly within Modulus. However, in the interest of user security, there are additional steps an Assessor creator will need to take before Modulend will advertise the Assessor (or any components using it).
 
 ### Visibility
