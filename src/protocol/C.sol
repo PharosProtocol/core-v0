@@ -8,7 +8,7 @@ library C {
 
     uint256 internal constant SECS_IN_HOUR = 3600;
 
-    address internal constant MODULEND_ADDR = address(100);
+    address internal constant MODULEND_ADDR = address(0x1);
 
     address internal constant UNI_V2_ROUTER02 = address(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
 

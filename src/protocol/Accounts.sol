@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.15;
 
-import "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
  * An account holds Lender or Borrower capital that can be deployed through Offers or Requests. A user can have only

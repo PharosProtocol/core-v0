@@ -2,13 +2,22 @@
 
 pragma solidity 0.8.15;
 
-import {IOracle} from "src/modules/oracles/IOracle.sol";
+import {IOracle} from "src/interfaces/IOracle.sol";
+import {OracleParameters} from "src/libraries/LibOracle.sol";
 
 // NOTE yes, this would be cheaper by allowing an int to be set directly for the position, but is this really such an
 //      important use case that the entire design should be altered? i don't think so.
 
 interface IStaticPriceOracle is IOracle {
-    function decodeParameters(bytes calldata parameters) external pure returns (uint256 value);
+    function decodeParameters(OracleParameters calldata oracleParams)
+        external
+        pure
+        returns (Parameters memory params);
+}
+
+struct Parameters {
+    address asset;
+    uint256 value;
 }
 
 /*
@@ -17,21 +26,22 @@ interface IStaticPriceOracle is IOracle {
  * Modulus will interact directly with the clone using only the standard functions.
  */
 contract StaticPriceOracle is IStaticPriceOracle {
-    function decodeParameters(bytes calldata parameters) public pure returns (uint256) {
-        return abi.decode(parameters, (uint256));
+    function decodeParameters(OracleParameters calldata oracleParams) public pure returns (Parameters memory params) {
+        params.asset = oracleParams.asset;
+        params.value = abi.decode(oracleParams.instanceParams, (uint256));
     }
 
-    /// @dev no illegal parameters within the type constraints.
-    function verifyParameters(bytes calldata) external pure override {
+    /// @dev no illegal parameters possible within the type constraints.
+    function verifyParameters(OracleParameters calldata) external pure override {
         return;
     }
 
     /// @dev ignore amount parameter
-    function getValue(uint256 amount, bytes calldata parameters) external pure returns (uint256) {
-        return amount * decodeParameters(parameters); // rounding?
+    function getValue(uint256 amount, OracleParameters calldata oracleParams) external pure returns (uint256) {
+        return amount * decodeParameters(oracleParams).value; // rounding?
     }
 
-    function getAmount(uint256 value, bytes calldata parameters) external pure returns (uint256) {
-        return value * decodeParameters(parameters); // rounding?
+    function getAmount(uint256 value, OracleParameters calldata oracleParams) external pure returns (uint256) {
+        return value * decodeParameters(oracleParams).value; // rounding?
     }
 }

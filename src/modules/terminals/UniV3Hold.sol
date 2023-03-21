@@ -2,7 +2,8 @@
 
 pragma solidity 0.8.15;
 
-import {PositionFactory} from "src/modules/PositionFactory.sol";
+import {Terminal} from "src/libraries/Terminal.sol";
+import {IPosition} from "src/interfaces/IPosition.sol";
 
 import "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
@@ -20,6 +21,14 @@ import {BytesLib} from "lib/v3-periphery/contracts/libraries/BytesLib.sol";
 import {Path} from "lib/v3-periphery/contracts/libraries/path.sol";
 import {IUniswapV3Factory} from "lib/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import {CallbackValidation} from "lib/v3-periphery/contracts/libraries/CallbackValidation.sol";
+
+// See v3-periphery/contracts/libraries/path.sol for bytes usage
+interface IUniV3HoldTerminal is IPosition {
+    function decodeParameters(bytes calldata parameters)
+        external
+        pure
+        returns (bytes memory enterPath, bytes memory exitPath);
+}
 
 // import {SwapCallbackData} from "lib/v3-periphery/contracts/SwapRouter.sol";
 struct SwapCallbackData {
@@ -49,37 +58,39 @@ struct SwapCallbackData {
  *
  * NOTE for sake of efficiency, should split into multi-hop and single pool paths.
  */
-contract UniV3HoldTerminal is PositionFactory {
+contract UniV3HoldTerminal is Terminal {
     address public constant UNI_V3_FACTORY = address(0x1F98431c8aD98523631AE4a59f267346ea31F984);
     address public constant UNI_V3_ROUTER = address(0xE592427A0AEce92De3Edee1F18E0157C05861564);
     uint256 private constant RATIO_BASE = 1e18;
 
-    // Terminal parameters
+    // Terminal parameters shared for all positions.
+    // NOTE sharing params here increases simplicity but costs position customizability. how much of a burden is it to
+    //      have very large parameters set in each order? that will probably dictate how we want to handle this.
+    //      Also, setting them here prevents a position creator from setting them in a hostile fashion.
     uint32 private constant TRADE_TWAP_TIME = 300; // https://oracle.euler.finance
     uint32 private constant VALUE_TWAP_TIME = 60; // too short allows manipulation, too long increases risk to lender.
     uint256 private constant DEADLINE_OFFSET = 120;
-    uint256 private constant ALLOWED_STEP_SLIPPAGE_RATIO = RATIO_BASE * 1 / 100;
-    bytes private ENTER_PATH;
-    bytes private EXIT_PATH;
+    uint256 private constant ALLOWED_STEP_SLIPPAGE_RATIO = RATIO_BASE / 10; // 0.1% slippage ?
 
     // Position state
     uint256 private amountHeld;
 
-    event UniV3HoldPositionEntered(uint256 enterAmount, uint256 positionAmount);
-    event UniV3HoldPositionExited(uint256 positionAmount, uint256 exitAmount); // position amount here redundant. can save gas by removing.
-
     using Path for bytes;
     using BytesLib for bytes;
+
+    function decodeParameters(bytes calldata parameters) public pure returns (bytes memory, bytes memory) {
+        return abi.decode(parameters, (bytes, bytes));
+    }
 
     /**
      * @notice Send ERC20 assets that Uniswap expects for swap.
      * @dev see lib/v3-core/contracts/interfaces/callback/IUniswapV3SwapCallback.sol
      * @param   amount0Delta 0 represents pool index (not directionality)
      * @param   amount1Delta 1 represents pool index (not directionality)
-     * @param   data  .
+     * @param   parameters  .
      */
-    function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata data) external {
-        SwapCallbackData memory swapCallbackData = abi.decode(data, (SwapCallbackData));
+    function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata parameters) external {
+        SwapCallbackData memory swapCallbackData = abi.decode(parameters, (SwapCallbackData));
         require(swapCallbackData.payer == address(this));
         (address tokenIn, address tokenOut, uint24 fee) = swapCallbackData.path.decodeFirstPool(); // Token order is directionality?
         CallbackValidation.verifyCallback(UNI_V3_FACTORY, tokenIn, tokenOut, fee); // requires sender == pool
@@ -98,20 +109,21 @@ contract UniV3HoldTerminal is PositionFactory {
         require(IERC20(tokenIn).transfer(address(msg.sender), amountToPay));
     }
 
-    function enter(bytes calldata parameters) internal override initializer {
-        (uint256 amountIn) = abi.decode(parameters, (uint256));
+    function _enter(address, uint256 amount, bytes calldata parameters) internal override {
+        (bytes memory enterPath,) = decodeParameters(parameters);
         ISwapRouter router = ISwapRouter(UNI_V3_ROUTER);
         ISwapRouter.ExactInputParams memory swapParams = ISwapRouter.ExactInputParams({
-            path: ENTER_PATH,
+            path: enterPath,
             recipient: address(this), // position address
             deadline: block.timestamp + DEADLINE_OFFSET,
-            amountIn: amountIn,
-            amountOutMinimum: getPathTWAPQuote(ENTER_PATH, amountIn, TRADE_TWAP_TIME) * ALLOWED_STEP_SLIPPAGE_RATIO
-                * ENTER_PATH.numPools() / RATIO_BASE
+            amountIn: amount,
+            amountOutMinimum: (
+                getPathTWAPQuote(enterPath, amount, TRADE_TWAP_TIME) * ALLOWED_STEP_SLIPPAGE_RATIO * enterPath.numPools()
+                ) / RATIO_BASE
         });
 
         amountHeld = router.exactInput(swapParams); // msg.sender from router pov is clone (Position) address
-        emit UniV3HoldPositionEntered(amountIn, amountHeld);
+            // return amountHeld; // can a named return value be used with a state variable?
     }
 
     // TODO: can add recipient in certain scenarios to save an ERC20 transfer.
@@ -120,19 +132,20 @@ contract UniV3HoldTerminal is PositionFactory {
     //       amount. then if they give themselves a bad deal they are the only one who loses. Alt Answer: Allow
     //       liquidator to pass through any function via callback, so long as they return enough assets to Modulend
     //       lender / borrower in end.
-    function exit(bytes calldata) external onlyRole(PROTOCOL_ROLE) returns (uint256 amountOut) {
+    function _exit(bytes calldata parameters) internal override returns (uint256) {
+        (, bytes memory exitPath) = decodeParameters(parameters);
         ISwapRouter router = ISwapRouter(UNI_V3_ROUTER);
         ISwapRouter.ExactInputParams memory swapParams = ISwapRouter.ExactInputParams({
-            path: EXIT_PATH,
+            path: exitPath,
             recipient: address(this), // position address
             deadline: block.timestamp + DEADLINE_OFFSET,
             amountIn: amountHeld,
-            amountOutMinimum: getPathTWAPQuote(EXIT_PATH, amountHeld, TRADE_TWAP_TIME) * ALLOWED_STEP_SLIPPAGE_RATIO
-                * EXIT_PATH.numPools() / RATIO_BASE
+            amountOutMinimum: (
+                getPathTWAPQuote(exitPath, amountHeld, TRADE_TWAP_TIME) * ALLOWED_STEP_SLIPPAGE_RATIO * exitPath.numPools()
+                ) / RATIO_BASE
         });
 
-        amountOut = router.exactInput(swapParams); // msg.sender from router pov is clone (Position) address
-        emit UniV3HoldPositionExited(amountHeld, amountOut);
+        return router.exactInput(swapParams); // msg.sender from router pov is clone (Position) address
     }
 
     /// Get the TWAP of the pool across interval. token1/token0.
@@ -157,7 +170,7 @@ contract UniV3HoldTerminal is PositionFactory {
     }
 
     /// Not cheap, due to repeated external calls.
-    function getPathTWAPQuote(bytes storage path, uint256 amount, uint32 twapTime) private view returns (uint256) {
+    function getPathTWAPQuote(bytes memory path, uint256 amount, uint32 twapTime) private view returns (uint256) {
         for (uint256 i = 0; i < path.numPools(); i++) {
             (address tokenIn, address tokenOut, uint24 fee) = path.decodeFirstPool();
             address pool = PoolAddress.computeAddress(UNI_V3_FACTORY, PoolAddress.getPoolKey(tokenIn, tokenOut, fee));
@@ -168,8 +181,9 @@ contract UniV3HoldTerminal is PositionFactory {
 
     // Public Helpers.
 
-    /// Expected to be used off-chain.
-    function getValue() external view override returns (uint256) {
-        return getPathTWAPQuote(EXIT_PATH, amountHeld, VALUE_TWAP_TIME);
+    /// @dev Expected to be used off-chain
+    function getValue(bytes calldata parameters) external view override returns (uint256) {
+        (, bytes memory exitPath) = decodeParameters(parameters);
+        return getPathTWAPQuote(exitPath, amountHeld, VALUE_TWAP_TIME);
     }
 }
