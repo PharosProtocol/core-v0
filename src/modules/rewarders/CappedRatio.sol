@@ -4,7 +4,7 @@ pragma solidity 0.8.15;
 
 import {IOracle} from "src/interfaces/IOracle.sol";
 import {IRewarder} from "src/interfaces/IRewarder.sol";
-import {PositionTerms} from "src/libraries/LibOrderBook.sol";
+import {Agreement} from "src/libraries/LibOrderBook.sol";
 import {OracleParameters} from "src/libraries/LibOracle.sol";
 
 /*
@@ -25,26 +25,26 @@ contract CappedRatio is ICappedRatio {
     }
 
     /// @dev may return a number that is larger than the total collateral amount
-    function getRewardValue(PositionTerms calldata positionTerms) external view returns (uint256) {
+    function getRewardValue(Agreement calldata agreement) external view returns (uint256) {
         (uint256 valueRatio, uint256 minRewardValue, uint256 maxRewardValue) =
-            decodeParameters(positionTerms.rewarder.parameters);
+            decodeParameters(agreement.rewarder.parameters);
 
-        uint256 loanValue = IOracle(positionTerms.loanOracle.addr).getValue(
-            positionTerms.loanAmount, abi.decode(positionTerms.loanOracle.parameters, (OracleParameters))
+        uint256 loanValue = IOracle(agreement.loanOracle.addr).getValue(
+            agreement.loanAmount, abi.decode(agreement.loanOracle.parameters, (OracleParameters))
         );
         uint256 baseRewardValue = loanValue * valueRatio / RATIO_BASE;
         // NOTE what if total collateral value < minRewardValue?
         if (baseRewardValue < minRewardValue) {
-            return IOracle(positionTerms.collateralOracle.addr).getAmount(
-                minRewardValue, abi.decode(positionTerms.loanOracle.parameters, (OracleParameters))
+            return IOracle(agreement.collateralOracle.addr).getAmount(
+                minRewardValue, abi.decode(agreement.loanOracle.parameters, (OracleParameters))
             );
         } else if (baseRewardValue > maxRewardValue) {
-            return IOracle(positionTerms.collateralOracle.addr).getAmount(
-                maxRewardValue, abi.decode(positionTerms.loanOracle.parameters, (OracleParameters))
+            return IOracle(agreement.collateralOracle.addr).getAmount(
+                maxRewardValue, abi.decode(agreement.loanOracle.parameters, (OracleParameters))
             );
         } else {
-            return IOracle(positionTerms.collateralOracle.addr).getAmount(
-                baseRewardValue, abi.decode(positionTerms.loanOracle.parameters, (OracleParameters))
+            return IOracle(agreement.collateralOracle.addr).getAmount(
+                baseRewardValue, abi.decode(agreement.loanOracle.parameters, (OracleParameters))
             );
         }
     }

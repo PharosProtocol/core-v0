@@ -32,7 +32,7 @@ contract OrderBook is Tractor {
     string constant PROTOCOL_NAME = "modulus";
     string constant PROTOCOL_VERSION = "1.0.0";
 
-    event OrdersFilled(PositionTerms position, bytes32 lendOffer, bytes32 borrowOffer, address operator);
+    event OrdersFilled(Agreement position, bytes32 lendOffer, bytes32 borrowOffer, address operator);
 
     constructor() Tractor(PROTOCOL_NAME, PROTOCOL_VERSION) {}
 
@@ -48,7 +48,7 @@ contract OrderBook is Tractor {
         verifyCompatibility(orderMatch, offer, request);
 
         // Set Position data that cannot be computed off chain by caller.
-        PositionTerms memory position = generatePositionTerms(orderMatch, offer, request);
+        Agreement memory position = generateAgreement(orderMatch, offer, request);
         position.deploymentTime = block.timestamp;
         position.addr = ITerminal(position.terminal.addr).createPosition(
             abi.decode(position.terminal.parameters, (TerminalCalldata))
@@ -143,10 +143,10 @@ contract OrderBook is Tractor {
         require(Utils.isSameAllowedModuleRef(orderMatch.terminal, offer.terminal, request.terminal));
     }
 
-    function generatePositionTerms(OrderMatch calldata orderMatch, Offer memory offer, Request memory request)
+    function generateAgreement(OrderMatch calldata orderMatch, Offer memory offer, Request memory request)
         private
         pure
-        returns (PositionTerms memory position)
+        returns (Agreement memory position)
     {
         position.minCollateralRatio = orderMatch.minCollateralRatio;
         position.durationLimit = orderMatch.durationLimit;

@@ -3,7 +3,7 @@
 pragma solidity 0.8.15;
 
 import {IComparableModule} from "src/interfaces/IComparableModule.sol";
-import {PositionTerms} from "src/libraries/LibOrderBook.sol";
+import {Agreement} from "src/libraries/LibOrderBook.sol";
 
 /**
  * Rewarders are used to determine liquidator reward for a liquidation. Values are denoted in USDC values to enable
@@ -20,5 +20,5 @@ import {PositionTerms} from "src/libraries/LibOrderBook.sol";
  */
 interface IRewarder is IComparableModule {
     /// @notice gets the *current* reward for liquidating a position
-    function getRewardValue(PositionTerms calldata positionTerms) external view returns (uint256);
+    function getRewardValue(Agreement calldata agreement) external view returns (uint256);
 }

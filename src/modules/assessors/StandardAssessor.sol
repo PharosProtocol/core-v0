@@ -4,7 +4,7 @@ pragma solidity 0.8.15;
 
 import {IAssessor} from "src/interfaces/IAssessor.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
-import {PositionTerms} from "src/libraries/LibOrderBook.sol";
+import {Agreement} from "src/libraries/LibOrderBook.sol";
 
 /*
  * Example Assessor type that calculates cost using configurable origination fee, interest rate, and profit share ratio.
@@ -24,13 +24,13 @@ contract StandardAssessor is IStandardAssessor {
     }
 
     /// @notice Return the cost of a loan, quantified in the Loan Asset.
-    function getCost(PositionTerms calldata positionTerms) external view override returns (uint256) {
+    function getCost(Agreement calldata agreement) external view override returns (uint256) {
         (uint256 originationFeeRatio, uint256 interestRatio, uint256 profitShareRatio) =
-            decodeParameters(positionTerms.assessor.parameters);
-        uint256 positionValue = IPosition(positionTerms.addr).getValue(positionTerms.terminal.parameters); // duplicate decode here
-        uint256 originationFee = (positionTerms.loanAmount * originationFeeRatio) / RATIO_DECIMALS;
-        uint256 interest = ((block.timestamp - positionTerms.deploymentTime) * interestRatio) / RATIO_DECIMALS;
-        uint256 profit = positionValue - originationFee - interest - positionTerms.loanAmount;
+            decodeParameters(agreement.assessor.parameters);
+        uint256 positionValue = IPosition(agreement.addr).getValue(agreement.terminal.parameters); // duplicate decode here
+        uint256 originationFee = (agreement.loanAmount * originationFeeRatio) / RATIO_DECIMALS;
+        uint256 interest = ((block.timestamp - agreement.deploymentTime) * interestRatio) / RATIO_DECIMALS;
+        uint256 profit = positionValue - originationFee - interest - agreement.loanAmount;
         uint256 profitShare = profit > 0 ? (profit * profitShareRatio) / RATIO_DECIMALS : 0;
         return originationFee + interest + profitShare;
     }

@@ -68,7 +68,7 @@ struct OrderMatch {
  * @notice Position definition is derived from a Match and both Orders.
  * @dev Signed data structure used to store position configuration off chain, reported via events.
  */
-struct PositionTerms {
+struct Agreement {
     /* Ranged variables */
     uint256 minCollateralRatio;
     uint256 durationLimit;
