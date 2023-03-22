@@ -6,10 +6,7 @@ import "lib/tractor/Tractor.sol";
 import "src/libraries/LibUtil.sol";
 
 import "src/libraries/LibOrderBook.sol";
-import {ITerminal} from "src/interfaces/ITerminal.sol";
-import {TerminalCalldata} from "src/libraries/LibTerminal.sol";
-import {Utils} from "src/libraries/LibUtil.sol";
-// // import {ILiquidator} from "src/modules/LiquidatorFactory.sol";
+import {ITerminal} from "src/terminal/ITerminal.sol";
 
 // NOTE enabling partial fills would benefit from on-chain validation of orders so that each taker does not need
 //      to pay gas to independently verify. Verified orders could be signed by Tractor.
@@ -32,7 +29,7 @@ contract OrderBook is Tractor {
     string constant PROTOCOL_NAME = "modulus";
     string constant PROTOCOL_VERSION = "1.0.0";
 
-    event OrdersFilled(Agreement position, bytes32 lendOffer, bytes32 borrowOffer, address operator);
+    event OrdersFilled(Agreement agreement, bytes32 lendOffer, bytes32 borrowOffer, address operator);
 
     constructor() Tractor(PROTOCOL_NAME, PROTOCOL_VERSION) {}
 
@@ -48,18 +45,16 @@ contract OrderBook is Tractor {
         verifyCompatibility(orderMatch, offer, request);
 
         // Set Position data that cannot be computed off chain by caller.
-        Agreement memory position = generateAgreement(orderMatch, offer, request);
-        position.deploymentTime = block.timestamp;
-        position.addr = ITerminal(position.terminal.addr).createPosition(
-            abi.decode(position.terminal.parameters, (TerminalCalldata))
-        );
-        emit OrdersFilled(position, lendBlueprint.blueprintHash, borrowBlueprint.blueprintHash, msg.sender);
+        Agreement memory agreement = generateAgreement(orderMatch, offer, request);
+        agreement.deploymentTime = block.timestamp;
+        agreement.addr = ITerminal(agreement.terminal.addr).createPosition(agreement.loanAsset, agreement.loanAmount, agreement.terminal.parameters);
+        emit OrdersFilled(agreement, lendBlueprint.blueprintHash, borrowBlueprint.blueprintHash, msg.sender);
 
         // Create blueprint to store signed Position off chain via events.
         SignedBlueprint memory signedBlueprint;
         signedBlueprint.blueprint.publisher = address(this);
         signedBlueprint.blueprint.data =
-            encodeDataField(bytes1(uint8(BlueprintDataType.POSITION)), abi.encode(position));
+            encodeDataField(bytes1(uint8(BlueprintDataType.POSITION)), abi.encode(agreement));
         signedBlueprint.blueprint.endTime = type(uint256).max;
         signedBlueprint.blueprintHash = getBlueprintHash(signedBlueprint.blueprint);
         // TODO: Security: Is is possible to intentionally manufacture a blueprint with different data that creates the same hash?

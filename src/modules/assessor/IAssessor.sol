@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.15;
 
-import {IComparableModule} from "src/interfaces/IComparableModule.sol";
+import {IComparableModule} from "src/modules/IComparableModule.sol";
 import {Agreement} from "src/libraries/LibOrderBook.sol";
 
 /**

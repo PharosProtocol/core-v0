@@ -20,6 +20,8 @@ struct Offer {
     ModuleReference[2] liquidator;
     /* Allowlisted variables */
     address[] takers; // if empty, allow any taker
+    address[] loanAsset;
+    address[] collateralAsset;
     ModuleReference[] loanOracle;
     ModuleReference[] collateralOracle;
     ModuleReference[] terminal;
@@ -40,6 +42,8 @@ struct Request {
     ModuleReference[2] liquidator;
     /* Allowlisted variables */
     address[] takers; // if empty, allow any taker
+    address[] loanAsset;
+    address[] collateralAsset;
     ModuleReference[] loanOracle;
     ModuleReference[] collateralOracle;
     ModuleReference[] terminal;
@@ -58,6 +62,8 @@ struct OrderMatch {
     ModuleReference rewarder;
     ModuleReference liquidator;
     /* Allowlisted variables */
+    address loanAsset;
+    address collateralAsset;
     IndexPair takerIdx;
     IndexPair loanOracle;
     IndexPair collateralOracle;
@@ -80,6 +86,8 @@ struct Agreement {
     /* Allowlisted variables */
     address lender;
     address borrower;
+    address loanAsset; // how to ensure loanAsset is match to loanOracle? require 1:1 array order matching?
+    address collateralAsset; // same q as above
     ModuleReference loanOracle;
     ModuleReference collateralOracle;
     ModuleReference terminal;

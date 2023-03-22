@@ -6,11 +6,10 @@ import "src/protocol/C.sol";
 
 import {AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
 import {Clones} from "lib/openzeppelin-contracts/contracts/proxy/Clones.sol";
-import {ITerminal} from "src/interfaces/ITerminal.sol";
-import {TerminalCalldata} from "src/libraries/LibTerminal.sol";
+import {ITerminal} from "src/terminal/ITerminal.sol";
 import "lib/openzeppelin-contracts/contracts/proxy/utils/Initializable.sol";
 
-import {IPosition} from "src/interfaces/IPosition.sol";
+import {IPosition} from "src/terminal/IPosition.sol";
 
 /// NOTE: Should define parameter invariants to confirm that clone parameters are valid before showing in UI.
 
@@ -30,7 +29,7 @@ import {IPosition} from "src/interfaces/IPosition.sol";
 
 /// @dev not expected to be used outside of this file.
 interface IChildClone {
-    function initialize(TerminalCalldata calldata terminalCalldata) external;
+    function initialize(address asset, uint256 amount, bytes calldata parameters) external;
 }
 
 /*
@@ -68,7 +67,7 @@ abstract contract Terminal is ITerminal, IChildClone, IPosition, Initializable, 
     /*
      * Create position (clone) that will use this terminal.
      */
-    function createPosition(TerminalCalldata memory terminalCalldata)
+    function createPosition(address asset, uint256 amount, bytes memory parameters)
         external
         implementationExecution
         onlyRole(PROTOCOL_ROLE)
@@ -76,7 +75,7 @@ abstract contract Terminal is ITerminal, IChildClone, IPosition, Initializable, 
     {
         addr = Clones.clone(address(this));
         IChildClone clone = IChildClone(addr); // does MPC guarantee unique addresses for clones?
-        clone.initialize(terminalCalldata);
+        clone.initialize(asset, amount, parameters);
         // addr.call(abi.encodeWithSignature("initialize(bytes)", parameters));
     }
 
@@ -85,13 +84,16 @@ abstract contract Terminal is ITerminal, IChildClone, IPosition, Initializable, 
      * NOTE "When used with inheritance, manual care must be taken to not invoke a parent initializer twice, or to ensure that all initializers are idempotent" <- idk what this is about, but sounds relevant.
      * NOTE cannot do role check modifier here because state not yet set
      */
-    function initialize(TerminalCalldata calldata terminalCalldata) external override initializer cloneExecution {
+    function initialize(address asset, uint256 amount, bytes calldata parameters)
+        external
+        override
+        initializer
+        cloneExecution
+    {
         _grantRole(PROTOCOL_ROLE, PROTOCOL_ADDRESS); // Position role set
 
-        _enter(terminalCalldata.asset, terminalCalldata.amount, terminalCalldata.parameters);
-        emit PositionCreated(
-            TERMINAL_ADDRESS, terminalCalldata.asset, terminalCalldata.amount, terminalCalldata.parameters
-        );
+        _enter(asset, amount, parameters);
+        emit PositionCreated(TERMINAL_ADDRESS, asset, amount, parameters);
     }
 
     function _enter(address asset, uint256 amount, bytes calldata parameters) internal virtual;

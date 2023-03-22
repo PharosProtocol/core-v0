@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.15;
 
-import {Terminal} from "src/libraries/Terminal.sol";
-import {IPosition} from "src/interfaces/IPosition.sol";
+import {Terminal} from "src/terminal/Terminal.sol";
+import {IPosition} from "src/terminal/IPosition.sol";
 
 import "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
