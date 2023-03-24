@@ -1,23 +1,26 @@
 # Modules
 
-Each Module category will have many types implemented and each type will have many instances. Each type is expected to use the protocol-defined struct
-for its parameters encoding. Each struct includes the minimum set of data that is necessary to operate an Module and a `parameters` field that contains
-arbitrary data for implementation-specific use for the type. Different instances of the same type are distinguished through unique parameter data. 
-The structure of the `parameters` field is expected to be defined by the Module type implementation contract and standardized across all instances of that type.
+The Module system is what enables Modulus to be permisionless and customizable. The entire system can be thought of as a 
+large number of small contracts that plug into a common orderbook via standardized and versioned interfaces. The benefits 
+of the Module system comes at the cost of complexity and minor additional inefficiency to the system. The module system
+also indirectly increases system security by distributing capital and risk across many contracts and implementations.
 
-The data represented in a Module parameter instance is static and will not change after an Agreement is deployed.
+## Understanding Modules
+There are 4 layers to consider when understanding a Module. From highest level to lowest level:
+1. Module Category - Defined by which standardized *interface* a module implements  
+2. Module Type - Defined by the *solidity implementation* of a module
+3. Module Instance - Defined by the *parameter bytes*, which are immutable across the lifetime of the instance
+4. Module State - Set and altered by Type *functions*
 
-An implementation contract for a Module represents a Type of that module.
-A set of parameters + a type implementation is an instance.
+Each Module Category may have many Types implemented and each Type may have many Instances which will in turn manage their
+own state.
+Each Type must adhere to the protocol-defined interface. Implementation specific data can be passed through an arbitrary 
+parameter set which is unique to the implementation. Types may implement additional functions beyond the standard interface,
+although the other components of the system will be unable to use the additional functionality.
+Two Instances of the same type are distinguished only by their `parameters` bytes. Some Types may not need either Instances or State (i.e. Assessors). Some Types may need Instances but not state (i.e. Oracles).
 
+Standard interfaces may also require non-state changing arguments to ensure delivery of the minimum set of valid data to operate
+a Module of that Category. ? you can guarantee parity between different components of an agreement - i.e. loanAsset and loanOracle ?
 
-???
-why define a struct for each rather than just passing the bytes directly?
-you can guarantee parity between different components of an agreement - i.e. loanAsset and loanOracle
-^^ forced compatibility can be achieved through arguments in interfaces
-
-
-Modulus interface defines module
-solidity implementation defines type
-parameters bytes define an instance
-call arguments define a state
+## Implementing a Module
+are modules expected to verify their data?
