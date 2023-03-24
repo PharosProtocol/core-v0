@@ -3,6 +3,23 @@
 pragma solidity 0.8.15;
 
 import {IComparableModule} from "src/modules/IComparableModule.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
+// Significant security risk to represent eth this way? Could wrap it instead.
+// https://twitter.com/pashovkrum/status/1637722714772258817?s=20
+bytes3 constant ETH_STANDARD = bytes3(uint24(1));
+bytes3 constant ERC20_STANDARD = bytes3(uint24(20));
+bytes3 constant ERC721_STANDARD = bytes3(uint24(721));
+bytes3 constant ERC1155_STANDARD = bytes3(uint24(1155));
+
+/// @notice Represents a single type of asset. Notice that standard = 1 represents ETH.
+///         Designed initially to support ETH, ERC20, ERC721, ERC1155. May work for others.
+struct Asset {
+    bytes3 standard; // id of token standard. Using ERC#, but can be arbitrary.
+    address addr;
+    uint256 id; // 721, 1155
+    bytes data; // 721, 1155
+}
 
 struct IndexPair {
     uint128 offer;
@@ -15,6 +32,28 @@ struct ModuleReference {
 }
 
 library Utils {
+    /// @notice transfer ETH, ERC20, ERC721, ERC1155 tokens. ETH can only be sent from self.
+    /// @dev modules do not need to use this function. It is provided as a qol helper for what is expected to be the
+    ///      majority of implementations. Support for additional standards can be implemented on a per module basis.
+    function transferAsset(address from, address to, Asset calldata asset, uint256 amount) internal {
+        if (asset.standard == ETH_STANDARD) {
+            require(from == address(this), "transferAsset: ETH cannot be sent by third party");
+            payable(to).transfer(amount);
+        } else if (asset.standard == ERC20_STANDARD) {
+            require(IERC20(asset.addr).transferFrom(from, to, amount));
+        } else if (asset.standard == ERC721_STANDARD) {
+            // TODO implement
+            revert("not yet implemented");
+            // IERC721(asset.addr).safeTransferFrom(address(this), msg.sender, asset.id);
+        } else if (asset.standard == ERC1155_STANDARD) {
+            // TODO implement
+            revert("not yet implemented");
+            // IERC1155(asset.addr).safeTransferFrom(address(this), msg.sender, asset.id, amount, asset.data);
+        } else {
+            revert("transferAsset: unsupported asset");
+        }
+    }
+
     function isEqModuleRef(ModuleReference calldata module0, ModuleReference calldata module1)
         public
         pure
