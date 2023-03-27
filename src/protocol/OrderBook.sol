@@ -6,6 +6,8 @@ import "lib/tractor/Tractor.sol";
 import "src/libraries/LibUtil.sol";
 
 import "src/libraries/LibOrderBook.sol";
+import "src/modules/oracle/IOracle.sol";
+import "src/terminal/IPosition.sol";
 import {ITerminal} from "src/terminal/ITerminal.sol";
 
 // NOTE enabling partial fills would benefit from on-chain validation of orders so that each taker does not need
@@ -23,13 +25,14 @@ contract OrderBook is Tractor {
     enum BlueprintDataType {
         OFFER,
         REQUEST,
-        POSITION
+        AGREEMENT
     }
 
     string constant PROTOCOL_NAME = "modulus";
     string constant PROTOCOL_VERSION = "1.0.0";
 
     event OrdersFilled(Agreement agreement, bytes32 lendOffer, bytes32 borrowOffer, address operator);
+    event LiquidationKicked(address liquidator, address position);
 
     constructor() Tractor(PROTOCOL_NAME, PROTOCOL_VERSION) {}
 
@@ -47,19 +50,52 @@ contract OrderBook is Tractor {
         // Set Position data that cannot be computed off chain by caller.
         Agreement memory agreement = generateAgreement(orderMatch, offer, request);
         agreement.deploymentTime = block.timestamp;
-        agreement.addr = ITerminal(agreement.terminal.addr).createPosition(agreement.loanAsset, agreement.loanAmount, agreement.terminal.parameters);
+        agreement.positionAddr = ITerminal(agreement.terminal.addr).createPosition(
+            agreement.loanAsset, agreement.loanAmount, agreement.terminal.parameters
+        );
         emit OrdersFilled(agreement, lendBlueprint.blueprintHash, borrowBlueprint.blueprintHash, msg.sender);
 
         // Create blueprint to store signed Position off chain via events.
         SignedBlueprint memory signedBlueprint;
         signedBlueprint.blueprint.publisher = address(this);
         signedBlueprint.blueprint.data =
-            encodeDataField(bytes1(uint8(BlueprintDataType.POSITION)), abi.encode(agreement));
+            encodeDataField(bytes1(uint8(BlueprintDataType.AGREEMENT)), abi.encode(agreement));
         signedBlueprint.blueprint.endTime = type(uint256).max;
         signedBlueprint.blueprintHash = getBlueprintHash(signedBlueprint.blueprint);
         // TODO: Security: Is is possible to intentionally manufacture a blueprint with different data that creates the same hash?
         signBlueprint(signedBlueprint.blueprintHash);
         publishBlueprint(signedBlueprint); // These verifiable blueprints will be used to interact with positions.
+    }
+
+    function kick(SignedBlueprint calldata agreementBlueprint) external verifySignature(agreementBlueprint) {
+        (bytes1 blueprintDataType, bytes memory blueprintData) = decodeDataField(agreementBlueprint.blueprint.data);
+        require(
+            blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "OrderBook: Invalid blueprint data type"
+        );
+        Agreement memory agreement = abi.decode(blueprintData, (Agreement));
+
+        // Cannot liquidate if not owned by protocol (liquidating/liquidated/exited).
+        IPosition position = IPosition(agreement.positionAddr);
+        require(position.hasRole(CONTROLLER_ROLE, address(this)), "Position not owned by protocol");
+
+        require(isLiquidatable(agreement), "OrderBook: Position is not liquidatable");
+        // Transfer ownership of the position to the liquidator, which includes collateral.
+        position.transferContract(agreement.liquidator.addr);
+        // Kick the position to begin liquidation.
+        ILiquidator(agreement.liquidator.addr).takeKick(agreementBlueprint.blueprintHash);
+        emit LiquidationKicked(agreement.liquidator.addr, agreement.positionAddr);
+    }
+
+    function exitPosition(SignedBlueprint calldata positionBlueprint) external verifySignature(positionBlueprint) {
+        (bytes1 blueprintDataType, bytes memory blueprintData) = decodeDataField(positionBlueprint.blueprint.data);
+        require(
+            blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "OrderBook: Invalid blueprint data type"
+        );
+        Agreement memory agreement = abi.decode(blueprintData, (Agreement));
+        require(msg.sender == agreement.borrower, "OrderBook: Only borrower can exit position without liquidation");
+        // require(isPositionExitable(agreement), "OrderBook: Position is not exitable");
+        // IPosition position = IPosition(agreement.positionAddr).exit();
+        // TODO implement such that assets go directly back into user accounts.
     }
 
     /// @notice decode order blueprint data and ensure blueprint metadata is valid pairing with embedded data.

@@ -4,6 +4,7 @@ pragma solidity 0.8.15;
 
 import "lib/tractor/Tractor.sol";
 import "src/libraries/LibUtil.sol";
+import "src/Terminal/IPosition.sol";
 
 /**
  * @notice Order representing a Lender.
@@ -76,7 +77,7 @@ struct OrderMatch {
  */
 struct Agreement {
     /* Ranged variables */
-    uint256 minCollateralRatio;
+    uint256 minCollateralRatio; // Position value / collateral value
     uint256 durationLimit;
     uint256 loanAmount;
     uint256 collateralAmount;
@@ -92,6 +93,27 @@ struct Agreement {
     ModuleReference collateralOracle;
     ModuleReference terminal;
     /* Position deployment details */
-    address addr;
+    address positionAddr;
     uint256 deploymentTime;
+}
+
+library LibOrderBook {
+    /// @notice Is the position defined by an agreement up for liquidation and not yet kicked
+    /// @dev liquidation based on CR or duration limit
+    function isLiquidatable(Agreement agreement) public view returns (bool) {
+        IPosition position = IPosition(agreement.positionAddr);
+        // if (positionValue == 0) return false;
+
+        // If past expiration, liquidatable.
+        if (agreement.deploymentTime + agreement.durationLimit > block.timestamp) return true;
+
+        // Position value / collateral value
+        uint256 collateralRatio = RATIO_FACTOR * position.getValue()
+            / IOracle(agreement.collateralOracle).getValue(agreement.collateralAmount);
+
+        if (collateralRatio < agreement.minCollateralRatio) {
+            return true;
+        }
+        return false;
+    }
 }
