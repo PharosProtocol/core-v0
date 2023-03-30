@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.15;
+pragma solidity 0.8.19;
 
 /*
  * A parameterized module is a module which uses a specific set of parameters in its calculations. These parameters
@@ -9,7 +9,7 @@ pragma solidity 0.8.15;
  * positions. This allows for a single contract of each type to be used for all possible instances.
  */
 
-interface IComparableModule {
+interface IComparableParameters {
     /// @dev Assumes bytes are both defined for the same type of parameterized module.
     function isGTE(bytes calldata parameters0, bytes calldata parameters1) external pure returns (bool);
     /// @dev Assumes bytes are both defined for the same type of parameterized module.

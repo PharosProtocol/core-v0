@@ -1,9 +1,15 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.15;
+pragma solidity 0.8.19;
 
-import {ILiquidator} from "src/modules/liquidators/ILiquidator.sol";
+import "src/protocol/C.sol";
+import {Liquidator} from "src/modules/liquidator/ILiquidator.sol";
 import "src/libraries/LibUtil.sol";
+import {Agreement} from "src/libraries/LibOrderBook.sol";
+import {IPosition} from "src/Terminal/IPosition.sol";
+import {IAssessor} from "src/modules/assessor/IAssessor.sol";
+import {IAccount} from "src/modules/account/IAccount.sol";
+import {IOracle} from "src/modules/oracle/IOracle.sol";
 
 struct Parameters {
     uint256 valueRatio;
@@ -23,44 +29,44 @@ struct Parameters {
 
 contract InstantReward is Liquidator {
     address private constant UNI_V2_ROUTER02 = address(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
-    uint256 private constant RATIO_FACTOR = 1e18;
     uint256 private constant MAX_SLIPPAGE = 10; // 10% slippage
 
     event Liquidated(address position, uint256 lenderReturn, uint256 borrowerReturn);
 
-    function verifyCompatibility(Agreement agreement, bytes parameters) external view {
+    function verifyCompatibility(Agreement memory agreement, bytes memory) external pure {
         require(agreement.loanAsset.standard == ERC20_STANDARD, "loan asset must be ERC20"); // can also do eth?
         require(agreement.collateralAsset.standard == ERC20_STANDARD, "collateral asset must be ERC20"); // can also do eth?
     }
 
-    function _liquidate(Agreement memory agreement) external override {
-        Parameters memory params = abi.decode(parameters, (Parameters));
+    function _liquidate(Agreement memory agreement, bytes memory) internal override {
+        // Parameters memory params = abi.decode(parameters, (Parameters));
 
-        require(liquidating[agreement.positionAddr], "position not in liquidation phase");
-
-        IPosition position = IPosition(agreement.positionAddr);
-        uint256 positionValue = position.getValue(); // denoted in loan asset
-
-        // Distribution of value. Priority: liquidator, lender, borrower.
-        uint256 liquidatorReward = getRewardValue(agreement); // denoted in loan asset
-        uint256 lenderCap = agreement.loanAmount + IAssessor(agreement.assessor.addr).getCost(agreement); // denoted in loan asset
+        // require(liquidating[agreement.positionAddr], "position not in liquidation phase");
 
         uint256 lenderReturnExpected;
         uint256 borrowerReturnExpected;
+        {
+            IPosition position = IPosition(agreement.positionAddr);
+            uint256 positionValue = position.getValue(agreement.terminal.parameters); // denoted in loan asset
 
-        if (positionValue < liquidatorReward) {
-            lenderReturnExpected = 0;
-            borrowerReturnExpected = 0;
-        } else if (positionValue < liquidatorReward + lenderCap) {
-            lenderReturnExpected = positionValue - liquidatorReward;
-            borrowerReturnExpected = 0;
-        } else {
-            lenderReturnExpected = lenderCap;
-            borrowerReturnExpected = positionValue - lenderReturnExpected - liquidatorReward; // might be profitable for borrower or not
+            // Distribution of value. Priority: liquidator, lender, borrower.
+            uint256 liquidatorReward = getRewardValue(agreement); // denoted in loan asset
+            uint256 lenderCap = agreement.loanAmount + IAssessor(agreement.assessor.addr).getCost(agreement); // denoted in loan asset
+
+            if (positionValue < liquidatorReward) {
+                lenderReturnExpected = 0;
+                borrowerReturnExpected = 0;
+            } else if (positionValue < liquidatorReward + lenderCap) {
+                lenderReturnExpected = positionValue - liquidatorReward;
+                borrowerReturnExpected = 0;
+            } else {
+                lenderReturnExpected = lenderCap;
+                borrowerReturnExpected = positionValue - lenderReturnExpected - liquidatorReward; // might be profitable for borrower or not
+            }
         }
 
-        IAccount lenderAccount = Account(agreement.lender);
-        IAccount borrowerAccount = Account(agreement.borrower);
+        IAccount lenderAccount = IAccount(agreement.lenderAccount.addr);
+        IAccount borrowerAccount = IAccount(agreement.borrowerAccount.addr);
 
         /**
          * OPTION 1 - Liquidator takes position and handles callback **
@@ -89,10 +95,10 @@ contract InstantReward is Liquidator {
                 value = lenderReturnExpected;
             } else if (agreement.loanAsset.standard == ERC20_STANDARD) {
                 IERC20 loanAsset = IERC20(agreement.loanAsset.addr); // NOTE double spend concerns?
-                loanAsset.approve(agreement.lendAccount.addr, lenderReturnExpected);
+                loanAsset.approve(agreement.lenderAccount.addr, lenderReturnExpected);
             }
-            lenderAccount.addAssets{value: value}(
-                [agreement.loanAsset], [lenderReturnExpected], agreement.lendAccount.parameters
+            lenderAccount.addAsset{value: value}(
+                agreement.loanAsset, lenderReturnExpected, agreement.lenderAccount.parameters
             );
         }
         if (borrowerReturnExpected > 0) {
@@ -101,13 +107,13 @@ contract InstantReward is Liquidator {
                 value = borrowerReturnExpected;
             } else if (agreement.collateralAsset.standard == ERC20_STANDARD) {
                 IERC20 collateralAsset = IERC20(agreement.collateralAsset.addr); // NOTE double spend concerns?
-                collateralAsset.approve(agreement.borrowAccount.addr, borrowerReturnExpected);
+                collateralAsset.approve(agreement.borrowerAccount.addr, borrowerReturnExpected);
             }
-            borrowAccount.addAssets(
-                [agreement.collateralAsset], [borrowerReturnExpected], agreement.borrowAccount.parameters
+            borrowerAccount.addAsset(
+                agreement.collateralAsset, borrowerReturnExpected, agreement.borrowerAccount.parameters
             );
         }
-        IPosition(agreement.positionAddr).setOwner(msg.sender);
+        IPosition(agreement.positionAddr).transferContract(msg.sender);
 
         emit Liquidated(agreement.positionAddr, lenderReturnExpected, borrowerReturnExpected);
     }
@@ -132,26 +138,19 @@ contract InstantReward is Liquidator {
     }
 
     /// @dev may return a number that is larger than the total collateral amount
-    function getRewardValue(Agreement calldata agreement) private view returns (uint256) {
+    function getRewardValue(Agreement memory agreement) private view returns (uint256) {
         Parameters memory p = abi.decode(agreement.liquidator.parameters, (Parameters));
 
-        uint256 loanValue = IOracle(agreement.loanOracle.addr).getValue(
-            agreement.loanAsset, agreement.loanAmount, agreement.loanOracle.parameters
-        );
-        uint256 baseRewardValue = loanValue * p.valueRatio / RATIO_FACTOR;
+        uint256 loanValue =
+            IOracle(agreement.loanOracle.addr).getValue(agreement.loanAmount, agreement.loanOracle.parameters);
+        uint256 baseRewardValue = loanValue * p.valueRatio / C.RATIO_FACTOR;
         // NOTE what if total collateral value < minRewardValue?
         if (baseRewardValue < p.minRewardValue) {
-            return IOracle(agreement.loanOracle.addr).getAmount(
-                agreement.loanAsset, p.minRewardValue, agreement.loanOracle.parameters
-            );
+            return IOracle(agreement.loanOracle.addr).getAmount(p.minRewardValue, agreement.loanOracle.parameters);
         } else if (baseRewardValue > p.maxRewardValue) {
-            return IOracle(agreement.loanOracle.addr).getAmount(
-                agreement.loanAsset, p.maxRewardValue, agreement.loanOracle.parameters
-            );
+            return IOracle(agreement.loanOracle.addr).getAmount(p.maxRewardValue, agreement.loanOracle.parameters);
         } else {
-            return IOracle(agreement.loanOracle.addr).getAmount(
-                agreement.loanAsset, baseRewardValue, agreement.loanOracle.parameters
-            );
+            return IOracle(agreement.loanOracle.addr).getAmount(baseRewardValue, agreement.loanOracle.parameters);
         }
     }
 }
