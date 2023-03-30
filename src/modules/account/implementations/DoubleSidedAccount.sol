@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.15;
+pragma solidity 0.8.19;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "src/libraries/LibUtil.sol";
@@ -18,11 +18,11 @@ struct Parameters {
  * Account for holding ETH and ERC20 assets, to use for either lending or borrowing through an Agreement.
  * ~ Not compatible with other asset types ~
  */
-contract DoubleSidedAccount {
+contract DoubleSidedAccount is AccessControl {
     bytes32 internal constant PROTOCOL_ROLE = keccak256("PROTOCOL_ROLE");
 
-    event AssetsAdded(bytes32 accountId, Asset[] assets, uint256[] amounts);
-    event AssetsRemoved(bytes32 accountId, Asset[] assets, uint256[] amounts);
+    event AssetAdded(bytes32 accountId, Asset asset, uint256 amount);
+    event AssetRemoved(bytes32 accountId, Asset asset, uint256 amount);
 
     mapping(bytes32 => mapping(bytes32 => uint256)) private accounts; // account id => asset hash => amount
 
@@ -30,53 +30,46 @@ contract DoubleSidedAccount {
         _grantRole(PROTOCOL_ROLE, C.MODULEND_ADDR);
     }
 
-    function addAssets(Asset[] calldata assets, uint256[] calldata amounts, bytes calldata parameters)
-        external
-        payable
-    {
+    function addAsset(Asset calldata asset, uint256 amount, bytes calldata parameters) external payable {
         Parameters memory params = abi.decode(parameters, (Parameters));
 
-        require(msg.sender == params.owner);
+        // require(msg.sender == params.owner);
         bytes32 accountId = _generateId(params.owner, params.ownerAccountSalt);
 
-        for (uint256 i; i < assets.length; i++) {
-            // Handle ETH.
-            if (assets[i].standard == ETH_STANDARD) {
-                require(msg.value == amounts[i]); // NOTE how protective to be about over sending?
-            }
-            // Handle ERC20.
-            else if (assets[i].standard == ERC20_STANDARD) {
-                Utils.transferAsset(msg.sender, address(this), assets[i], amounts[i]);
-            }
-            // TODO implement ERC721, ERC1155 ??
-            else {
-                revert("addAssets: unsupported asset");
-            }
-            accounts[accountId][keccak256(abi.encode(assets[i]))] += amounts[i];
+        // Handle ETH.
+        if (asset.standard == ETH_STANDARD) {
+            require(msg.value == amount); // NOTE how protective to be about over sending?
         }
+        // Handle ERC20.
+        else if (asset.standard == ERC20_STANDARD) {
+            Utils.transferAsset(msg.sender, address(this), asset, amount);
+        }
+        // TODO implement ERC721, ERC1155 ??
+        else {
+            revert("addAsset: unsupported asset");
+        }
+        accounts[accountId][keccak256(abi.encode(asset))] += amount;
 
-        emit AssetsAdded(accountId, assets, amounts);
+        emit AssetAdded(accountId, asset, amount);
     }
 
-    function removeAssets(Asset[] calldata assets, uint256[] calldata amounts, bytes calldata parameters) external {
+    function removeAsset(Asset calldata asset, uint256 amount, bytes calldata parameters) external {
         Parameters memory params = abi.decode(parameters, (Parameters));
 
         require(msg.sender == params.owner);
         bytes32 accountId = _generateId(params.owner, params.ownerAccountSalt);
 
-        for (uint256 i; i < assets.length; i++) {
-            // Handle ETH and ERC20.
-            if (assets[i].standard == ETH_STANDARD || assets[i].standard == ERC20_STANDARD) {
-                Utils.transferAsset(address(this), msg.sender, assets[i], amounts[i]);
-            }
-            // TODO implement ERC721, ERC1155 ??
-            else {
-                revert("addAssets: unsupported asset");
-            }
-            accounts[accountId][keccak256(abi.encode(assets[i]))] -= amounts[i]; // verifies account balance is sufficient
+        // Handle ETH and ERC20.
+        if (asset.standard == ETH_STANDARD || asset.standard == ERC20_STANDARD) {
+            Utils.transferAsset(address(this), msg.sender, asset, amount);
         }
+        // TODO implement ERC721, ERC1155 ??
+        else {
+            revert("removeAsset: unsupported asset");
+        }
+        accounts[accountId][keccak256(abi.encode(asset))] -= amount; // verifies account balance is sufficient
 
-        emit AssetsRemoved(accountId, assets, amounts);
+        emit AssetRemoved(accountId, asset, amount);
     }
 
     function capitalizePosition(
@@ -88,8 +81,8 @@ contract DoubleSidedAccount {
         uint256 collateralAmount,
         bytes calldata borrowerAccountParameters
     ) external onlyRole(PROTOCOL_ROLE) {
-        Parameters memory lenderParams = abi.decode(parameters, (lenderAccountParameters));
-        Parameters memory borrowerParams = abi.decode(parameters, (borrowerAccountParameters));
+        Parameters memory lenderParams = abi.decode(lenderAccountParameters, (Parameters));
+        Parameters memory borrowerParams = abi.decode(borrowerAccountParameters, (Parameters));
 
         bytes32 lenderAccountId = _generateId(lenderParams.owner, lenderParams.ownerAccountSalt);
         bytes32 borrowerAccountId = _generateId(borrowerParams.owner, borrowerParams.ownerAccountSalt);
@@ -98,6 +91,10 @@ contract DoubleSidedAccount {
         accounts[lenderAccountId][keccak256(abi.encode(loanAsset))] -= loanAmount;
         Utils.transferAsset(address(this), position, collateralAsset, collateralAmount);
         accounts[borrowerAccountId][keccak256(abi.encode(collateralAsset))] -= collateralAmount;
+    }
+
+    function getOwner(bytes calldata parameters) external pure returns (address) {
+        return abi.decode(parameters, (Parameters)).owner;
     }
 
     function getBalances(Asset[] calldata assets, bytes calldata parameters)
