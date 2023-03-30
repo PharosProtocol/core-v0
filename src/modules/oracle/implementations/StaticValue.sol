@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.15;
+pragma solidity 0.8.19;
 
 // import {IOracle} from "src/libraries/oracle/IOracle.sol";
 // import {OracleParameters} from "src/libraries/LibOracle.sol";

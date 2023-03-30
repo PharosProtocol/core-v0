@@ -1,14 +1,17 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.15;
+pragma solidity 0.8.19;
 
 import "lib/tractor/Tractor.sol";
 import "src/libraries/LibUtil.sol";
 
-import "src/libraries/LibOrderBook.sol";
+import {Offer, Request, OrderMatch, Agreement, LibOrderBook} from "src/libraries/LibOrderBook.sol";
+import "src/protocol/C.sol";
 import "src/modules/oracle/IOracle.sol";
-import "src/terminal/IPosition.sol";
+import {IAccount} from "src/modules/account/IAccount.sol";
+import {IPosition} from "src/terminal/IPosition.sol";
 import {ITerminal} from "src/terminal/ITerminal.sol";
+import {ILiquidator} from "src/modules/liquidator/ILiquidator.sol";
 
 // NOTE enabling partial fills would benefit from on-chain validation of orders so that each taker does not need
 //      to pay gas to independently verify. Verified orders could be signed by Tractor.
@@ -76,13 +79,13 @@ contract OrderBook is Tractor {
 
         // Cannot liquidate if not owned by protocol (liquidating/liquidated/exited).
         IPosition position = IPosition(agreement.positionAddr);
-        require(position.hasRole(CONTROLLER_ROLE, address(this)), "Position not owned by protocol");
+        require(position.hasRole(C.CONTROLLER_ROLE, address(this)), "Position not owned by protocol");
 
-        require(isLiquidatable(agreement), "OrderBook: Position is not liquidatable");
+        require(LibOrderBook.isLiquidatable(agreement), "OrderBook: Position is not liquidatable");
         // Transfer ownership of the position to the liquidator, which includes collateral.
         position.transferContract(agreement.liquidator.addr);
         // Kick the position to begin liquidation.
-        ILiquidator(agreement.liquidator.addr).takeKick(agreementBlueprint.blueprintHash);
+        // ILiquidator(agreement.liquidator.addr).takeKick(agreementBlueprint.blueprintHash);
         emit LiquidationKicked(agreement.liquidator.addr, agreement.positionAddr);
     }
 
@@ -92,7 +95,10 @@ contract OrderBook is Tractor {
             blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "OrderBook: Invalid blueprint data type"
         );
         Agreement memory agreement = abi.decode(blueprintData, (Agreement));
-        require(msg.sender == agreement.borrower, "OrderBook: Only borrower can exit position without liquidation");
+        require(
+            msg.sender == IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters),
+            "OrderBook: Only borrower can exit position without liquidation"
+        );
         // require(isPositionExitable(agreement), "OrderBook: Position is not exitable");
         // IPosition position = IPosition(agreement.positionAddr).exit();
         // TODO implement such that assets go directly back into user accounts.
@@ -123,8 +129,14 @@ contract OrderBook is Tractor {
 
         // The blueprints must have been signed by the users represented by the Orders.
         // Parity between signer and publisher fields must be enforced elsewhere.
-        require(lendBlueprint.blueprint.publisher == offer.lender);
-        require(borrowBlueprint.blueprint.publisher == request.borrower);
+        require(
+            lendBlueprint.blueprint.publisher
+                == IAccount(offer.lenderAccount.addr).getOwner(offer.lenderAccount.parameters)
+        );
+        require(
+            borrowBlueprint.blueprint.publisher
+                == IAccount(request.borrowerAccount.addr).getOwner(request.borrowerAccount.parameters)
+        );
     }
 
     function verifyCompatibility(OrderMatch calldata orderMatch, Offer memory offer, Request memory request)
@@ -164,8 +176,18 @@ contract OrderBook is Tractor {
     {
         // TODO change account from wallet address to account address to enable multiple accounts per user.
         // Takers are allowed.
-        if (offer.takers.length > 0) require(offer.takers[orderMatch.takerIdx.offer] == request.borrower);
-        if (request.takers.length > 0) require(request.takers[orderMatch.takerIdx.request] == offer.lender);
+        if (offer.takers.length > 0) {
+            require(
+                offer.takers[orderMatch.takerIdx.offer]
+                    == IAccount(request.borrowerAccount.addr).getOwner(request.borrowerAccount.parameters)
+            );
+        }
+        if (request.takers.length > 0) {
+            require(
+                request.takers[orderMatch.takerIdx.request]
+                    == IAccount(offer.lenderAccount.addr).getOwner(offer.lenderAccount.parameters)
+            );
+        }
 
         require(Utils.isSameAllowedModuleRef(orderMatch.loanOracle, offer.loanOracle, request.loanOracle));
         require(
@@ -187,8 +209,8 @@ contract OrderBook is Tractor {
         position.rewarder = orderMatch.rewarder;
         position.liquidator = orderMatch.liquidator;
 
-        position.lender = offer.lender;
-        position.borrower = request.borrower;
+        position.lenderAccount = offer.lenderAccount;
+        position.borrowerAccount = request.borrowerAccount;
         position.loanOracle = offer.loanOracle[orderMatch.loanOracle.offer];
         position.collateralOracle = offer.collateralOracle[orderMatch.collateralOracle.offer];
         position.terminal = offer.terminal[orderMatch.terminal.offer];

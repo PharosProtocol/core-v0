@@ -1,15 +1,16 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.15;
+pragma solidity 0.8.19;
 
 import "src/protocol/C.sol";
 
+import {Asset} from "src/libraries/LibUtil.sol";
 import {AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
 import {Clones} from "lib/openzeppelin-contracts/contracts/proxy/Clones.sol";
 import {ITerminal} from "src/terminal/ITerminal.sol";
 import "lib/openzeppelin-contracts/contracts/proxy/utils/Initializable.sol";
 
-import {IPosition} from "src/terminal/IPosition.sol";
+import {Position} from "src/terminal/IPosition.sol";
 
 /// NOTE: Should define parameter invariants to confirm that clone parameters are valid before showing in UI.
 
@@ -29,21 +30,21 @@ import {IPosition} from "src/terminal/IPosition.sol";
 
 /// @dev not expected to be used outside of this file.
 interface IChildClone {
-    function initialize(address asset, uint256 amount, bytes calldata parameters) external;
+    function initialize(Asset calldata asset, uint256 amount, bytes calldata parameters) external;
 }
 
 /*
  * The Terminal is used to spawn positions (clones) and call their intializers.
  */
 
-abstract contract Terminal is ITerminal, IChildClone, IPosition, Initializable, AccessControl {
+abstract contract Terminal is ITerminal, IChildClone, Position, Initializable {
     bytes32 internal constant PROTOCOL_ROLE = keccak256("PROTOCOL_ROLE"); // pretty sure constants set in impl contract will be the same for all clones
     address public constant PROTOCOL_ADDRESS = address(1); // Modulus address
     address public immutable TERMINAL_ADDRESS; // Implementation contract address // assumes proxy constant values are set by implementation contract
 
     // Metadata metadata;
 
-    event PositionCreated(address terminal, address asset, uint256 amount, bytes parameters);
+    event PositionCreated(address terminal, Asset asset, uint256 amount, bytes parameters);
     event PositionClosed(bytes parameters);
 
     modifier implementationExecution() {
@@ -67,8 +68,9 @@ abstract contract Terminal is ITerminal, IChildClone, IPosition, Initializable, 
     /*
      * Create position (clone) that will use this terminal.
      */
-    function createPosition(address asset, uint256 amount, bytes memory parameters)
+    function createPosition(Asset calldata asset, uint256 amount, bytes memory parameters)
         external
+        override
         implementationExecution
         onlyRole(PROTOCOL_ROLE)
         returns (address addr)
@@ -84,7 +86,7 @@ abstract contract Terminal is ITerminal, IChildClone, IPosition, Initializable, 
      * NOTE "When used with inheritance, manual care must be taken to not invoke a parent initializer twice, or to ensure that all initializers are idempotent" <- idk what this is about, but sounds relevant.
      * NOTE cannot do role check modifier here because state not yet set
      */
-    function initialize(address asset, uint256 amount, bytes calldata parameters)
+    function initialize(Asset calldata asset, uint256 amount, bytes calldata parameters)
         external
         override
         initializer
@@ -96,17 +98,7 @@ abstract contract Terminal is ITerminal, IChildClone, IPosition, Initializable, 
         emit PositionCreated(TERMINAL_ADDRESS, asset, amount, parameters);
     }
 
-    function _enter(address asset, uint256 amount, bytes calldata parameters) internal virtual;
+    function _enter(Asset calldata asset, uint256 amount, bytes calldata parameters) internal virtual;
 
-    function exit(bytes calldata parameters)
-        external
-        cloneExecution
-        onlyRole(PROTOCOL_ROLE)
-        returns (uint256 exitAmount)
-    {
-        exitAmount = _exit(parameters);
-        emit PositionClosed(parameters);
-    }
-
-    function _exit(bytes calldata parameters) internal virtual returns (uint256 exitAmount);
+    // function _exit(bytes calldata parameters) internal virtual returns (uint256 exitAmount) internal virtual;
 }

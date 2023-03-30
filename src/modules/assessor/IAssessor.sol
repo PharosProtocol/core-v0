@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.15;
+pragma solidity 0.8.19;
 
-import {IComparableModule} from "src/modules/IComparableModule.sol";
+import {IComparableParameters} from "src/modules/IComparableParameters.sol";
 import {Agreement} from "src/libraries/LibOrderBook.sol";
 
 /**
@@ -17,7 +17,7 @@ import {Agreement} from "src/libraries/LibOrderBook.sol";
 /*
  * Each Assessor clone is used to determine the cost of a loan.
  */
-interface IAssessor is IComparableModule {
+interface IAssessor is IComparableParameters {
     /// @notice Returns the cost of a loan.
     function getCost(Agreement calldata agreement) external view returns (uint256);
 }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.15;
+pragma solidity 0.8.19;
 
 /// NOTE Could use a "Parent" system for the collections below. Thus when only wanting to create a collection with
 ///         one new item do not need to store all previous items as well. This would definitely reduce storage costs,

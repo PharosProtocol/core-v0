@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.15;
+pragma solidity 0.8.19;
 
+import "src/protocol/C.sol";
 import {Terminal} from "src/terminal/Terminal.sol";
 import {IPosition} from "src/terminal/IPosition.sol";
+import {Asset} from "src/libraries/LibUtil.sol";
 
 import "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
@@ -61,7 +63,6 @@ struct SwapCallbackData {
 contract UniV3HoldTerminal is Terminal {
     address public constant UNI_V3_FACTORY = address(0x1F98431c8aD98523631AE4a59f267346ea31F984);
     address public constant UNI_V3_ROUTER = address(0xE592427A0AEce92De3Edee1F18E0157C05861564);
-    uint256 private constant RATIO_BASE = 1e18;
 
     // Terminal parameters shared for all positions.
     // NOTE sharing params here increases simplicity but costs position customizability. how much of a burden is it to
@@ -70,7 +71,7 @@ contract UniV3HoldTerminal is Terminal {
     uint32 private constant TRADE_TWAP_TIME = 300; // https://oracle.euler.finance
     uint32 private constant VALUE_TWAP_TIME = 60; // too short allows manipulation, too long increases risk to lender.
     uint256 private constant DEADLINE_OFFSET = 120;
-    uint256 private constant ALLOWED_STEP_SLIPPAGE_RATIO = RATIO_BASE / 10; // 0.1% slippage ?
+    uint256 private constant ALLOWED_STEP_SLIPPAGE_RATIO = C.RATIO_FACTOR / 10; // 0.1% slippage ?
 
     // Position state
     uint256 private amountHeld;
@@ -109,7 +110,8 @@ contract UniV3HoldTerminal is Terminal {
         require(IERC20(tokenIn).transfer(address(msg.sender), amountToPay));
     }
 
-    function _enter(address, uint256 amount, bytes calldata parameters) internal override {
+    function _enter(Asset calldata asset, uint256 amount, bytes calldata parameters) internal override {
+        // verifyAssetAllowed(asset);
         (bytes memory enterPath,) = decodeParameters(parameters);
         ISwapRouter router = ISwapRouter(UNI_V3_ROUTER);
         ISwapRouter.ExactInputParams memory swapParams = ISwapRouter.ExactInputParams({
@@ -119,7 +121,7 @@ contract UniV3HoldTerminal is Terminal {
             amountIn: amount,
             amountOutMinimum: (
                 getPathTWAPQuote(enterPath, amount, TRADE_TWAP_TIME) * ALLOWED_STEP_SLIPPAGE_RATIO * enterPath.numPools()
-                ) / RATIO_BASE
+                ) / C.RATIO_FACTOR
         });
 
         amountHeld = router.exactInput(swapParams); // msg.sender from router pov is clone (Position) address
@@ -142,7 +144,7 @@ contract UniV3HoldTerminal is Terminal {
             amountIn: amountHeld,
             amountOutMinimum: (
                 getPathTWAPQuote(exitPath, amountHeld, TRADE_TWAP_TIME) * ALLOWED_STEP_SLIPPAGE_RATIO * exitPath.numPools()
-                ) / RATIO_BASE
+                ) / C.RATIO_FACTOR
         });
 
         return router.exactInput(swapParams); // msg.sender from router pov is clone (Position) address
@@ -186,4 +188,9 @@ contract UniV3HoldTerminal is Terminal {
         (, bytes memory exitPath) = decodeParameters(parameters);
         return getPathTWAPQuote(exitPath, amountHeld, VALUE_TWAP_TIME);
     }
+
+    // function verifyAssetAllowed(Asset asset) private view {
+    //     require(asset.standard == ERC20_STANDARD);
+    //     require(asset.addr == path[0th token]);
+    // }
 }

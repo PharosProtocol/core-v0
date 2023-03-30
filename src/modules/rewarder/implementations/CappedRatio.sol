@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.15;
+pragma solidity 0.8.19;
 
+import "src/protocol/C.sol";
 import {Agreement} from "src/libraries/LibOrderBook.sol";
 import {IOracle} from "src/modules/oracle/IOracle.sol";
 import {IRewarder} from "src/modules/rewarder/IRewarder.sol";
@@ -17,29 +18,20 @@ struct Parameters {
 }
 
 contract CappedRatio is IRewarder {
-    uint256 private constant RATIO_BASE = 1e6; // NOTE what is a good scale to use for ratios? enough precision and less overflow
-
     /// @dev may return a number that is larger than the total collateral amount
     function getRewardValue(Agreement calldata agreement) external view returns (uint256) {
         Parameters memory p = abi.decode(agreement.rewarder.parameters, (Parameters));
 
-        uint256 loanValue = IOracle(agreement.loanOracle.addr).getValue(
-            agreement.loanAsset, agreement.loanAmount, agreement.loanOracle.parameters
-        );
-        uint256 baseRewardValue = loanValue * p.valueRatio / RATIO_BASE;
+        uint256 loanValue =
+            IOracle(agreement.loanOracle.addr).getValue(agreement.loanAmount, agreement.loanOracle.parameters);
+        uint256 baseRewardValue = loanValue * p.valueRatio / C.RATIO_FACTOR;
         // NOTE what if total collateral value < minRewardValue?
         if (baseRewardValue < p.minRewardValue) {
-            return IOracle(agreement.loanOracle.addr).getAmount(
-                agreement.loanAsset, p.minRewardValue, agreement.loanOracle.parameters
-            );
+            return IOracle(agreement.loanOracle.addr).getAmount(p.minRewardValue, agreement.loanOracle.parameters);
         } else if (baseRewardValue > p.maxRewardValue) {
-            return IOracle(agreement.loanOracle.addr).getAmount(
-                agreement.loanAsset, p.maxRewardValue, agreement.loanOracle.parameters
-            );
+            return IOracle(agreement.loanOracle.addr).getAmount(p.maxRewardValue, agreement.loanOracle.parameters);
         } else {
-            return IOracle(agreement.loanOracle.addr).getAmount(
-                agreement.loanAsset, baseRewardValue, agreement.loanOracle.parameters
-            );
+            return IOracle(agreement.loanOracle.addr).getAmount(baseRewardValue, agreement.loanOracle.parameters);
         }
     }
 

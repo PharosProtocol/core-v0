@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.15;
+pragma solidity 0.8.19;
 
-import {IComparableModule} from "src/modules/IComparableModule.sol";
+import {IComparableParameters} from "src/modules/IComparableParameters.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 // Significant security risk to represent eth this way? Could wrap it instead.
@@ -78,7 +78,7 @@ library Utils {
 
     function isInRange(ModuleReference calldata module, ModuleReference[2] calldata range) public pure returns (bool) {
         if (!(module.addr == range[0].addr && module.addr == range[1].addr)) return false;
-        IComparableModule iModule = IComparableModule(module.addr);
+        IComparableParameters iModule = IComparableParameters(module.addr);
         return (
             iModule.isLTE(range[0].parameters, module.parameters)
                 && iModule.isLTE(module.parameters, range[1].parameters)

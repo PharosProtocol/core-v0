@@ -1,16 +1,18 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.15;
+pragma solidity 0.8.19;
 
-import "lib/tractor/Tractor.sol";
+import "src/protocol/C.sol";
 import "src/libraries/LibUtil.sol";
+import "lib/tractor/Tractor.sol";
 import "src/Terminal/IPosition.sol";
+import {IOracle} from "src/modules/oracle/IOracle.sol";
 
 /**
  * @notice Order representing a Lender.
  */
 struct Offer {
-    address lender;
+    ModuleReference lenderAccount;
     /* Ranged variables */
     uint256[2] minCollateralRatio;
     uint256[2] durationLimit;
@@ -21,8 +23,8 @@ struct Offer {
     ModuleReference[2] liquidator;
     /* Allowlisted variables */
     address[] takers; // if empty, allow any taker
-    address[] loanAsset;
-    address[] collateralAsset;
+    Asset[] loanAsset;
+    Asset[] collateralAsset;
     ModuleReference[] loanOracle;
     ModuleReference[] collateralOracle;
     ModuleReference[] terminal;
@@ -32,7 +34,7 @@ struct Offer {
  * @notice Order representing a Borrower.
  */
 struct Request {
-    address borrower;
+    ModuleReference borrowerAccount;
     /* Ranged variables */
     uint256[2] minCollateralRatio;
     uint256[2] durationLimit;
@@ -43,8 +45,8 @@ struct Request {
     ModuleReference[2] liquidator;
     /* Allowlisted variables */
     address[] takers; // if empty, allow any taker
-    address[] loanAsset;
-    address[] collateralAsset;
+    Asset[] loanAsset;
+    Asset[] collateralAsset;
     ModuleReference[] loanOracle;
     ModuleReference[] collateralOracle;
     ModuleReference[] terminal;
@@ -63,8 +65,8 @@ struct OrderMatch {
     ModuleReference rewarder;
     ModuleReference liquidator;
     /* Allowlisted variables */
-    address loanAsset;
-    address collateralAsset;
+    Asset loanAsset;
+    Asset collateralAsset;
     IndexPair takerIdx;
     IndexPair loanOracle;
     IndexPair collateralOracle;
@@ -85,10 +87,10 @@ struct Agreement {
     ModuleReference rewarder;
     ModuleReference liquidator;
     /* Allowlisted variables */
-    address lender;
-    address borrower;
-    address loanAsset; // how to ensure loanAsset is match to loanOracle? require 1:1 array order matching?
-    address collateralAsset; // same q as above
+    ModuleReference lenderAccount;
+    ModuleReference borrowerAccount;
+    Asset loanAsset; // how to ensure loanAsset is match to loanOracle? require 1:1 array order matching?
+    Asset collateralAsset; // same q as above
     ModuleReference loanOracle;
     ModuleReference collateralOracle;
     ModuleReference terminal;
@@ -100,7 +102,7 @@ struct Agreement {
 library LibOrderBook {
     /// @notice Is the position defined by an agreement up for liquidation and not yet kicked
     /// @dev liquidation based on CR or duration limit
-    function isLiquidatable(Agreement agreement) public view returns (bool) {
+    function isLiquidatable(Agreement memory agreement) public view returns (bool) {
         IPosition position = IPosition(agreement.positionAddr);
         // if (positionValue == 0) return false;
 
@@ -108,8 +110,10 @@ library LibOrderBook {
         if (agreement.deploymentTime + agreement.durationLimit > block.timestamp) return true;
 
         // Position value / collateral value
-        uint256 collateralRatio = RATIO_FACTOR * position.getValue()
-            / IOracle(agreement.collateralOracle).getValue(agreement.collateralAmount);
+        uint256 collateralRatio = C.RATIO_FACTOR * position.getValue(agreement.terminal.parameters)
+            / IOracle(agreement.collateralOracle.addr).getValue(
+                agreement.collateralAmount, agreement.collateralOracle.parameters
+            );
 
         if (collateralRatio < agreement.minCollateralRatio) {
             return true;

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.15;
+pragma solidity 0.8.19;
 
 /**
  * Oracles are used to assess the value of assets.
@@ -18,7 +18,7 @@ interface IOracle {
     /// @notice require parameters to be valid and non-hostile.
     function verifyParameters(address asset, bytes calldata parameters) external view;
     /// @notice returns the USDC value of an asset.
-    function getValue(address asset, uint256 amount, bytes calldata parameters) external view returns (uint256);
+    function getValue(uint256 amount, bytes calldata parameters) external view returns (uint256);
     /// @notice returns the amount of an asset equivalent to the given USDC value.
-    function getAmount(address asset, uint256 value, bytes calldata parameters) external view returns (uint256);
+    function getAmount(uint256 value, bytes calldata parameters) external view returns (uint256);
 }

@@ -22,5 +22,10 @@ Two Instances of the same type are distinguished only by their `parameters` byte
 Standard interfaces may also require non-state changing arguments to ensure delivery of the minimum set of valid data to operate
 a Module of that Category. ? you can guarantee parity between different components of an agreement - i.e. loanAsset and loanOracle ?
 
+## Design Invariants
+No module has any special access to Modulus beyond what an EOA has. They cannot compel Modulus to move assets.
+No module has any special access to other Modules beyond what an EOA has. They cannot compel another module to move assets.
+Modulus can compel Modules to move assets.
+
 ## Implementing a Module
 are modules expected to verify their data?

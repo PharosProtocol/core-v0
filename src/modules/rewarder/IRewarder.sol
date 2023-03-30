@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.15;
+pragma solidity 0.8.19;
 
-import {IComparableModule} from "src/modules/IComparableModule.sol";
+import {IComparableParameters} from "src/modules/IComparableParameters.sol";
 import {Agreement} from "src/libraries/LibOrderBook.sol";
 
 /**
@@ -18,7 +18,7 @@ import {Agreement} from "src/libraries/LibOrderBook.sol";
 /*
  * Each Rewarder is used to determine the reward paid to a liquidator.
  */
-interface IRewarder is IComparableModule {
+interface IRewarder is IComparableParameters {
     /// @notice gets the *current* reward for liquidating a position
     function getRewardValue(Agreement calldata agreement) external view returns (uint256);
 }
