@@ -47,21 +47,21 @@ contract InstantReward is Liquidator {
         uint256 borrowerReturnExpected;
         {
             IPosition position = IPosition(agreement.positionAddr);
-            uint256 positionValue = position.getValue(agreement.terminal.parameters); // denoted in loan asset
+            uint256 positionAmount = position.getAmount(agreement.terminal.parameters); // denoted in loan asset
 
             // Distribution of value. Priority: liquidator, lender, borrower.
             uint256 liquidatorReward = getRewardValue(agreement); // denoted in loan asset
             uint256 lenderCap = agreement.loanAmount + IAssessor(agreement.assessor.addr).getCost(agreement); // denoted in loan asset
 
-            if (positionValue < liquidatorReward) {
+            if (positionAmount < liquidatorReward) {
                 lenderReturnExpected = 0;
                 borrowerReturnExpected = 0;
-            } else if (positionValue < liquidatorReward + lenderCap) {
-                lenderReturnExpected = positionValue - liquidatorReward;
+            } else if (positionAmount < liquidatorReward + lenderCap) {
+                lenderReturnExpected = positionAmount - liquidatorReward;
                 borrowerReturnExpected = 0;
             } else {
                 lenderReturnExpected = lenderCap;
-                borrowerReturnExpected = positionValue - lenderReturnExpected - liquidatorReward; // might be profitable for borrower or not
+                borrowerReturnExpected = positionAmount - lenderReturnExpected - liquidatorReward; // might be profitable for borrower or not
             }
         }
 
@@ -89,28 +89,17 @@ contract InstantReward is Liquidator {
          * OPTION 2 - Liquidator prepays assets less reward and keeps position for later handling (no callback) **
          */
         // NOTE Inefficient asset passthrough here, but can be optimized later if we go this route.
+        uint256 value;
         if (lenderReturnExpected > 0) {
-            uint256 value;
-            if (agreement.loanAsset.standard == ETH_STANDARD) {
-                value = lenderReturnExpected;
-            } else if (agreement.loanAsset.standard == ERC20_STANDARD) {
-                IERC20 loanAsset = IERC20(agreement.loanAsset.addr); // NOTE double spend concerns?
-                loanAsset.approve(agreement.lenderAccount.addr, lenderReturnExpected);
-            }
-            lenderAccount.addAsset{value: value}(
-                agreement.loanAsset, lenderReturnExpected, agreement.lenderAccount.parameters
+            value = Utils.isEth(agreement.loanAsset) ? lenderReturnExpected : 0;
+            lenderAccount.addAssetFrom{value: value}(
+                msg.sender, agreement.loanAsset, lenderReturnExpected, agreement.lenderAccount.parameters
             );
         }
         if (borrowerReturnExpected > 0) {
-            uint256 value;
-            if (agreement.collateralAsset.standard == ETH_STANDARD) {
-                value = borrowerReturnExpected;
-            } else if (agreement.collateralAsset.standard == ERC20_STANDARD) {
-                IERC20 collateralAsset = IERC20(agreement.collateralAsset.addr); // NOTE double spend concerns?
-                collateralAsset.approve(agreement.borrowerAccount.addr, borrowerReturnExpected);
-            }
-            borrowerAccount.addAsset(
-                agreement.collateralAsset, borrowerReturnExpected, agreement.borrowerAccount.parameters
+            value = Utils.isEth(agreement.collateralAsset) ? borrowerReturnExpected : 0;
+            borrowerAccount.addAssetFrom{value: value}(
+                msg.sender, agreement.collateralAsset, borrowerReturnExpected, agreement.borrowerAccount.parameters
             );
         }
         IPosition(agreement.positionAddr).transferContract(msg.sender);

@@ -109,8 +109,13 @@ library LibOrderBook {
         // If past expiration, liquidatable.
         if (agreement.deploymentTime + agreement.durationLimit > block.timestamp) return true;
 
-        // Position value / collateral value
-        uint256 collateralRatio = C.RATIO_FACTOR * position.getValue(agreement.terminal.parameters)
+        // NOTE this looks expensive. could have the caller pass in the expected position value and exit if not enough
+        //      assets at exit time
+        // (position value - cost) / collateral value
+        uint256 adjustedPositionAmount =
+            position.getAmount(agreement.terminal.parameters) - IAssessor(agreement.assessor.addr).getCost(agreement);
+        uint256 collateralRatio = C.RATIO_FACTOR
+            * IOracle(agreement.loanOracle.addr).getValue(adjustedPositionAmount, agreement.loanOracle.parameters)
             / IOracle(agreement.collateralOracle.addr).getValue(
                 agreement.collateralAmount, agreement.collateralOracle.parameters
             );
@@ -120,4 +125,5 @@ library LibOrderBook {
         }
         return false;
     }
+
 }

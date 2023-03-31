@@ -18,6 +18,6 @@ import {Agreement} from "src/libraries/LibOrderBook.sol";
  * Each Assessor clone is used to determine the cost of a loan.
  */
 interface IAssessor is IComparableParameters {
-    /// @notice Returns the cost of a loan.
+    /// @notice Returns the cost of a loan beyond original assets, denoted in loan asset.
     function getCost(Agreement calldata agreement) external view returns (uint256);
 }

@@ -22,7 +22,7 @@ contract StandardAssessor is IAssessor {
     /// @notice Return the cost of a loan, quantified in the Loan Asset.
     function getCost(Agreement calldata agreement) external view override returns (uint256) {
         Parameters memory p = abi.decode(agreement.assessor.parameters, (Parameters));
-        uint256 positionValue = IPosition(agreement.positionAddr).getValue(agreement.terminal.parameters); // duplicate decode here
+        uint256 positionValue = IPosition(agreement.positionAddr).getAmount(agreement.terminal.parameters); // duplicate decode here
         uint256 originationFee = (agreement.loanAmount * p.originationFeeRatio) / RATIO_DECIMALS;
         uint256 interest = ((block.timestamp - agreement.deploymentTime) * p.interestRatio) / RATIO_DECIMALS;
         uint256 profit = positionValue - originationFee - interest - agreement.loanAmount;

@@ -2,19 +2,23 @@
 
 pragma solidity 0.8.19;
 
+import {Agreement} from "src/libraries/LibOrderBook.sol";
+import {IAccount} from "src/modules/account/IAccount.sol";
 import {AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
 import {IAccessControl} from "lib/openzeppelin-contracts/contracts/access/IAccessControl.sol";
+import {IAssessor} from "src/modules/assessor/IAssessor.sol";
 import "src/protocol/C.sol";
+import "src/libraries/LibUtil.sol";
 
 /*
  * Each Position represents one deployment of capital through a Terminal.
  * Position status is determined by address assignment to CONTROLLER_ROLE.
  */
 interface IPosition is IAccessControl {
-    /// @notice Get current value of the position, denoted in base currency (USDC).
-    function getValue(bytes calldata parameters) external view returns (uint256);
-    /// @notice Fully exit the position in the same asset it was entered with. Assets remain in contract.
-    function exit(bytes calldata parameters) external returns (uint256); // onlyRole(CONTROLLER_ROLE)
+    /// @notice Get current value of the position, denoted in loan asset.
+    function getAmount(bytes calldata parameters) external view returns (uint256);
+    /// @notice Fully exit the position in the same asset it was entered with. Assets remains in contract.
+    function exit(Agreement memory agreement, bytes calldata parameters) external returns (uint256); // onlyRole(CONTROLLER_ROLE)
     /// @notice Transfer the position to a new controller. Used for liquidations.
     /// @dev do not set admin role to prevent liquidator from pushing the position back into the protocol.
     function transferContract(address controller) external; // onlyRole(CONTROLLER_ROLE)
@@ -43,8 +47,49 @@ abstract contract Position is AccessControl, IPosition {
         emit ControlTransferred(msg.sender, controller);
     }
 
-    function exit(bytes calldata parameters) external override onlyRole(C.CONTROLLER_ROLE) returns (uint256 amount) {
-        amount = _exit(parameters);
+    function exit(Agreement memory agreement, bytes calldata parameters)
+        external
+        override
+        onlyRole(C.CONTROLLER_ROLE)
+        returns (uint256 unpaidAmount)
+    {
+        uint256 lenderAmount;
+        uint256 borrowerAmount;
+        uint256 exitedAmount = _exit(parameters);
+
+        // Lender gets loan asset back to account.
+        uint256 lenderOwed = agreement.loanAmount + IAssessor(agreement.assessor.addr).getCost(agreement);
+        if (lenderOwed > exitedAmount) {
+            // Lender is owed more than the position is worth.
+            // Lender gets all of the position and borrower pays the difference.
+            unpaidAmount = lenderOwed - exitedAmount;
+            lenderAmount = exitedAmount;
+            borrowerAmount = 0;
+        } else {
+            unpaidAmount = 0;
+            lenderAmount = lenderOwed;
+            borrowerAmount = exitedAmount - lenderOwed;
+        }
+
+        IAccount(agreement.lenderAccount.addr).addAssetFrom{value: Utils.isEth(agreement.loanAsset) ? lenderAmount : 0}(
+            address(this), agreement.loanAsset, lenderAmount, agreement.lenderAccount.parameters
+        );
+
+        // Borrower gets remaining loan asset direct to wallet that took the position.
+        if (borrowerAmount > 0) {
+            Utils.transferAsset(
+                address(this),
+                IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters),
+                agreement.loanAsset,
+                borrowerAmount
+            );
+        }
+
+        // Borrower gets all collateral back to account.
+        IAccount(agreement.borrowerAccount.addr).addAssetFrom{
+            value: Utils.isEth(agreement.collateralAsset) ? agreement.collateralAmount : 0
+        }(address(this), agreement.collateralAsset, agreement.collateralAmount, agreement.borrowerAccount.parameters);
+
         renounceRole(C.CONTROLLER_ROLE, address(this));
         // renounceRole(DEFAULT_ADMIN_ROLE); // this isn't necessary as the immutable contract provably cannot abuse this. No trust needed.
     }

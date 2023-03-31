@@ -35,8 +35,8 @@ library Utils {
     /// @notice transfer ETH, ERC20, ERC721, ERC1155 tokens. ETH can only be sent from self.
     /// @dev modules do not need to use this function. It is provided as a qol helper for what is expected to be the
     ///      majority of implementations. Support for additional standards can be implemented on a per module basis.
-    function transferAsset(address from, address to, Asset calldata asset, uint256 amount) internal {
-        if (asset.standard == ETH_STANDARD) {
+    function transferAsset(address from, address to, Asset memory asset, uint256 amount) internal {
+        if (isEth(asset)) {
             require(from == address(this), "transferAsset: ETH cannot be sent by third party");
             payable(to).transfer(amount);
         } else if (asset.standard == ERC20_STANDARD) {
@@ -101,5 +101,10 @@ library Utils {
         ModuleReference[] calldata requestAllowed
     ) external pure returns (bool) {
         return isEqModuleRef(offerAllowed[idx.offer], requestAllowed[idx.request]);
+    }
+
+    // NOTE is there an efficiency loss when calldata is passed in here as memory?
+    function isEth(Asset memory asset) public pure returns (bool) {
+        return asset.standard == ETH_STANDARD;
     }
 }

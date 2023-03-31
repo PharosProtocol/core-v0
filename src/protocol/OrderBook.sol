@@ -65,7 +65,7 @@ contract OrderBook is Tractor {
             encodeDataField(bytes1(uint8(BlueprintDataType.AGREEMENT)), abi.encode(agreement));
         signedBlueprint.blueprint.endTime = type(uint256).max;
         signedBlueprint.blueprintHash = getBlueprintHash(signedBlueprint.blueprint);
-        // TODO: Security: Is is possible to intentionally manufacture a blueprint with different data that creates the same hash?
+        // NOTE: Security: Is is possible to intentionally manufacture a blueprint with different data that creates the same hash?
         signBlueprint(signedBlueprint.blueprintHash);
         publishBlueprint(signedBlueprint); // These verifiable blueprints will be used to interact with positions.
     }
@@ -76,9 +76,9 @@ contract OrderBook is Tractor {
             blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "OrderBook: Invalid blueprint data type"
         );
         Agreement memory agreement = abi.decode(blueprintData, (Agreement));
+        IPosition position = IPosition(agreement.positionAddr);
 
         // Cannot liquidate if not owned by protocol (liquidating/liquidated/exited).
-        IPosition position = IPosition(agreement.positionAddr);
         require(position.hasRole(C.CONTROLLER_ROLE, address(this)), "Position not owned by protocol");
 
         require(LibOrderBook.isLiquidatable(agreement), "OrderBook: Position is not liquidatable");
@@ -89,8 +89,10 @@ contract OrderBook is Tractor {
         emit LiquidationKicked(agreement.liquidator.addr, agreement.positionAddr);
     }
 
-    function exitPosition(SignedBlueprint calldata positionBlueprint) external verifySignature(positionBlueprint) {
-        (bytes1 blueprintDataType, bytes memory blueprintData) = decodeDataField(positionBlueprint.blueprint.data);
+    // NOTE This puts the assets back into circulating via accounts. Should implement and option to send assets to
+    //      a static account.
+    function exitPosition(SignedBlueprint calldata agreementBlueprint) external verifySignature(agreementBlueprint) {
+        (bytes1 blueprintDataType, bytes memory blueprintData) = decodeDataField(agreementBlueprint.blueprint.data);
         require(
             blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "OrderBook: Invalid blueprint data type"
         );
@@ -99,9 +101,15 @@ contract OrderBook is Tractor {
             msg.sender == IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters),
             "OrderBook: Only borrower can exit position without liquidation"
         );
-        // require(isPositionExitable(agreement), "OrderBook: Position is not exitable");
-        // IPosition position = IPosition(agreement.positionAddr).exit();
-        // TODO implement such that assets go directly back into user accounts.
+
+        uint256 unpaidAmount = IPosition(agreement.positionAddr).exit(agreement, agreement.terminal.parameters);
+
+        // Borrower must pay difference directly if there is not enough value to pay Lender.
+        if (unpaidAmount > 0) {
+            IAccount(payable(agreement.lenderAccount.addr)).addAssetFrom{
+                value: Utils.isEth(agreement.loanAsset) ? unpaidAmount : 0
+            }(msg.sender, agreement.loanAsset, unpaidAmount, agreement.lenderAccount.parameters);
+        }
     }
 
     /// @notice decode order blueprint data and ensure blueprint metadata is valid pairing with embedded data.
@@ -174,8 +182,6 @@ contract OrderBook is Tractor {
         private
         pure
     {
-        // TODO change account from wallet address to account address to enable multiple accounts per user.
-        // Takers are allowed.
         if (offer.takers.length > 0) {
             require(
                 offer.takers[orderMatch.takerIdx.offer]

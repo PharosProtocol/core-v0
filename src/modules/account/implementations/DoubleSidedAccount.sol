@@ -30,23 +30,27 @@ contract DoubleSidedAccount is AccessControl {
         _grantRole(PROTOCOL_ROLE, C.MODULEND_ADDR);
     }
 
-    function addAsset(Asset calldata asset, uint256 amount, bytes calldata parameters) external payable {
+    function addAssetFrom(address from, Asset calldata asset, uint256 amount, bytes calldata parameters)
+        external
+        payable
+    {
         Parameters memory params = abi.decode(parameters, (Parameters));
 
         // require(msg.sender == params.owner);
         bytes32 accountId = _generateId(params.owner, params.ownerAccountSalt);
 
         // Handle ETH.
-        if (asset.standard == ETH_STANDARD) {
+        if (Utils.isEth(asset)) {
+            // require(msg.sender == from);
             require(msg.value == amount); // NOTE how protective to be about over sending?
         }
         // Handle ERC20.
         else if (asset.standard == ERC20_STANDARD) {
-            Utils.transferAsset(msg.sender, address(this), asset, amount);
+            Utils.transferAsset(from, address(this), asset, amount);
         }
         // TODO implement ERC721, ERC1155 ??
         else {
-            revert("addAsset: unsupported asset");
+            revert("addAssetFrom: unsupported asset");
         }
         accounts[accountId][keccak256(abi.encode(asset))] += amount;
 
@@ -60,7 +64,7 @@ contract DoubleSidedAccount is AccessControl {
         bytes32 accountId = _generateId(params.owner, params.ownerAccountSalt);
 
         // Handle ETH and ERC20.
-        if (asset.standard == ETH_STANDARD || asset.standard == ERC20_STANDARD) {
+        if (Utils.isEth(asset) || asset.standard == ERC20_STANDARD) {
             Utils.transferAsset(address(this), msg.sender, asset, amount);
         }
         // TODO implement ERC721, ERC1155 ??
@@ -72,6 +76,8 @@ contract DoubleSidedAccount is AccessControl {
         emit AssetRemoved(accountId, asset, amount);
     }
 
+    // NOTE could bypass need hre (and other modules) for PROTOCOL_ROLE by verifying signed agreement and tracking
+    //      which have already been processed.
     function capitalizePosition(
         address position,
         Asset calldata loanAsset,

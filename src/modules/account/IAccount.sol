@@ -17,7 +17,11 @@ import {Asset} from "src/libraries/LibUtil.sol";
 // This catch22 probably applies to all modules interfaces...
 
 interface IAccount {
-    function addAsset(Asset calldata assets, uint256 amount, bytes calldata parameters) external payable; // is it necessary to specify payable here? some impls may not accept eth
+    /// NOTE that handling of eth in this function, which cannot be third party transferred, seems very ugly.
+    /// @notice Transfer and add asset to account. Uses msg.value if asset is ETH.
+    function addAssetFrom(address from, Asset calldata assets, uint256 amount, bytes calldata parameters)
+        external
+        payable; // is it necessary to specify payable here? some impls may not accept eth
     function removeAsset(Asset calldata assets, uint256 amount, bytes calldata parameters) external;
 
     // // NOTE these helpers are not useable internally due to Solidity restrictions on dynamic memory arrays.

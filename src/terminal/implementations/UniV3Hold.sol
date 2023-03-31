@@ -110,8 +110,8 @@ contract UniV3HoldTerminal is Terminal {
         require(IERC20(tokenIn).transfer(address(msg.sender), amountToPay));
     }
 
-    function _enter(Asset calldata asset, uint256 amount, bytes calldata parameters) internal override {
-        // verifyAssetAllowed(asset);
+    function _enter(Asset calldata, uint256 amount, bytes calldata parameters) internal override {
+        // verifyAssetAllowed(asset); // NOTE should check that asset is match to path.
         (bytes memory enterPath,) = decodeParameters(parameters);
         ISwapRouter router = ISwapRouter(UNI_V3_ROUTER);
         ISwapRouter.ExactInputParams memory swapParams = ISwapRouter.ExactInputParams({
@@ -183,8 +183,8 @@ contract UniV3HoldTerminal is Terminal {
 
     // Public Helpers.
 
-    /// @dev Expected to be used off-chain
-    function getValue(bytes calldata parameters) external view override returns (uint256) {
+    // TODO fix this to be useable on chain efficiently
+    function getAmount(bytes calldata parameters) external view override returns (uint256) {
         (, bytes memory exitPath) = decodeParameters(parameters);
         return getPathTWAPQuote(exitPath, amountHeld, VALUE_TWAP_TIME);
     }
