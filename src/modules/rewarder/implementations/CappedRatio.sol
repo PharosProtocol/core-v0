@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.19;
 
-import "src/protocol/C.sol";
-import {Agreement} from "src/libraries/LibOrderBook.sol";
+import "src/C.sol";
+import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
 import {IOracle} from "src/modules/oracle/IOracle.sol";
 import {IRewarder} from "src/modules/rewarder/IRewarder.sol";
 

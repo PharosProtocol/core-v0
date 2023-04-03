@@ -1,7 +1,10 @@
-## Modules
-Modules are externally written contracts that can be permissionless plugged into Modulus. The Modules directory here contains the definitions
-of required interfaces, proxy factory libraries, and examples. Externally written Modules are not kept here, although they can still be
-accessed by Modulus users.
+# Modulus
+Modulus is an open source protocol that enables peer-to-peer lending of assets via independent and customizable loan terms. The protocol allows anyone to define a novel set of loan terms, which includes a list of approved uses of borrowed funds. Approved use cases range from simply holding a volatile asset to entering an advanced on-chain position. Lenders and borrowers who find an existing set of terms agreeable can opt to supply or borrow funds directly with Modulus facilitating the secure management of funds.
 
-## Protocol
-The protocol is the core code that defines Modulus. It is intended to be as minimal as possible so that the system is maximally customizable. 
+Loan terms can be customized for risk tolerance by adjusting collateralization, liquidation mechanisms, approved uses of borrowed capital, and more. Each set of terms is unique and does not impact existing loans.
+
+## Architecture Design
+https://www.figma.com/file/0rnDtlA49rKndhsagzxplD/MODULEND-Architecture?node-id=0%3A1&t=b1vk0xE08f6pKOCr-0
+
+
+## Example Markets

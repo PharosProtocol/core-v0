@@ -2,13 +2,13 @@
 
 pragma solidity 0.8.19;
 
-import {Agreement} from "src/libraries/LibOrderBook.sol";
+import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
 import {IAccount} from "src/modules/account/IAccount.sol";
 import {AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
 import {IAccessControl} from "lib/openzeppelin-contracts/contracts/access/IAccessControl.sol";
 import {IAssessor} from "src/modules/assessor/IAssessor.sol";
-import "src/protocol/C.sol";
-import "src/libraries/LibUtil.sol";
+import "src/C.sol";
+import "src/LibUtil.sol";
 
 /*
  * Each Position represents one deployment of capital through a Terminal.

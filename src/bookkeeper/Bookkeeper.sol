@@ -3,10 +3,10 @@
 pragma solidity 0.8.19;
 
 import "lib/tractor/Tractor.sol";
-import "src/libraries/LibUtil.sol";
+import "src/LibUtil.sol";
 
-import {Offer, Request, OrderMatch, Agreement, LibOrderBook} from "src/libraries/LibOrderBook.sol";
-import "src/protocol/C.sol";
+import {Offer, Request, OrderMatch, Agreement, LibBookkeeper} from "src/bookkeeper/LibBookkeeper.sol";
+import "src/C.sol";
 import "src/modules/oracle/IOracle.sol";
 import {IAccount} from "src/modules/account/IAccount.sol";
 import {IPosition} from "src/terminal/IPosition.sol";
@@ -24,7 +24,7 @@ import {ILiquidator} from "src/modules/liquidator/ILiquidator.sol";
  *  An Order can be created at no cost by signing a transaction with the signature of the Order. An Operator can
  *  create a compatible Position between two compatible Orders, which will be verified at Position creation.
  */
-contract OrderBook is Tractor {
+contract Bookkeeper is Tractor {
     enum BlueprintDataType {
         OFFER,
         REQUEST,
@@ -73,7 +73,7 @@ contract OrderBook is Tractor {
     function kick(SignedBlueprint calldata agreementBlueprint) external verifySignature(agreementBlueprint) {
         (bytes1 blueprintDataType, bytes memory blueprintData) = decodeDataField(agreementBlueprint.blueprint.data);
         require(
-            blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "OrderBook: Invalid blueprint data type"
+            blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "Bookkeeper: Invalid blueprint data type"
         );
         Agreement memory agreement = abi.decode(blueprintData, (Agreement));
         IPosition position = IPosition(agreement.positionAddr);
@@ -81,7 +81,7 @@ contract OrderBook is Tractor {
         // Cannot liquidate if not owned by protocol (liquidating/liquidated/exited).
         require(position.hasRole(C.CONTROLLER_ROLE, address(this)), "Position not owned by protocol");
 
-        require(LibOrderBook.isLiquidatable(agreement), "OrderBook: Position is not liquidatable");
+        require(LibBookkeeper.isLiquidatable(agreement), "Bookkeeper: Position is not liquidatable");
         // Transfer ownership of the position to the liquidator, which includes collateral.
         position.transferContract(agreement.liquidator.addr);
         // Kick the position to begin liquidation.
@@ -94,12 +94,12 @@ contract OrderBook is Tractor {
     function exitPosition(SignedBlueprint calldata agreementBlueprint) external verifySignature(agreementBlueprint) {
         (bytes1 blueprintDataType, bytes memory blueprintData) = decodeDataField(agreementBlueprint.blueprint.data);
         require(
-            blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "OrderBook: Invalid blueprint data type"
+            blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "Bookkeeper: Invalid blueprint data type"
         );
         Agreement memory agreement = abi.decode(blueprintData, (Agreement));
         require(
             msg.sender == IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters),
-            "OrderBook: Only borrower can exit position without liquidation"
+            "Bookkeeper: Only borrower can exit position without liquidation"
         );
 
         uint256 unpaidAmount = IPosition(agreement.positionAddr).exit(agreement, agreement.terminal.parameters);
@@ -124,14 +124,14 @@ contract OrderBook is Tractor {
 
         (blueprintDataType, blueprintData) = decodeDataField(lendBlueprint.blueprint.data);
         require(
-            uint8(blueprintDataType) == uint8(BlueprintDataType.OFFER), "OrderBook: Invalid lend blueprint data type"
+            uint8(blueprintDataType) == uint8(BlueprintDataType.OFFER), "Bookkeeper: Invalid lend blueprint data type"
         );
         offer = abi.decode(blueprintData, (Offer));
 
         (blueprintDataType, blueprintData) = decodeDataField(borrowBlueprint.blueprint.data);
         require(
             uint8(blueprintDataType) == uint8(BlueprintDataType.REQUEST),
-            "OrderBook: Invalid borrow blueprint data type"
+            "Bookkeeper: Invalid borrow blueprint data type"
         );
         request = abi.decode(blueprintData, (Request));
 

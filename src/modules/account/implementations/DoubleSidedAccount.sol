@@ -3,8 +3,8 @@
 pragma solidity 0.8.19;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "src/libraries/LibUtil.sol";
-import "src/protocol/C.sol";
+import "src/LibUtil.sol";
+import "src/C.sol";
 
 import {AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
 

@@ -2,10 +2,10 @@
 
 pragma solidity 0.8.19;
 
-import "src/protocol/C.sol";
+import "src/C.sol";
 import {Terminal} from "src/terminal/Terminal.sol";
 import {IPosition} from "src/terminal/IPosition.sol";
-import {Asset} from "src/libraries/LibUtil.sol";
+import {Asset} from "src/LibUtil.sol";
 
 import "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 

@@ -2,9 +2,9 @@
 
 pragma solidity 0.8.19;
 
-import "src/protocol/C.sol";
+import "src/C.sol";
 import {IComparableParameters} from "src/modules/IComparableParameters.sol";
-import {Agreement} from "src/libraries/LibOrderBook.sol";
+import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
 import {AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
 import {IPosition} from "src/Terminal/IPosition.sol";
 

@@ -3,7 +3,7 @@
 pragma solidity 0.8.19;
 
 import {IComparableParameters} from "src/modules/IComparableParameters.sol";
-import {Agreement} from "src/libraries/LibOrderBook.sol";
+import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
 
 /**
  * Rewarders are used to determine liquidator reward for a liquidation. Values are denoted in USDC values to enable

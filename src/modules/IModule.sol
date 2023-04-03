@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.19;
 
-import {Agreement} from "src/libraries/LibOrderBook.sol";
+import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
 
 // NOTE Think that some type of implementation specific verification of parameters will be needed
 //      but punting on it for now.

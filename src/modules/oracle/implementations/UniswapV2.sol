@@ -4,7 +4,7 @@ pragma solidity 0.8.19;
 
 import {IOracle} from "src/modules/oracle/IOracle.sol";
 
-import "src/protocol/C.sol";
+import "src/C.sol";
 import "lib/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 
 /// Path should start with USDC, end with asset of interest

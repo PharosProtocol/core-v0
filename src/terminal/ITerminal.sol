@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.19;
 
-import {Asset} from "src/libraries/LibUtil.sol";
+import {Asset} from "src/LibUtil.sol";
 
 interface ITerminal {
     // Verify that implementation specific parameters are valid with the agreement fields.

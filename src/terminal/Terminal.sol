@@ -2,9 +2,9 @@
 
 pragma solidity 0.8.19;
 
-import "src/protocol/C.sol";
+import "src/C.sol";
 
-import {Asset} from "src/libraries/LibUtil.sol";
+import {Asset} from "src/LibUtil.sol";
 import {AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
 import {Clones} from "lib/openzeppelin-contracts/contracts/proxy/Clones.sol";
 import {ITerminal} from "src/terminal/ITerminal.sol";

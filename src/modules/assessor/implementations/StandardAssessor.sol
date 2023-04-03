@@ -4,7 +4,7 @@ pragma solidity 0.8.19;
 
 import {IAssessor} from "src/modules/assessor/IAssessor.sol";
 import {IPosition} from "src/terminal/IPosition.sol";
-import {Agreement} from "src/libraries/LibOrderBook.sol";
+import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
 
 /*
  * Example Assessor type that calculates cost using configurable origination fee, interest rate, and profit share ratio.

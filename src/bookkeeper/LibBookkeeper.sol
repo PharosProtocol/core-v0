@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.19;
 
-import "src/protocol/C.sol";
-import "src/libraries/LibUtil.sol";
+import "src/C.sol";
+import "src/LibUtil.sol";
 import "lib/tractor/Tractor.sol";
 import "src/Terminal/IPosition.sol";
 import {IOracle} from "src/modules/oracle/IOracle.sol";
@@ -99,7 +99,7 @@ struct Agreement {
     uint256 deploymentTime;
 }
 
-library LibOrderBook {
+library LibBookkeeper {
     /// @notice Is the position defined by an agreement up for liquidation and not yet kicked
     /// @dev liquidation based on CR or duration limit
     function isLiquidatable(Agreement memory agreement) public view returns (bool) {
@@ -125,5 +125,4 @@ library LibOrderBook {
         }
         return false;
     }
-
 }
