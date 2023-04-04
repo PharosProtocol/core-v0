@@ -9,44 +9,48 @@ pragma solidity 0.8.19;
 
 import "forge-std/Test.sol";
 
-import {Asset, AssetStandard, ETH_STANDARD} from "src/LibUtil.sol";
 import {C} from "src/C.sol";
-import {DoubleSidedAccount, Parameters} from "src/modules/account/implementations/DoubleSidedAccount.sol";
+import {Asset, AssetStandard, ETH_STANDARD} from "src/LibUtil.sol";
+import {DoubleSidedAccount} from "src/modules/account/implementations/DoubleSidedAccount.sol";
 
-contract OfferAccountTest is Test {
+contract AccountTest is Test {
     DoubleSidedAccount public accounts;
+    Asset[] assets;
+    uint256[] amounts;
 
-    event AssetAdded(bytes32 accountId, Asset asset, uint256 amount);
+    Asset ethAsset = Asset({standard: ETH_STANDARD, addr: address(0), id: 0, data: ""});
+
+    // Copy of event definitions.
+    event AssetAdded(address owner, bytes32 salt, Asset asset, uint256 amount);
+    event AssetRemoved(address owner, bytes32 salt, Asset asset, uint256 amount);
 
     // invoked before each test case is run
     function setUp() public {
-        // vm.recordLogs();
+        // delete assets;
+        // delete amounts;
+        vm.recordLogs();
         accounts = new DoubleSidedAccount();
         // accounts = DoubleSidedAccount(address(0));
     }
 
-    function test_createEmptyAccount() public {
-        address lender = address(1000);
-        Asset memory asset = Asset({standard: ETH_STANDARD, addr: address(0), id: 0, data: ""});
-        Asset[] memory assets = new Asset[](1);
-        assets[0] = asset; // seriously solidity - tf even is this syntax
-        uint256 amount = 1 * 10 ** C.ETH_DECIMALS;
-        uint256[] memory amounts = new uint256[](1);
-        amounts[0] = amount;
-        Parameters memory parameters = Parameters({owner: lender, ownerAccountSalt: "1234"});
-        bytes memory encodedParameters = abi.encode(parameters);
-        bytes32 id = keccak256(abi.encodePacked(parameters.owner, parameters.ownerAccountSalt));
+    function testFuzz_CreateAndAdd(address lender, bytes32 salt, uint256 amount) public {
+        vm.assume(lender != address(0));
 
-        // vm.expectEmit(true, true, true, true);
-        // // emit accounts.AssetAdded(id, asset, amount);
-        // emit AssetAdded(id, asset, amount);
+        DoubleSidedAccount.Parameters memory parameters =
+            DoubleSidedAccount.Parameters({owner: lender, ownerAccountSalt: salt});
+        bytes memory encodedParameters = abi.encode(parameters);
+
+        // assets.push(ethAsset);
+        // amounts.push(amount);
+        vm.expectEmit(true, true, true, true);
+        emit AssetAdded(lender, salt, ethAsset, amount);
 
         vm.deal(lender, amount);
         vm.startPrank(lender);
-        accounts.addAssetFrom{value: amount}(lender, asset, amount, encodedParameters);
+        accounts.addAssetFrom{value: amount}(lender, ethAsset, amount, encodedParameters);
 
         assertEq(accounts.getOwner(encodedParameters), lender);
-        assertEq(accounts.getBalances(assets, encodedParameters), amounts);
+        assertEq(accounts.getBalance(ethAsset, encodedParameters), amount);
     }
 
     // function createOfferAccount(bytes32 _id, address[] calldata _assets, uint256[] calldata _amounts) public {
