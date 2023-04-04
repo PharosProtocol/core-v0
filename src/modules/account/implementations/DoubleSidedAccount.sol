@@ -7,22 +7,23 @@ import "src/LibUtil.sol";
 import "src/C.sol";
 
 import {AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
-
-struct Parameters {
-    address owner;
-    // An owner-unique id for this account.
-    bytes32 ownerAccountSalt;
-}
+import {IAccount} from "src/modules/account/IAccount.sol";
 
 /**
  * Account for holding ETH and ERC20 assets, to use for either lending or borrowing through an Agreement.
  * ~ Not compatible with other asset types ~
  */
-contract DoubleSidedAccount is AccessControl {
+contract DoubleSidedAccount is AccessControl, IAccount {
     bytes32 internal constant PROTOCOL_ROLE = keccak256("PROTOCOL_ROLE");
 
-    event AssetAdded(bytes32 accountId, Asset asset, uint256 amount);
-    event AssetRemoved(bytes32 accountId, Asset asset, uint256 amount);
+    struct Parameters {
+        address owner;
+        // An owner-unique id for this account.
+        bytes32 ownerAccountSalt;
+    }
+
+    event AssetAdded(address owner, bytes32 salt, Asset asset, uint256 amount);
+    event AssetRemoved(address owner, bytes32 salt, Asset asset, uint256 amount);
 
     mapping(bytes32 => mapping(bytes32 => uint256)) private accounts; // account id => asset hash => amount
 
@@ -33,6 +34,7 @@ contract DoubleSidedAccount is AccessControl {
     function addAssetFrom(address from, Asset calldata asset, uint256 amount, bytes calldata parameters)
         external
         payable
+        override
     {
         Parameters memory params = abi.decode(parameters, (Parameters));
 
@@ -42,7 +44,7 @@ contract DoubleSidedAccount is AccessControl {
         // Handle ETH.
         if (Utils.isEth(asset)) {
             // require(msg.sender == from);
-            require(msg.value == amount); // NOTE how protective to be about over sending?
+            require(msg.value == amount, "addAssetFrom: eth value does not match amount"); // NOTE how protective to be about over sending?
         }
         // Handle ERC20.
         else if (asset.standard == ERC20_STANDARD) {
@@ -54,10 +56,10 @@ contract DoubleSidedAccount is AccessControl {
         }
         accounts[accountId][keccak256(abi.encode(asset))] += amount;
 
-        emit AssetAdded(accountId, asset, amount);
+        emit AssetAdded(params.owner, params.ownerAccountSalt, asset, amount);
     }
 
-    function removeAsset(Asset calldata asset, uint256 amount, bytes calldata parameters) external {
+    function removeAsset(Asset calldata asset, uint256 amount, bytes calldata parameters) external override {
         Parameters memory params = abi.decode(parameters, (Parameters));
 
         require(msg.sender == params.owner);
@@ -73,7 +75,7 @@ contract DoubleSidedAccount is AccessControl {
         }
         accounts[accountId][keccak256(abi.encode(asset))] -= amount; // verifies account balance is sufficient
 
-        emit AssetRemoved(accountId, asset, amount);
+        emit AssetRemoved(params.owner, params.ownerAccountSalt, asset, amount);
     }
 
     // NOTE could bypass need hre (and other modules) for PROTOCOL_ROLE by verifying signed agreement and tracking
@@ -86,7 +88,7 @@ contract DoubleSidedAccount is AccessControl {
         Asset calldata collateralAsset,
         uint256 collateralAmount,
         bytes calldata borrowerAccountParameters
-    ) external onlyRole(PROTOCOL_ROLE) {
+    ) external override onlyRole(PROTOCOL_ROLE) {
         Parameters memory lenderParams = abi.decode(lenderAccountParameters, (Parameters));
         Parameters memory borrowerParams = abi.decode(borrowerAccountParameters, (Parameters));
 
@@ -99,24 +101,19 @@ contract DoubleSidedAccount is AccessControl {
         accounts[borrowerAccountId][keccak256(abi.encode(collateralAsset))] -= collateralAmount;
     }
 
-    function getOwner(bytes calldata parameters) external pure returns (address) {
+    function getOwner(bytes calldata parameters) external pure override returns (address) {
         return abi.decode(parameters, (Parameters)).owner;
     }
 
-    function getBalances(Asset[] calldata assets, bytes calldata parameters)
+    function getBalance(Asset calldata asset, bytes calldata parameters)
         external
         view
-        returns (uint256[] memory amounts)
+        override
+        returns (uint256 amounts)
     {
         Parameters memory params = abi.decode(parameters, (Parameters));
-
         bytes32 accountId = _generateId(params.owner, params.ownerAccountSalt);
-
-        amounts = new uint256[](assets.length);
-        for (uint256 i; i < assets.length; i++) {
-            amounts[i] = accounts[accountId][keccak256(abi.encode(assets[i]))];
-        }
-        return amounts;
+        return accounts[accountId][keccak256(abi.encode(asset))];
     }
 
     function _generateId(address owner, bytes32 salt) private pure returns (bytes32) {
