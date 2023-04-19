@@ -63,17 +63,17 @@ contract AssessorTest is Test {
 
     /// @notice manual defined test cases of getCost. Checks for correctness.
     function test_GetCost() public {
-        uint256 loanAmount = 100000000000000000000;
+        uint256 loanAmount = 100e18;
         uint256 timePassed = 24 * 60 * 60;
 
         uint256 cost;
 
         cost = getCost(10 * C.RATIO_FACTOR / 100, 0, 0, loanAmount, 1, timePassed); // 10% origination fee
         assertEq(cost, loanAmount / 10); // certainly going to have rounding error here
-        cost = getCost(0, C.RATIO_FACTOR / 1000000, 0, loanAmount, 1, timePassed); // 0.0001% interest per second for 1 day
-        assertEq(cost, loanAmount * (C.RATIO_FACTOR / 1000000) * timePassed); // rounding errors?
+        cost = getCost(0, C.RATIO_FACTOR / 1_000_000, 0, loanAmount, 1, timePassed); // 0.0001% interest per second for 1 day
+        assertEq(cost, loanAmount * timePassed / 1_000_000); // rounding errors?
         cost = getCost(0, 0, 5 * C.RATIO_FACTOR / 100, loanAmount, 120 * C.RATIO_FACTOR / 100, timePassed); // 5% of 20% profit
-        assertEq(cost, loanAmount * 20 * C.RATIO_FACTOR / 100 * 5 * C.RATIO_FACTOR / 100); // rounding errors?
+        assertEq(cost, loanAmount * 20 * 5 / 100 / 100); // rounding errors?
         cost = getCost(0, 0, 5 * C.RATIO_FACTOR / 100, loanAmount, 90 * C.RATIO_FACTOR / 100, timePassed); // 5% of 10% loss
         assertEq(cost, 0);
     }
