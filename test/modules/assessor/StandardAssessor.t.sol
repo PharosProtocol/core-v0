@@ -21,7 +21,7 @@ import {Asset, AssetStandard, ETH_STANDARD, ERC20_STANDARD} from "src/LibUtil.so
 import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
 import {StandardAssessor} from "src/modules/assessor/implementations/StandardAssessor.sol";
 
-contract AssessorTest is Test {
+contract StandardAssessorTest is Test {
     StandardAssessor public assessorModule;
     MockPosition public position;
 
