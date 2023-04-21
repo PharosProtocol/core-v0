@@ -2,9 +2,16 @@
 
 pragma solidity 0.8.19;
 
+/**
+ *
+ * DO NOT USE THIS ORACLE
+ * It is susceptible to oracle manipulation attacks since it does not use average price over a period of time.
+ *
+ */
+
 import {IOracle} from "src/modules/oracle/IOracle.sol";
 
-import "src/C.sol";
+import {C} from "src/C.sol";
 import "lib/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 
 /// Path should start with USDC, end with asset of interest
