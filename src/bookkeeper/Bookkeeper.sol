@@ -171,7 +171,6 @@ contract Bookkeeper is Tractor {
         require(Utils.isInRangePair(orderMatch.collateralAmount, offer.collateralAmount, request.collateralAmount));
 
         require(Utils.isInRangePair(orderMatch.assessor, offer.assessor, request.assessor));
-        require(Utils.isInRangePair(orderMatch.rewarder, offer.rewarder, request.rewarder));
         require(Utils.isInRangePair(orderMatch.liquidator, offer.liquidator, request.liquidator));
     }
 
@@ -212,7 +211,6 @@ contract Bookkeeper is Tractor {
         position.loanAmount = orderMatch.loanAmount;
         position.collateralAmount = orderMatch.collateralAmount;
         position.assessor = orderMatch.assessor;
-        position.rewarder = orderMatch.rewarder;
         position.liquidator = orderMatch.liquidator;
 
         position.lenderAccount = offer.lenderAccount;

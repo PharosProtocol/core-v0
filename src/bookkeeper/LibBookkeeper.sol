@@ -19,7 +19,6 @@ struct Offer {
     uint256[2] loanAmount;
     uint256[2] collateralAmount;
     ModuleReference[2] assessor;
-    ModuleReference[2] rewarder;
     ModuleReference[2] liquidator;
     /* Allowlisted variables */
     address[] takers; // if empty, allow any taker
@@ -41,7 +40,6 @@ struct Request {
     uint256[2] loanAmount;
     uint256[2] collateralAmount;
     ModuleReference[2] assessor;
-    ModuleReference[2] rewarder;
     ModuleReference[2] liquidator;
     /* Allowlisted variables */
     address[] takers; // if empty, allow any taker
@@ -62,7 +60,6 @@ struct OrderMatch {
     uint256 loanAmount;
     uint256 collateralAmount;
     ModuleReference assessor;
-    ModuleReference rewarder;
     ModuleReference liquidator;
     /* Allowlisted variables */
     Asset loanAsset;
@@ -84,7 +81,6 @@ struct Agreement {
     uint256 loanAmount;
     uint256 collateralAmount;
     ModuleReference assessor;
-    ModuleReference rewarder;
     ModuleReference liquidator;
     /* Allowlisted variables */
     ModuleReference lenderAccount;
