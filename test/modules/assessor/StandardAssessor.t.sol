@@ -85,7 +85,8 @@ contract StandardAssessorTest is Test {
         uint256 profitShareRatio,
         uint256 loanAmount,
         uint256 currentValueRatio,
-        uint256 timePassed
+        uint256 timePassed,
+        uint256 scaleUpRatio
     ) public {
         originationFeeRatio = bound(originationFeeRatio, 0, C.RATIO_FACTOR);
         interestRatio = bound(interestRatio, 0, C.RATIO_FACTOR);
@@ -93,6 +94,17 @@ contract StandardAssessorTest is Test {
         loanAmount = bound(loanAmount, 0, type(uint64).max);
         currentValueRatio = bound(currentValueRatio, 0, 3 * C.RATIO_FACTOR);
         timePassed = bound(timePassed, 0, 365 * 24 * 60 * 60);
-        getCost(originationFeeRatio, interestRatio, profitShareRatio, loanAmount, currentValueRatio, timePassed);
+        uint256 cost = getCost(originationFeeRatio, interestRatio, profitShareRatio, loanAmount, currentValueRatio, timePassed);
+
+        assertLe(cost, loanAmount);
+        assertGe(cost, loanAmount * originationFeeRatio / C.RATIO_FACTOR);
+        assertGe(cost, loanAmount * timePassed * interestRatio / C.RATIO_FACTOR);
+        assertGe(cost, loanAmount * profitShareRatio / C.RATIO_FACTOR);
+
+        scaleUpRatio = bound(scaleUpRatio, 0, C.RATIO_FACTOR) + C.RATIO_FACTOR;
+        uint256 loanAmountBig = loanAmount + scaleUpRatio;
+        uint256 timePassedBig = timePassed + scaleUpRatio;
+        assertLe(cost, getCost(originationFeeRatio, interestRatio, profitShareRatio, loanAmountBig, currentValueRatio, timePassed));
+        assertLe(cost, getCost(originationFeeRatio, interestRatio, profitShareRatio, loanAmount, currentValueRatio, timePassedBig));
     }
 }
