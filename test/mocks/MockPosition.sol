@@ -11,7 +11,7 @@ contract MockPosition is Position {
         currentAmount = amount;
     }
 
-    function getAmount(bytes calldata) external view override returns (uint256) {
+    function getExitAmount(bytes calldata) external view override returns (uint256) {
         return currentAmount;
     }
 

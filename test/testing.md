@@ -11,6 +11,10 @@ Invariant tests consist of semi-random inputs and random function calls. Invaria
 
 ## End-to-End Testing
 
+## Forge tips
+- To see real time RPC logs use `RUST_LOG=forge=trace,foundry_evm=trace,ethers=trace forge test`
+- To avoid extremely long run times of invariant tests use a seed so calls can be cached.
+- https://book.getfoundry.sh/tutorials/best-practices
 
 # Notes on testing design
 
