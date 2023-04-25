@@ -17,12 +17,16 @@ import {Asset} from "src/LibUtil.sol";
 // This catch22 probably applies to all modules interfaces...
 
 interface IAccount {
+    // NOTE using a "from" system is vulnerable to callers pulling on victim approvals into their own accounts.
+    //      could use a preload / presend concept?
+    // function addAssetFrom(address from, Asset calldata asset, uint256 amount, bytes calldata parameters)
     /// NOTE that handling of eth in this function, which cannot be third party transferred, seems very ugly.
     /// @notice Transfer and add asset to account. Uses msg.value if asset is ETH.
-    function addAssetFrom(address from, Asset calldata assets, uint256 amount, bytes calldata parameters)
+    function addAsset(Asset calldata asset, uint256 amount, bytes calldata parameters) external payable; // is it necessary to specify payable here? some impls may not accept eth
+    function addAssetBookkeeper(address from, Asset calldata asset, uint256 amount, bytes calldata parameters)
         external
-        payable; // is it necessary to specify payable here? some impls may not accept eth
-    function removeAsset(Asset calldata assets, uint256 amount, bytes calldata parameters) external;
+        payable; // onlyRole(BOOKKEEPER_ROLE)
+    function removeAsset(Asset calldata asset, uint256 amount, bytes calldata parameters) external;
 
     // // NOTE these helpers are not useable internally due to Solidity restrictions on dynamic memory arrays.
     // function addAssets(Asset[] calldata assets, uint256[] calldata amount, bytes calldata parameters)
@@ -31,7 +35,7 @@ interface IAccount {
     // function removeAssets(Asset[] calldata assets, uint256[] calldata amount, bytes calldata parameters) external;
 
     // NOTE Sending collateral to position contract for now. May not be strictly necessary.
-    // function capitalizePosition(Agreement calldata agreement) external returns; // PROTOCOL_ROLE_ONLY
+    // function capitalizePosition(Agreement calldata agreement) external returns; // onlyRole(BOOKKEEPER_ROLE)
     function capitalizePosition(
         address position,
         Asset calldata loanAsset,
@@ -40,7 +44,7 @@ interface IAccount {
         Asset calldata collateralAsset,
         uint256 collateralAmount,
         bytes calldata borrowerAccountParameters
-    ) external; // PROTOCOL_ROLE_ONLY
+    ) external; // onlyRole(BOOKKEEPER_ROLE)
 
     // NOTE third party addAsset, used in liquidations. Is there any reason to not just use addAssets?
     // function returnAsset(address asset, uint256 amount, bytes calldata parameters) external;
