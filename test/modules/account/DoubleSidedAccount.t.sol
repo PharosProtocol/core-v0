@@ -27,8 +27,8 @@ contract AccountTest is Test {
     event AssetRemoved(address owner, bytes32 salt, Asset asset, uint256 amount);
 
     constructor() {
-        ASSETS.push(Asset({standard: ETH_STANDARD, addr: address(0), id: 0, data: ""}));
-        ASSETS.push(Asset({standard: ERC20_STANDARD, addr: C.USDC, id: 0, data: ""}));
+        ASSETS.push(Asset({standard: ETH_STANDARD, addr: address(0), id: 0, data: ""})); // Tests expect 0 index to be ETH
+        ASSETS.push(Asset({standard: ERC20_STANDARD, addr: C.USDC, id: 0, data: ""})); // Tests expect 1 index to be an ERC20
     }
 
     // invoked before each test case is run
@@ -40,46 +40,95 @@ contract AccountTest is Test {
     }
 
     // NOTE it is unclear if this should be a fuzz or a direct unit tests. Are fuzzes handled by invariant tests?
-    function test_UserCalls(uint256 assetIdx, uint256 amount, bytes32 salt) public {
+    function test_UserCalls() public {
         vm.assume(msg.sender != address(0));
-        assetIdx = bound(assetIdx, 0, ASSETS.length - 1);
-        amount = bound(amount, 0, type(uint128).max);
+
+        // Deal 10e18 of each asset.
+        for (uint256 i; i < ASSETS.length; i++) {
+            if (ASSETS[i].standard == ETH_STANDARD) {
+                vm.deal(msg.sender, 10e18);
+            } else if (ASSETS[i].standard == ERC20_STANDARD) {
+                deal(ASSETS[i].addr, msg.sender, 10e18, true);
+            } else {
+                revert("unsupported asset, cannot deal");
+            }
+        }
 
         vm.startPrank(msg.sender);
 
-        // Set ETH balance.
-        uint256 value;
-        if (ASSETS[assetIdx].standard == ETH_STANDARD) {
-            vm.deal(msg.sender, amount);
-            value = amount;
-        }
-        // Set ERC20 balance.
-        if (ASSETS[assetIdx].standard == ERC20_STANDARD) {
-            // vm.assume(amount != 0);
-            deal(ASSETS[assetIdx].addr, msg.sender, amount, true);
-            // vm.prank(msg.sender);
-            IERC20(ASSETS[assetIdx].addr).approve(address(accountModule), amount);
-        }
-
-        bytes memory parameters = abi.encode(DoubleSidedAccount.Parameters({owner: msg.sender, salt: salt}));
-
-        // vm.prank(msg.sender);
-        accountModule.addAsset{value: value}(ASSETS[assetIdx], amount, parameters);
-
+        // Define account instance.
+        bytes memory parameters = abi.encode(DoubleSidedAccount.Parameters({owner: msg.sender, salt: "salt"}));
         assertEq(accountModule.getOwner(parameters), msg.sender);
-        assertEq(accountModule.getBalance(ASSETS[assetIdx], parameters), amount); // NOTE this should fail sometimes
 
-        accountModule.removeAsset(ASSETS[assetIdx], amount, parameters);
-        assertEq(accountModule.getBalance(ASSETS[assetIdx], parameters), 0);
+        // Fail to add ETH because balance too low.
+        vm.expectRevert(); // EvmError: OutOfFund
+        accountModule.addAsset{value: 11e18}(ASSETS[0], 11e18, parameters);
+
+        // Fail to add ERC20 because asset not approved.
+        vm.expectRevert("ERC20: transfer amount exceeds allowance");
+        accountModule.addAsset{value: 0}(ASSETS[1], 1e18, parameters);
+
+        // Approve ERC20.
+        IERC20(ASSETS[1].addr).approve(address(accountModule), 999e18);
+
+        // Fail to add ERC20 because balance too low.
+        vm.expectRevert("ERC20: transfer amount exceeds balance");
+        accountModule.addAsset{value: 0}(ASSETS[1], 11e18, parameters);
+
+        // Add ETH.
+        accountModule.addAsset{value: 1e18}(ASSETS[0], 1e18, parameters);
+        assertEq(accountModule.getBalance(ASSETS[0], parameters), 1e18);
+        accountModule.addAsset{value: 3e18}(ASSETS[0], 3e18, parameters);
+        assertEq(accountModule.getBalance(ASSETS[0], parameters), 4e18);
+        accountModule.addAsset{value: 1}(ASSETS[0], 1, parameters);
+        assertEq(accountModule.getBalance(ASSETS[0], parameters), 4000000000000000001);
+        accountModule.addAsset{value: 0}(ASSETS[0], 0, parameters); // NOTE should this be made to revert?
+        assertEq(accountModule.getBalance(ASSETS[0], parameters), 4000000000000000001);
+
+        // Add ERC20.
+        accountModule.addAsset{value: 0}(ASSETS[1], 1e18, parameters);
+        assertEq(accountModule.getBalance(ASSETS[1], parameters), 1e18);
+        accountModule.addAsset{value: 0}(ASSETS[1], 3e18, parameters);
+        assertEq(accountModule.getBalance(ASSETS[1], parameters), 4e18);
+        accountModule.addAsset{value: 0}(ASSETS[1], 1, parameters);
+        assertEq(accountModule.getBalance(ASSETS[1], parameters), 4000000000000000001);
+        accountModule.addAsset{value: 0}(ASSETS[1], 0, parameters); // NOTE should this be made to revert?
+        assertEq(accountModule.getBalance(ASSETS[1], parameters), 4000000000000000001);
+
+        // Verify other balances are still valid.
+        assertEq(accountModule.getBalance(ASSETS[0], parameters), 4000000000000000001);
+        // assertEq(accountModule.getBalance(ASSETS[1], parameters), 4000000000000000001);
+
+        // Remove ETH.
+        accountModule.removeAsset(ASSETS[0], 1, parameters);
+        assertEq(accountModule.getBalance(ASSETS[0], parameters), 4e18);
+        accountModule.removeAsset(ASSETS[0], 1e18, parameters);
+        assertEq(accountModule.getBalance(ASSETS[0], parameters), 3e18);
+        accountModule.removeAsset(ASSETS[0], 0, parameters);
+        assertEq(accountModule.getBalance(ASSETS[0], parameters), 3e18);
+        accountModule.removeAsset(ASSETS[0], 3e18, parameters);
+        assertEq(accountModule.getBalance(ASSETS[0], parameters), 0);
+
+        // Remove ERC20.
+        accountModule.removeAsset(ASSETS[1], 1, parameters);
+        assertEq(accountModule.getBalance(ASSETS[1], parameters), 4e18);
+        accountModule.removeAsset(ASSETS[1], 1e18, parameters);
+        assertEq(accountModule.getBalance(ASSETS[1], parameters), 3e18);
+        accountModule.removeAsset(ASSETS[1], 0, parameters);
+        assertEq(accountModule.getBalance(ASSETS[1], parameters), 3e18);
+        accountModule.removeAsset(ASSETS[1], 3e18, parameters);
+        assertEq(accountModule.getBalance(ASSETS[1], parameters), 0);
 
         // Revert because account empty.
         vm.expectRevert(stdError.arithmeticError);
         accountModule.removeAsset(ASSETS[0], 1, parameters);
+        vm.expectRevert(stdError.arithmeticError);
+        accountModule.removeAsset(ASSETS[1], 1, parameters);
 
         // Revert because non-owned account.
         vm.stopPrank();
         vm.prank(address(123)); // random addr
-        vm.expectRevert();
+        vm.expectRevert("removeAsset: not owner");
         accountModule.removeAsset(ASSETS[0], 1, parameters);
     }
 }
@@ -181,10 +230,9 @@ contract InvariantAccountTest is Test {
             (bytes3 standard, address addr,,) = handler.ASSETS(j);
             if (standard == ETH_STANDARD) {
                 assertEq(address(handler.accountModule()).balance, handler.assetBalances(j));
+            } else if (standard == ERC20_STANDARD) {
+                assertEq(IERC20(addr).balanceOf(address(handler.accountModule())), handler.assetBalances(j));
             }
-            // else if (standard == ERC20_STANDARD) {
-            //     assertEq(IERC20(addr).balanceOf(address(handler.accountModule())), handler.assetBalances(j));
-            // }
         }
     }
 
