@@ -26,63 +26,57 @@ struct ModuleReference {
  * @notice Order representing a Lender.
  */
 struct Offer {
-    ModuleReference lenderAccount;
-    uint256[] loanableAmounts;
-    uint256 minFillRatio; // allows partial fills, prevents griefing
-    /* Ranged variables */
-    uint256 maxDurationUpperLimit;
-    uint256 minCollateralRatioLowerLimit;
-    ModuleReference assessorLowerLimit;
-    ModuleReference liquidatorLowerLimit;
-    /* Allowlisted variables */
+    // Assets
     Asset[] loanAssets;
+    uint256[] maxLoanAmounts; // Not needed bc amount can be limited by breaking up accounts
     Asset[] collateralAssets;
+    // Terms
+    uint256 minFillRatio; // allows partial fills, prevents griefing
     address[] takers; // if empty, allow any taker
+    uint256 maxDuration; // will also accept shorter max?
+    uint256 minCollateralRatio; // will also accept higher?
+    // Modules
+    ModuleReference lenderAccount;
+    ModuleReference assessor; // will also accept more expensive?
+    ModuleReference liquidator; // will also accept more expensive?
     ModuleReference[] loanOracles;
     ModuleReference[] collateralOracles;
-    address[] terminals;
+    address[] terminals; // Should lenders be allowing specified parameters?
 }
 
 /**
  * @notice Order representing a Borrower.
  */
 struct Request {
-    ModuleReference borrowerAccount;
-    uint256 initCollateralRatio;
-    uint256[] collateralableAmounts; // Arranged in sync with collateralAssets
-    uint256 minFillRatio; // allows partial fills, prevents griefing
-    /* Ranged variables */
-    uint256 maxDurationLowerLimit;
-    uint256 minCollateralRatioUpperLimit;
-    ModuleReference assessorUpperLimit;
-    ModuleReference liquidatorUpperLimit;
-    /* Allowlisted variables */
-    Asset[] loanAssets;
+    // Assets
     Asset[] collateralAssets;
+    uint256[] maxCollateralAmounts; // Not needed bc amount can be limited by breaking up accounts
+    Asset[] loanAssets;
+    // Terms
+    uint256 minFillRatio; // allows partial fills, prevents griefing
     address[] takers; // if empty, allow any taker
+    uint256 maxDuration; // will also accept longer?
+    uint256 minCollateralRatio; // will also accept lower?
+    uint256 initCollateralRatio; // Borrower chooses starting health.
+    // Modules
+    ModuleReference borrowerAccount;
+    ModuleReference assessor; // Will also accept cheaper assessors?
+    ModuleReference liquidator; // Will also accept cheaper liquidators?
     ModuleReference[] loanOracles;
     ModuleReference[] collateralOracles;
     ModuleReference[] terminals;
 }
 
-/**
- * @notice Operator defined Position configuration that is compatible with an offer and a request.
- */
-struct OrderMatch {
-    /* Ranged variables */
-    // uint256 minCollateralRatio;
-    // uint256 durationLimit;
+/// @notice Taker defined Position configuration that is compatible with an offer or a request.
+/// @notice Assumes Taker will always want selfishly optimal modules.
+struct Fill {
     uint256 loanAmount; // should be valid with both minFillRatios and account balances
-    // uint256 collateralAmount;
-    // ModuleReference assessor;
-    // ModuleReference liquidator;
-    /* Allowlisted variables */
-    IndexPair takerIdx;
-    IndexPair loanAsset; // need to verify with the oracle
-    IndexPair collateralAsset; // need to verify with the oracle
-    IndexPair loanOracle;
-    IndexPair collateralOracle;
-    IndexPair terminal;
+    uint256 takerIdx; // Do not use if no taker allowlist.
+    uint256 loanAssetIdx; // need to verify with the oracle
+    uint256 collateralAssetIdx; // need to verify with the oracle
+    uint256 loanOracleIdx;
+    uint256 collateralOracleIdx;
+    uint256 terminalIdx;
 }
 
 /**
@@ -90,22 +84,21 @@ struct OrderMatch {
  * @dev Signed data structure used to store position configuration off chain, reported via events.
  */
 struct Agreement {
-    uint256 bookkeeperVersion;
+    // uint256 bookkeeperVersion;
     uint256 loanAmount;
     uint256 collateralAmount;
+    Asset loanAsset;
+    Asset collateralAsset;
     uint256 minCollateralRatio; // Position value / collateral value
     uint256 durationLimit;
-    ModuleReference assessor;
-    ModuleReference liquidator;
-    //
     ModuleReference lenderAccount;
     ModuleReference borrowerAccount;
-    Asset loanAsset; // how to ensure loanAsset is match to loanOracle? require 1:1 array order matching? <- by verifying oracle does not return price 0 for the asset
-    Asset collateralAsset; // same q as above
+    ModuleReference assessor;
+    ModuleReference liquidator;
     ModuleReference loanOracle;
     ModuleReference collateralOracle;
     ModuleReference terminal;
-    /* Position deployment details */
+    // Position deployment details, set by bookkeeper.
     address positionAddr;
     uint256 deploymentTime;
 }
