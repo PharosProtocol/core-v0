@@ -11,4 +11,6 @@ import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
 // functions decodeParameters(bytes calldata parameters) external view returns (...);
 //     /// @notice verify compatibility between the agreement and the parameters.
 //     function verifyParameters(Agreement agreement) external view;
+
+    // function getVersion() external pure returns (uint256);
 // }

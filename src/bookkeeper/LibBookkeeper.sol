@@ -19,9 +19,6 @@ struct ModuleReference {
     bytes parameters;
 }
 
-// NOTE Both Offer and Request offer extremely high dimensionality in handling sets of assets. This could be
-//      simplified by removing that functionality. Unclear if it is something users would actually use.
-
 /// @notice terms shared between Offers and Requests.
 struct Order {
     uint256[] minLoanAmounts; // idx parity with loanAssets

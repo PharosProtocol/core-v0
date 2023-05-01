@@ -7,7 +7,7 @@ import {IAccount} from "src/modules/account/IAccount.sol";
 import {AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
 import {IAccessControl} from "lib/openzeppelin-contracts/contracts/access/IAccessControl.sol";
 import {IAssessor} from "src/modules/assessor/IAssessor.sol";
-import "src/C.sol";
+import {C} from "src/C.sol";
 import "src/LibUtil.sol";
 
 /*
@@ -16,7 +16,7 @@ import "src/LibUtil.sol";
  */
 interface IPosition is IAccessControl {
     /// @notice Get current value of the position, denoted in loan asset.
-    function getAmount(bytes calldata parameters) external view returns (uint256);
+    function getExitAmount(bytes calldata parameters) external view returns (uint256);
     /// @notice Fully exit the position in the same asset it was entered with. Assets remains in contract.
     function exit(Agreement memory agreement, bytes calldata parameters) external returns (uint256); // onlyRole(CONTROLLER_ROLE)
     /// @notice Transfer the position to a new controller. Used for liquidations.
@@ -32,6 +32,7 @@ interface IPosition is IAccessControl {
 abstract contract Position is AccessControl, IPosition {
     event ControlTransferred(address indexed previousController, address indexed newController);
 
+    // AUDIT Hello auditors, pls gather around. This feels risky.
     function transferContract(address controller) external override onlyRole(C.CONTROLLER_ROLE) {
         // grantRole(LIQUIDATOR_ROLE, controller); // having a distinct liquidator role and controller role is a nicer abstraction, but has gas cost for no benefit.
         grantRole(C.CONTROLLER_ROLE, controller);
@@ -71,24 +72,26 @@ abstract contract Position is AccessControl, IPosition {
             borrowerAmount = exitedAmount - lenderOwed;
         }
 
-        IAccount(agreement.lenderAccount.addr).addAssetFrom{value: Utils.isEth(agreement.loanAsset) ? lenderAmount : 0}(
-            address(this), agreement.loanAsset, lenderAmount, agreement.lenderAccount.parameters
-        );
+        if (lenderAmount > 0) {
+            IAccount(agreement.lenderAccount.addr).addAsset{value: Utils.isEth(agreement.loanAsset) ? lenderAmount : 0}(
+                agreement.loanAsset, lenderAmount, agreement.lenderAccount.parameters
+            );
+        }
 
         // Borrower gets remaining loan asset direct to wallet that took the position.
         if (borrowerAmount > 0) {
-            Utils.transferAsset(
-                address(this),
+            Utils.sendAsset(
                 IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters),
                 agreement.loanAsset,
                 borrowerAmount
             );
         }
 
-        // Borrower gets all collateral back to account.
-        IAccount(agreement.borrowerAccount.addr).addAssetFrom{
+        // Borrower gets full collateral back to account.
+        // if (agreement.collateralAmount > 0) {
+        IAccount(agreement.borrowerAccount.addr).addAsset{
             value: Utils.isEth(agreement.collateralAsset) ? agreement.collateralAmount : 0
-        }(address(this), agreement.collateralAsset, agreement.collateralAmount, agreement.borrowerAccount.parameters);
+        }(agreement.collateralAsset, agreement.collateralAmount, agreement.borrowerAccount.parameters);
 
         renounceRole(C.CONTROLLER_ROLE, address(this));
         // renounceRole(DEFAULT_ADMIN_ROLE); // this isn't necessary as the immutable contract provably cannot abuse this. No trust needed.

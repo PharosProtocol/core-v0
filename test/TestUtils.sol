@@ -5,10 +5,10 @@ pragma solidity 0.8.19;
 import "forge-std/Test.sol";
 
 contract TestUtils is Test {
-    modifier requireFork() {
-        vm.activeFork();
-        _;
-    }
+    // modifier requireFork() {
+    //     vm.activeFork();
+    //     _;
+    // }
 
     // modifier startPrank(address pranker) {
     //     vm.startPrank(pranker);

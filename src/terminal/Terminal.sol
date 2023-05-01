@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.19;
 
-import "src/C.sol";
+import {C} from "src/C.sol";
 
 import {Asset} from "src/LibUtil.sol";
 import {AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
@@ -38,7 +38,7 @@ interface IChildClone {
  */
 
 abstract contract Terminal is ITerminal, IChildClone, Position, Initializable {
-    bytes32 internal constant PROTOCOL_ROLE = keccak256("PROTOCOL_ROLE"); // pretty sure constants set in impl contract will be the same for all clones
+    bytes32 internal constant BOOKKEEPER_ROLE = keccak256("BOOKKEEPER_ROLE"); // pretty sure constants set in impl contract will be the same for all clones
     address public constant PROTOCOL_ADDRESS = address(1); // Modulus address
     address public immutable TERMINAL_ADDRESS; // Implementation contract address // assumes proxy constant values are set by implementation contract
 
@@ -62,7 +62,7 @@ abstract contract Terminal is ITerminal, IChildClone, Position, Initializable {
         // Do not allow initialization in implementation contract.
         _disableInitializers(); // redundant with cloneExecution modifier?
         TERMINAL_ADDRESS = address(this);
-        _grantRole(PROTOCOL_ROLE, PROTOCOL_ADDRESS); // Terminal role set
+        _grantRole(BOOKKEEPER_ROLE, PROTOCOL_ADDRESS); // Terminal role set
     }
 
     /*
@@ -72,7 +72,7 @@ abstract contract Terminal is ITerminal, IChildClone, Position, Initializable {
         external
         override
         implementationExecution
-        onlyRole(PROTOCOL_ROLE)
+        onlyRole(BOOKKEEPER_ROLE)
         returns (address addr)
     {
         addr = Clones.clone(address(this));
@@ -92,7 +92,7 @@ abstract contract Terminal is ITerminal, IChildClone, Position, Initializable {
         initializer
         cloneExecution
     {
-        _grantRole(PROTOCOL_ROLE, PROTOCOL_ADDRESS); // Position role set
+        _grantRole(BOOKKEEPER_ROLE, PROTOCOL_ADDRESS); // Position role set
 
         _enter(asset, amount, parameters);
         emit PositionCreated(TERMINAL_ADDRESS, asset, amount, parameters);

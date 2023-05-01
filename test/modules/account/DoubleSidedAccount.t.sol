@@ -34,8 +34,7 @@ contract AccountTest is Test {
     // invoked before each test case is run
     function setUp() public {
         vm.recordLogs();
-        // requires fork
-        vm.activeFork();
+        vm.createSelectFork(vm.rpcUrl("mainnet"), 17092863);
         accountModule = new DoubleSidedAccount();
     }
 
@@ -210,8 +209,7 @@ contract InvariantAccountTest is Test {
     // invoked before each test case is run
     function setUp() public {
         vm.recordLogs();
-        // requires fork
-        vm.activeFork();
+        vm.createSelectFork(vm.rpcUrl("mainnet"), 17092863);
         handler = new Handler();
 
         // vm.targetContract(address(handler)); // how to do in 0.2.0?

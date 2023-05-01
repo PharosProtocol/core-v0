@@ -2,6 +2,8 @@
 
 pragma solidity 0.8.19;
 
+import {Asset} from "../../LibUtil.sol";
+
 /**
  * Oracles are used to assess the value of assets.
  * Each Type of an Oracle is permissionlessly deployed as an independent contract and represents one computation
@@ -12,9 +14,11 @@ pragma solidity 0.8.19;
 
 interface IOracle {
     /// @notice require parameters to be valid and non-hostile.
-    function verifyParameters(address asset, bytes calldata parameters) external view;
-    /// @notice returns the USDC value of an asset.
-    function getValue(uint256 amount, bytes calldata parameters) external view returns (uint256);
-    /// @notice returns the amount of an asset equivalent to the given USDC value.
-    function getAmount(uint256 value, bytes calldata parameters) external view returns (uint256);
+    function verifyParameters(Asset calldata asset, bytes calldata parameters) external view;
+    /// @notice returns the USD value of an asset.
+    /// @dev reverts if asset not compatible with parameters.
+    function getValue(Asset calldata asset, uint256 amount, bytes calldata parameters) external view returns (uint256);
+    /// @notice returns the amount of asset equivalent to the given USD value.
+    /// @dev reverts if asset not compatible with parameters.
+    function getAmount(Asset calldata asset, uint256 value, bytes calldata parameters) external view returns (uint256);
 }

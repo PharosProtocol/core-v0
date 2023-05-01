@@ -22,12 +22,13 @@ import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.so
 
 import "src/LibUtil.sol";
 import {C} from "src/C.sol";
-import {UniswapV3Oracle} from "src/modules/oracle/implementations/UniswapV3.sol";
+import {UniswapV3Oracle} from "src/modules/oracle/implementations/UniswapV3Oracle.sol";
 
 contract UniswapV3OracleTest is Test {
     UniswapV3Oracle public oracleModule;
     uint256 POOL_USDC_AT_BLOCK = 147_000_000e6;
     uint256 POOL_WETH_AT_BLOCK = 84_000e18;
+    Asset WETH_ASSET = Asset({standard: ERC20_STANDARD, addr: address(C.WETH), id: 0, data: ""});
 
     constructor() {}
 
@@ -39,7 +40,7 @@ contract UniswapV3OracleTest is Test {
     function setUp() public {
         vm.recordLogs();
         // requires fork at known time so valuations are known
-        vm.createSelectFork(vm.envString("ALCHEMY_ETH_API_URL"), 17092863); // seems that test begin at end of block.
+        vm.createSelectFork(vm.rpcUrl("mainnet"), 17092863); // seems that test begin at end of block.
 
         oracleModule = new UniswapV3Oracle();
     }
@@ -55,12 +56,12 @@ contract UniswapV3OracleTest is Test {
         bytes memory parameters = abi.encode(params);
 
         // Will fail if POOL_INIT_CODE_HASH does not match chain deployed pool creation code hash.
-        oracleModule.verifyParameters(C.WETH, parameters);
+        oracleModule.verifyParameters(WETH_ASSET, parameters);
 
         // Nearest txn, but exact values are taken from running this code itself.
         // https://etherscan.io/tx/0xdbb4daef28e55f2d5f56de0aab299e5e488f13ba36313d38ab40914f99b63811
-        uint256 value = oracleModule.getValue(119023864514200107128, parameters);
-        uint256 amount = oracleModule.getAmount(value, parameters);
+        uint256 value = oracleModule.getValue(WETH_ASSET, 119023864514200107128, parameters);
+        uint256 amount = oracleModule.getAmount(WETH_ASSET, value, parameters);
         console.log("value: %s", value);
         console.log("amount: %s", amount);
         assertEq(value, 229704367903);
@@ -80,8 +81,8 @@ contract UniswapV3OracleTest is Test {
         });
         bytes memory parameters = abi.encode(params);
 
-        uint256 value = oracleModule.getValue(baseAmount, parameters);
-        uint256 amount = oracleModule.getAmount(value, parameters);
+        uint256 value = oracleModule.getValue(WETH_ASSET, baseAmount, parameters);
+        uint256 amount = oracleModule.getAmount(WETH_ASSET, value, parameters);
         console.log("value: %s", value);
         console.log("amount: %s", amount);
         // if (baseAmount == 0 || FullMath.mulDiv(1500e6, baseAmount, 1e18) == 0) {
@@ -90,7 +91,7 @@ contract UniswapV3OracleTest is Test {
         //     return;
         // }
 
-        // NOTE I feel that the 'or equal too' component could mask failures. But at very small numbers it is 
+        // NOTE I feel that the 'or equal too' component could mask failures. But at very small numbers it is
         //      necessary as rounding causes the numbers to converge.
         assertGe(value, FullMath.mulDiv(1500e6, baseAmount, 1e18)); // Use Uni math to match rounding
         assertLe(amount, baseAmount);

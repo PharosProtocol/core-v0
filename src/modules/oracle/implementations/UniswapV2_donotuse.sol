@@ -9,6 +9,8 @@ pragma solidity 0.8.19;
  *
  */
 
+/*
+
 import {IOracle} from "src/modules/oracle/IOracle.sol";
 
 import {C} from "src/C.sol";
@@ -22,11 +24,11 @@ struct Parameters {
     uint256 stepSlippageRatio;
 }
 
-/*
- * This is an implementation contract that represents one method of computing asset prices.
- * It will create a clone for each unique set of parameters used (path, slippage).
- * Modulus will interact directly with the clone using only the standard functions.
- */
+
+//  * This is an implementation contract that represents one method of computing asset prices.
+//  * It will create a clone for each unique set of parameters used (path, slippage).
+//  * Modulus will interact directly with the clone using only the standard functions.
+ 
 contract UniswapV2Oracle is IOracle {
     address private constant UNI_V2_ROUTER02 = address(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
     uint256 private constant MAX_SLIPPAGE = 10; // 10% slippage
@@ -67,3 +69,4 @@ contract UniswapV2Oracle is IOracle {
             outAmounts[outAmounts.length - 1] * (params.pathFromUsd.length) * params.stepSlippageRatio / C.RATIO_FACTOR; // expect math here is wrong
     }
 }
+*/

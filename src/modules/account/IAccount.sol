@@ -50,6 +50,6 @@ interface IAccount {
     // function returnAsset(address asset, uint256 amount, bytes calldata parameters) external;
 
     // NOTE do pure functions actually make an external call to existing contracts? If so, this is gas inefficient.
-    function getOwner(bytes calldata parameters) external pure returns (address);
+    function getOwner(bytes calldata parameters) external view returns (address);
     function getBalance(Asset calldata asset, bytes calldata parameters) external view returns (uint256);
 }

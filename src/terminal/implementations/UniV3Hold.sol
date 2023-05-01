@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.19;
 
-import "src/C.sol";
+import {C} from "src/C.sol";
 import {Terminal} from "src/terminal/Terminal.sol";
 import {IPosition} from "src/terminal/IPosition.sol";
 import {Asset} from "src/LibUtil.sol";
@@ -24,13 +24,7 @@ import {Path} from "lib/v3-periphery/contracts/libraries/path.sol";
 import {IUniswapV3Factory} from "lib/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import {CallbackValidation} from "lib/v3-periphery/contracts/libraries/CallbackValidation.sol";
 
-// See v3-periphery/contracts/libraries/path.sol for bytes usage
-interface IUniV3HoldTerminal is IPosition {
-    function decodeParameters(bytes calldata parameters)
-        external
-        pure
-        returns (bytes memory enterPath, bytes memory exitPath);
-}
+import {LibUniswapV3} from "src/util/LibUniswapV3.sol";
 
 // import {SwapCallbackData} from "lib/v3-periphery/contracts/SwapRouter.sol";
 struct SwapCallbackData {
@@ -61,6 +55,11 @@ struct SwapCallbackData {
  * NOTE for sake of efficiency, should split into multi-hop and single pool paths.
  */
 contract UniV3HoldTerminal is Terminal {
+    struct Parameters {
+        bytes enterPath;
+        bytes exitPath;
+    }
+
     address public constant UNI_V3_FACTORY = address(0x1F98431c8aD98523631AE4a59f267346ea31F984);
     address public constant UNI_V3_ROUTER = address(0xE592427A0AEce92De3Edee1F18E0157C05861564);
 
@@ -68,20 +67,15 @@ contract UniV3HoldTerminal is Terminal {
     // NOTE sharing params here increases simplicity but costs position customizability. how much of a burden is it to
     //      have very large parameters set in each order? that will probably dictate how we want to handle this.
     //      Also, setting them here prevents a position creator from setting them in a hostile fashion.
-    uint32 private constant TRADE_TWAP_TIME = 300; // https://oracle.euler.finance
-    uint32 private constant VALUE_TWAP_TIME = 60; // too short allows manipulation, too long increases risk to lender.
-    uint256 private constant DEADLINE_OFFSET = 120;
-    uint256 private constant ALLOWED_STEP_SLIPPAGE_RATIO = C.RATIO_FACTOR / 10; // 0.1% slippage ?
+    uint32 private constant TWAP_TIME = 300; // https://oracle.euler.finance
+    uint256 private constant DEADLINE_OFFSET = 180;
+    uint256 private constant STEP_SLIPPAGE_RATIO = C.RATIO_FACTOR / 1000; // 0.1% slippage ?
 
     // Position state
     uint256 private amountHeld;
 
     using Path for bytes;
     using BytesLib for bytes;
-
-    function decodeParameters(bytes calldata parameters) public pure returns (bytes memory, bytes memory) {
-        return abi.decode(parameters, (bytes, bytes));
-    }
 
     /**
      * @notice Send ERC20 assets that Uniswap expects for swap.
@@ -111,16 +105,17 @@ contract UniV3HoldTerminal is Terminal {
     }
 
     function _enter(Asset calldata, uint256 amount, bytes calldata parameters) internal override {
+        Parameters memory params = abi.decode(parameters, (Parameters));
         // verifyAssetAllowed(asset); // NOTE should check that asset is match to path.
-        (bytes memory enterPath,) = decodeParameters(parameters);
         ISwapRouter router = ISwapRouter(UNI_V3_ROUTER);
         ISwapRouter.ExactInputParams memory swapParams = ISwapRouter.ExactInputParams({
-            path: enterPath,
+            path: params.enterPath,
             recipient: address(this), // position address
             deadline: block.timestamp + DEADLINE_OFFSET,
             amountIn: amount,
             amountOutMinimum: (
-                getPathTWAPQuote(enterPath, amount, TRADE_TWAP_TIME) * ALLOWED_STEP_SLIPPAGE_RATIO * enterPath.numPools()
+                LibUniswapV3.getPathTWAP(params.enterPath, amount, TWAP_TIME) * STEP_SLIPPAGE_RATIO
+                    * params.enterPath.numPools()
                 ) / C.RATIO_FACTOR
         });
 
@@ -135,58 +130,28 @@ contract UniV3HoldTerminal is Terminal {
     //       liquidator to pass through any function via callback, so long as they return enough assets to Modulend
     //       lender / borrower in end.
     function _exit(bytes calldata parameters) internal override returns (uint256) {
-        (, bytes memory exitPath) = decodeParameters(parameters);
+        Parameters memory params = abi.decode(parameters, (Parameters));
         ISwapRouter router = ISwapRouter(UNI_V3_ROUTER);
         ISwapRouter.ExactInputParams memory swapParams = ISwapRouter.ExactInputParams({
-            path: exitPath,
+            path: params.exitPath,
             recipient: address(this), // position address
             deadline: block.timestamp + DEADLINE_OFFSET,
             amountIn: amountHeld,
             amountOutMinimum: (
-                getPathTWAPQuote(exitPath, amountHeld, TRADE_TWAP_TIME) * ALLOWED_STEP_SLIPPAGE_RATIO * exitPath.numPools()
+                LibUniswapV3.getPathTWAP(params.exitPath, amountHeld, TWAP_TIME) * STEP_SLIPPAGE_RATIO
+                    * params.exitPath.numPools()
                 ) / C.RATIO_FACTOR
         });
 
         return router.exactInput(swapParams); // msg.sender from router pov is clone (Position) address
     }
 
-    /// Get the TWAP of the pool across interval. token1/token0.
-    /// NOTE: Could really use a more experienced set of eyes on this. So much potential for arithmetic errors.
-    function getTWAPQuote(address pool, uint256 amount, address tokenIn, address tokenOut, uint32 twapTime)
-        private
-        view
-        returns (uint256)
-    {
-        // (int56[] memory tickCumulatives,) = IUniswapV3Pool(pool).observe([twapTime, 0]);
-        // uint256 tickCumulativesDelta = tickCumulatives[1] - tickCumulatives[0];
-        // int24 arithmeticMeanTick = int24(tickCumulativesDelta / twapTime);
-        // // Always round towards negative infinity
-        // if (tickCumulativesDelta < 0 && (tickCumulativesDelta % twapTime != 0)) arithmeticMeanTick--;
-
-        (int24 arithmeticMeanTick,) = OracleLibrary.consult(pool, twapTime);
-
-        // uint160 sqrtRatioX96 = TickMath.getSqrtRatioAtTick(arithmeticMeanTick); // why does observe return int56 and then this, the obvious followup, requires int24?
-        // return FullMath.mulDiv(sqrtRatioX96, sqrtRatioX96, FixedPoint96.Q96); // so heavy handed. wen wells?
-        // NOTE: is conversion to uint128 safe and reliable?
-        return OracleLibrary.getQuoteAtTick(arithmeticMeanTick, uint128(amount), tokenIn, tokenOut); // forced to downsize to uint128 so that we can usee univ3 method of precision? Seems dangerous if number is big.
-    }
-
-    /// Not cheap, due to repeated external calls.
-    function getPathTWAPQuote(bytes memory path, uint256 amount, uint32 twapTime) private view returns (uint256) {
-        for (uint256 i = 0; i < path.numPools(); i++) {
-            (address tokenIn, address tokenOut, uint24 fee) = path.decodeFirstPool();
-            address pool = PoolAddress.computeAddress(UNI_V3_FACTORY, PoolAddress.getPoolKey(tokenIn, tokenOut, fee));
-            amount = getTWAPQuote(pool, amount, tokenIn, tokenOut, twapTime);
-        }
-        return amount;
-    }
-
     // Public Helpers.
 
     // TODO fix this to be useable on chain efficiently
-    function getAmount(bytes calldata parameters) external view override returns (uint256) {
-        (, bytes memory exitPath) = decodeParameters(parameters);
-        return getPathTWAPQuote(exitPath, amountHeld, VALUE_TWAP_TIME);
+    function getExitAmount(bytes calldata parameters) external view override returns (uint256) {
+        Parameters memory params = abi.decode(parameters, (Parameters));
+        return LibUniswapV3.getPathTWAP(params.exitPath, amountHeld, TWAP_TIME);
     }
 
     // function verifyAssetAllowed(Asset asset) private view {

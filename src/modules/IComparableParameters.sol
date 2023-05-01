@@ -9,6 +9,8 @@ pragma solidity 0.8.19;
  * positions. This allows for a single contract of each type to be used for all possible instances.
  */
 
+// NOTE isnt it redundant to have both GTE and LTE? could use just one or use one as non equal.
+
 interface IComparableParameters {
     /// @dev Assumes bytes are both defined for the same type of parameterized module.
     function isGTE(bytes calldata parameters0, bytes calldata parameters1) external pure returns (bool);
