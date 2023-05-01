@@ -22,53 +22,40 @@ struct ModuleReference {
 // NOTE Both Offer and Request offer extremely high dimensionality in handling sets of assets. This could be
 //      simplified by removing that functionality. Unclear if it is something users would actually use.
 
+/// @notice terms shared between Offers and Requests.
+struct Order {
+    uint256[] minLoanAmounts; // idx parity with loanAssets
+    Asset[] loanAssets;
+    Asset[] collateralAssets;
+    address[] takers;
+    uint256 maxDuration;
+    uint256 minCollateralRatio;
+    // Modules
+    ModuleReference account;
+    ModuleReference assessor;
+    ModuleReference liquidator;
+    ModuleReference[] loanOracles;
+    ModuleReference[] collateralOracles;
+    address[] terminals;
+    // Sided config
+    bool isOffer;
+    BorrowerConfig borrowerConfig; // Only set in Requests
+}
+
 /**
  * @notice Order representing a Lender.
  */
-struct Offer {
-    // Assets
-    Asset[] loanAssets;
-    uint256[] maxLoanAmounts; // Not needed bc amount can be limited by breaking up accounts
-    Asset[] collateralAssets;
-    // Terms
-    uint256 minFillRatio; // allows partial fills, prevents griefing
-    address[] takers; // if empty, allow any taker
-    uint256 maxDuration; // will also accept shorter max?
-    uint256 minCollateralRatio; // will also accept higher?
-    // Modules
-    ModuleReference lenderAccount;
-    ModuleReference assessor; // will also accept more expensive?
-    ModuleReference liquidator; // will also accept more expensive?
-    ModuleReference[] loanOracles;
-    ModuleReference[] collateralOracles;
-    address[] terminals; // Should lenders be allowing specified parameters?
-}
+// struct OfferConfig {}
 
 /**
  * @notice Order representing a Borrower.
  */
-struct Request {
-    // Assets
-    Asset[] collateralAssets;
-    uint256[] maxCollateralAmounts; // Not needed bc amount can be limited by breaking up accounts
-    Asset[] loanAssets;
-    // Terms
-    uint256 minFillRatio; // allows partial fills, prevents griefing
-    address[] takers; // if empty, allow any taker
-    uint256 maxDuration; // will also accept longer?
-    uint256 minCollateralRatio; // will also accept lower?
+struct RequestConfig {
     uint256 initCollateralRatio; // Borrower chooses starting health.
-    // Modules
-    ModuleReference borrowerAccount;
-    ModuleReference assessor; // Will also accept cheaper assessors?
-    ModuleReference liquidator; // Will also accept cheaper liquidators?
-    ModuleReference[] loanOracles;
-    ModuleReference[] collateralOracles;
-    ModuleReference[] terminals;
+    bytes positionParameters; // Should lenders be allowing specified parameters?
 }
 
 /// @notice Taker defined Position configuration that is compatible with an offer or a request.
-/// @notice Assumes Taker will always want selfishly optimal modules.
 struct Fill {
     uint256 loanAmount; // should be valid with both minFillRatios and account balances
     uint256 takerIdx; // Do not use if no taker allowlist.
@@ -77,7 +64,16 @@ struct Fill {
     uint256 loanOracleIdx;
     uint256 collateralOracleIdx;
     uint256 terminalIdx;
+    // Sided config
+    bool isOfferFill;
+    BorrowerConfig borrowerConfig; // Only set when filling Offers
 }
+
+struct BorrowerConfig {
+    uint256 initCollateralRatio; // Borrower chooses starting health.
+    bytes positionParameters; // Should lenders be allowing specified parameters?
+}
+// struct LenderConfig {}
 
 /**
  * @notice Position definition is derived from a Match and both Orders.
@@ -90,14 +86,14 @@ struct Agreement {
     Asset loanAsset;
     Asset collateralAsset;
     uint256 minCollateralRatio; // Position value / collateral value
-    uint256 durationLimit;
+    uint256 maxDuration;
     ModuleReference lenderAccount;
     ModuleReference borrowerAccount;
     ModuleReference assessor;
     ModuleReference liquidator;
     ModuleReference loanOracle;
     ModuleReference collateralOracle;
-    ModuleReference terminal;
+    ModuleReference position;
     // Position deployment details, set by bookkeeper.
     address positionAddr;
     uint256 deploymentTime;
@@ -111,12 +107,12 @@ library LibBookkeeper {
         // if (positionValue == 0) return false;
 
         // If past expiration, liquidatable.
-        if (agreement.deploymentTime + agreement.durationLimit > block.timestamp) return true;
+        if (agreement.deploymentTime + agreement.maxDuration > block.timestamp) return true;
 
         // NOTE this looks expensive. could have the caller pass in the expected position value and exit if not enough
         //      assets at exit time
         // (position value - cost) / collateral value
-        uint256 adjustedPositionAmount = position.getExitAmount(agreement.terminal.parameters)
+        uint256 adjustedPositionAmount = position.getExitAmount(agreement.position.parameters)
             - IAssessor(agreement.assessor.addr).getCost(agreement);
         uint256 collateralRatio = C.RATIO_FACTOR
             * IOracle(agreement.loanOracle.addr).getValue(
