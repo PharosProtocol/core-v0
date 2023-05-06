@@ -24,7 +24,7 @@ library C {
     // address internal constant WETH = address("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2");
     // address internal constant USDC = address("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48");
 
-    bytes32 internal constant CONTROLLER_ROLE = keccak256("CONTROLLER_ROLE");
     bytes32 internal constant BOOKKEEPER_ROLE = keccak256("BOOKKEEPER_ROLE");
+    bytes32 internal constant CONTROLLER_ROLE = keccak256("CONTROLLER_ROLE");
     bytes32 internal constant ADMIN_ROLE = keccak256("BOOKKEEPER_ROLE");
 }

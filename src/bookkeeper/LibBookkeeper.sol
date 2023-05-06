@@ -39,15 +39,7 @@ struct Order {
     BorrowerConfig borrowerConfig; // Only set in Requests
 }
 
-/**
- * @notice Order representing a Lender.
- */
-// struct OfferConfig {}
-
-/**
- * @notice Order representing a Borrower.
- */
-struct RequestConfig {
+struct BorrowerConfig {
     uint256 initCollateralRatio; // Borrower chooses starting health.
     bytes positionParameters; // Should lenders be allowing specified parameters?
 }
@@ -55,7 +47,7 @@ struct RequestConfig {
 /// @notice Taker defined Position configuration that is compatible with an offer or a request.
 struct Fill {
     uint256 loanAmount; // should be valid with both minFillRatios and account balances
-    uint256 takerIdx; // Do not use if no taker allowlist.
+    uint256 takerIdx; // ignored if no taker allowlist.
     uint256 loanAssetIdx; // need to verify with the oracle
     uint256 collateralAssetIdx; // need to verify with the oracle
     uint256 loanOracleIdx;
@@ -66,10 +58,6 @@ struct Fill {
     BorrowerConfig borrowerConfig; // Only set when filling Offers
 }
 
-struct BorrowerConfig {
-    uint256 initCollateralRatio; // Borrower chooses starting health.
-    bytes positionParameters; // Should lenders be allowing specified parameters?
-}
 // struct LenderConfig {}
 
 /**

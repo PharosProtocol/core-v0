@@ -2,6 +2,7 @@
 
 pragma solidity 0.8.19;
 
+import {Asset} from "src/LibUtil.sol";
 import {Position} from "src/terminal/IPosition.sol";
 
 contract MockPosition is Position {
@@ -13,6 +14,10 @@ contract MockPosition is Position {
 
     function getExitAmount(bytes calldata) external view override returns (uint256) {
         return currentAmount;
+    }
+
+    function _enter(Asset calldata, uint256, bytes calldata) pure internal override {
+        return;
     }
 
     function _exit(bytes calldata) internal pure override returns (uint256) {

@@ -23,9 +23,20 @@ Standard interfaces may also require non-state changing arguments to ensure deli
 a Module of that Category. ? you can guarantee parity between different components of an agreement - i.e. loanAsset and loanOracle ?
 
 ## Design Invariants
-No module has any special access to Modulus beyond what an EOA has. They cannot compel Modulus to move assets.
-No module has any special access to other Modules beyond what an EOA has. They cannot compel another module to move assets.
-Modulus can compel Modules to move assets.
+- No module has any special access to Bookkeeper beyond what an EOA has. No module can compel Bookkeeper to move assets.
+- No module has any special access to other modules beyond what an EOA has. They cannot compel another module to move assets.
+- Bookkeeper can compel Modules to move assets.
+- Payments between modules are done by *pushing*(?). No approvals needed.
+- Every module Category interface should offer a transfer wrapper that covers all transfer out needs. This allows modules to handle arbitrary asset implementations without the Bookkeeper needing any knowledge of how to handle the asset. Receive functionality should be implemented per module to match out.
+
+#### List of all transfer scenarios
+- *Load*: User -> Account, pulls
+- *SideLoad*: User -> Account, pulls used by bookkeepeer to pay borrower->lender in exit
+- *Unload*: Account -> User, pushes
+- *Capitalize*: Account -> Position, pushes
+- *Exit*: Position -> Accounts, pushes
+~~- *Eject*: Position -> User, pushes, liquidator~~
+- honorable mention: *transferContract*: give Liquidator module ownership of Position
 
 ## Implementing a Module
 are modules expected to verify their data?

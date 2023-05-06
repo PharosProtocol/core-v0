@@ -10,10 +10,9 @@ import {Asset} from "src/LibUtil.sol";
  * Its computation will differ for each set of parameters provided.
  * Modulus will interact directly with the clone using only the standard functions.
  */
-contract StaticPriceOracle is IOracle {
+contract StaticUsdcPriceOracle is IOracle {
     struct Parameters {
-        address asset;
-        uint256 value;
+        uint256 value; // decimals = 6
     }
 
     /// @dev no illegal parameters possible within the type constraints.
@@ -22,15 +21,23 @@ contract StaticPriceOracle is IOracle {
     }
 
     /// @dev ignore amount parameter
-    function getValue(Asset calldata asset, uint256 amount, bytes calldata parameters) external pure returns (uint256) {
+    function getValue(Asset calldata, uint256 amount, bytes calldata parameters)
+        external
+        pure
+        returns (uint256)
+    {
         Parameters memory params = abi.decode(parameters, (Parameters));
-        require(asset.addr == params.asset);
+        // require(asset.addr == params.valueAsset);
         return amount * params.value; // rounding?
     }
 
-    function getAmount(Asset calldata asset, uint256 value, bytes calldata parameters) external pure returns (uint256) {
+    function getAmount(Asset calldata, uint256 value, bytes calldata parameters)
+        external
+        pure
+        returns (uint256)
+    {
         Parameters memory params = abi.decode(parameters, (Parameters));
-        require(asset.addr == params.asset);
+        // require(asset.addr == params.valueAsset, "StaticPriceOracle: asset mismatch");
         return value / params.value; // rounding?
     }
 }

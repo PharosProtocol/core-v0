@@ -15,9 +15,10 @@ import "src/LibUtil.sol";
  * Position status is determined by address assignment to CONTROLLER_ROLE.
  */
 interface IPosition is IAccessControl {
-    /// @notice Get current value of the position, denoted in loan asset.
+    function enter(Asset calldata asset, uint256 amount, bytes calldata parameters) external;
+    /// @notice Get current exitable value of the position, denoted in loan asset.
     function getExitAmount(bytes calldata parameters) external view returns (uint256);
-    /// @notice Fully exit the position in the same asset it was entered with. Assets remains in contract.
+    /// @notice Wind down and return assets to appropriate Accounts.
     function exit(Agreement memory agreement, bytes calldata parameters) external returns (uint256); // onlyRole(CONTROLLER_ROLE)
     /// @notice Transfer the position to a new controller. Used for liquidations.
     /// @dev do not set admin role to prevent liquidator from pushing the position back into the protocol.
@@ -27,10 +28,21 @@ interface IPosition is IAccessControl {
         external
         payable
         returns (bool, bytes memory); // onlyRole(CONTROLLER_ROLE)
+        // function removeEth(address payable recipient) external // ONLY_ROLE(BOOKKEEPER_ROLE)
 }
 
 abstract contract Position is AccessControl, IPosition {
     event ControlTransferred(address indexed previousController, address indexed newController);
+
+    function enter(Asset calldata asset, uint256 amount, bytes calldata parameters)
+        external
+        override
+        onlyRole(C.BOOKKEEPER_ROLE)
+    {
+        _enter(asset, amount, parameters);
+    }
+
+    function _enter(Asset calldata asset, uint256 amount, bytes calldata parameters) internal virtual;
 
     // AUDIT Hello auditors, pls gather around. This feels risky.
     function transferContract(address controller) external override onlyRole(C.CONTROLLER_ROLE) {
@@ -73,7 +85,7 @@ abstract contract Position is AccessControl, IPosition {
         }
 
         if (lenderAmount > 0) {
-            IAccount(agreement.lenderAccount.addr).addAsset{value: Utils.isEth(agreement.loanAsset) ? lenderAmount : 0}(
+            IAccount(agreement.lenderAccount.addr).load{value: Utils.isEth(agreement.loanAsset) ? lenderAmount : 0}(
                 agreement.loanAsset, lenderAmount, agreement.lenderAccount.parameters
             );
         }
@@ -89,7 +101,7 @@ abstract contract Position is AccessControl, IPosition {
 
         // Borrower gets full collateral back to account.
         // if (agreement.collateralAmount > 0) {
-        IAccount(agreement.borrowerAccount.addr).addAsset{
+        IAccount(agreement.borrowerAccount.addr).load{
             value: Utils.isEth(agreement.collateralAsset) ? agreement.collateralAmount : 0
         }(agreement.collateralAsset, agreement.collateralAmount, agreement.borrowerAccount.parameters);
 

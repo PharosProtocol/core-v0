@@ -2,13 +2,14 @@
 
 pragma solidity 0.8.19;
 
+import "lib/forge-std/src/console.sol";
+
 import {C} from "src/C.sol";
+import {IUniswapV3Pool} from "lib/v3-core/contracts/UniswapV3Pool.sol";
 import {PoolAddress} from "lib/v3-periphery/contracts/libraries/PoolAddress.sol";
 import {OracleLibrary} from "lib/v3-periphery/contracts/libraries/OracleLibrary.sol";
 import {Path} from "lib/v3-periphery/contracts/libraries/path.sol";
 import {Utils} from "src/LibUtil.sol";
-
-import "lib/forge-std/src/console.sol";
 
 // NOTE: Could really use another set of eyes on this. So much potential for arithmetic errors.
 
@@ -16,7 +17,7 @@ import "lib/forge-std/src/console.sol";
 library LibUniswapV3 {
     using Path for bytes;
 
-    /// @dev Probably not cheap, due to repeated external calls.
+    /// @dev Probably not cheap, due to repeated external calls. // USE getChainedPrice ?
     function getPathTWAP(bytes memory path, uint256 amount, uint32 twapTime) external view returns (uint256) {
         require(path.numPools() > 0, "Empty path provided");
         for (uint256 i = 0; i < path.numPools(); i++) {
@@ -38,6 +39,10 @@ library LibUniswapV3 {
         view
         returns (uint256)
     {
+        (,,, uint16 observationCardinality,,,) = IUniswapV3Pool(pool).slot0();
+        console.log("oldest observation seconds ago: %s", OracleLibrary.getOldestObservationSecondsAgo(pool));
+        require(OracleLibrary.getOldestObservationSecondsAgo(pool) >= twapTime, "UniV3 pool observations too young"); // ensure needed data is available
+        require(observationCardinality >= twapTime / 12, "UniV3 pool cardinality too low"); // shortest case scenario should always cover twap time
         (int24 arithmeticMeanTick,) = OracleLibrary.consult(pool, twapTime);
         return OracleLibrary.getQuoteAtTick(arithmeticMeanTick, uint128(amount), tokenIn, tokenOut); // NOTE risk on uint downsize?
     }

@@ -5,7 +5,7 @@ pragma solidity 0.8.19;
 import {IOracle} from "../IOracle.sol";
 
 import {C} from "src/C.sol";
-import {Asset} from "src/LibUtil.sol";
+import {Asset, ETH_STANDARD} from "src/LibUtil.sol";
 import {LibUniswapV3} from "src/util/LibUniswapV3.sol";
 import {Path} from "lib/v3-periphery/contracts/libraries/path.sol";
 import {BytesLib} from "lib/v3-periphery/contracts/libraries/BytesLib.sol";
@@ -54,7 +54,11 @@ contract UniswapV3Oracle is IOracle {
     {
         Parameters memory params = abi.decode(parameters, (Parameters));
         (address assetAddr,,) = params.pathToUsd.decodeFirstPool();
-        require(asset.addr == assetAddr);
+        if (asset.standard == ETH_STANDARD) {
+            require(assetAddr == C.WETH, "Uniswap V3 Oracle: eth asset mismatch");
+        } else {
+            require(asset.addr == assetAddr, "Uniswap V3 Oracle: getValue asset mismatch");
+        }
         return LibUniswapV3.getPathTWAP(params.pathToUsd, amount, params.twapTime);
     }
 
@@ -67,7 +71,11 @@ contract UniswapV3Oracle is IOracle {
     {
         Parameters memory params = abi.decode(parameters, (Parameters));
         (address assetAddr,,) = params.pathToUsd.decodeFirstPool();
-        require(asset.addr == assetAddr);
+        if (asset.standard == ETH_STANDARD) {
+            require(assetAddr == C.WETH, "Uniswap V3 Oracle: eth asset mismatch");
+        } else {
+            require(asset.addr == assetAddr, "Uniswap V3 Oracle: getValue asset mismatch");
+        }
         return LibUniswapV3.getPathTWAP(params.pathFromUsd, value, params.twapTime);
     }
 }

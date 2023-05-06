@@ -2,6 +2,8 @@
 
 pragma solidity 0.8.19;
 
+import "forge-std/console.sol";
+
 import "lib/tractor/Tractor.sol";
 import "src/LibUtil.sol";
 
@@ -36,13 +38,15 @@ contract Bookkeeper is Tractor {
         AGREEMENT
     }
 
-    string constant PROTOCOL_NAME = "modulus";
+    string constant PROTOCOL_NAME = "pharos";
     string constant PROTOCOL_VERSION = "1.0.0";
 
-    event OrderFilled(Agreement agreement, bytes32 blueprintHash, address operator);
+    event OrderFilled(Agreement agreement, bytes32 indexed blueprintHash, address indexed taker);
     event LiquidationKicked(address liquidator, address position);
 
     constructor() Tractor(PROTOCOL_NAME, PROTOCOL_VERSION) {}
+    // receive() external {}
+    // fallback() external {}
 
     function fillOrder(
         Fill calldata fill,
@@ -50,38 +54,51 @@ contract Bookkeeper is Tractor {
         ModuleReference calldata takerAccount
     ) external verifySignature(orderBlueprint) {
         // decode order blueprint data and ensure blueprint metadata is valid pairing with embedded data
-        (bytes1 blueprintDataType, bytes memory blueprintData) = decodeDataField(orderBlueprint.blueprint.data);
-        require(uint8(blueprintDataType) == uint8(BlueprintDataType.ORDER));
+        (bytes1 blueprintDataType, bytes memory blueprintData) = unpackDataField(orderBlueprint.blueprint.data);
+        require(uint8(blueprintDataType) == uint8(BlueprintDataType.ORDER), "BKDTMM");
+        // console.log("blueprint data at decoding:");
+        // console.logBytes(blueprintData);
         Order memory order = abi.decode(blueprintData, (Order));
-        require(orderBlueprint.blueprint.publisher == Utils.getAccountOwner(order.account));
+        require(orderBlueprint.blueprint.publisher == Utils.getAccountOwner(order.account), "BKPOMM");
         if (order.takers.length > 0) {
             require(order.takers[fill.takerIdx] == msg.sender, "Bookkeeper: Invalid taker");
         }
 
         Agreement memory agreement = agreementFromOrder(fill, order);
+
+        uint256 loanValue = IOracle(agreement.loanOracle.addr).getValue(
+            agreement.loanAsset, agreement.loanAmount, agreement.loanOracle.parameters
+        );
+        uint256 collateralValue;
+
         if (order.isOffer) {
             agreement.lenderAccount = order.account;
             agreement.borrowerAccount = takerAccount;
-            agreement.collateralAmount = fill.loanAmount * fill.borrowerConfig.initCollateralRatio / C.RATIO_FACTOR; // NOTE rounding?
+            collateralValue = loanValue * fill.borrowerConfig.initCollateralRatio / C.RATIO_FACTOR;
             agreement.position.parameters = fill.borrowerConfig.positionParameters;
         } else {
             agreement.lenderAccount = takerAccount;
             agreement.borrowerAccount = order.account;
-            agreement.collateralAmount = fill.loanAmount * order.borrowerConfig.initCollateralRatio / C.RATIO_FACTOR; // NOTE rounding?
+            collateralValue = loanValue * order.borrowerConfig.initCollateralRatio / C.RATIO_FACTOR;
             agreement.position.parameters = order.borrowerConfig.positionParameters;
         }
+        agreement.collateralAmount = IOracle(agreement.collateralOracle.addr).getAmount(
+            agreement.collateralAsset, collateralValue, agreement.collateralOracle.parameters
+        );
         // Set Position data that cannot be computed off chain by caller.
         agreement.deploymentTime = block.timestamp;
-        agreement.positionAddr = ITerminal(agreement.position.addr).createPosition(
-            agreement.loanAsset, agreement.loanAmount, agreement.position.parameters
-        );
 
-        emit OrderFilled(agreement, orderBlueprint.blueprintHash, msg.sender);
+        console.log("loanAmount: %s", agreement.loanAmount);
+        console.log("collateralAmount: %s", agreement.collateralAmount);
+
+        createFundEnterPosition(agreement);
+
         signPublishAgreement(agreement);
+        emit OrderFilled(agreement, orderBlueprint.blueprintHash, msg.sender);
     }
 
     function kick(SignedBlueprint calldata agreementBlueprint) external verifySignature(agreementBlueprint) {
-        (bytes1 blueprintDataType, bytes memory blueprintData) = decodeDataField(agreementBlueprint.blueprint.data);
+        (bytes1 blueprintDataType, bytes memory blueprintData) = unpackDataField(agreementBlueprint.blueprint.data);
         require(blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "BKKIBDT");
         Agreement memory agreement = abi.decode(blueprintData, (Agreement));
         IPosition position = IPosition(agreement.positionAddr);
@@ -97,10 +114,31 @@ contract Bookkeeper is Tractor {
         emit LiquidationKicked(agreement.liquidator.addr, agreement.positionAddr);
     }
 
+    // NOTE this function succinctly represents a lot of the inefficiency of a module system design.
+    function createFundEnterPosition(Agreement memory agreement) private {
+        agreement.positionAddr = ITerminal(agreement.position.addr).createPosition();
+        IAccount(agreement.lenderAccount.addr).capitalize(
+            agreement.positionAddr, agreement.loanAsset, agreement.loanAmount, agreement.lenderAccount.parameters
+        );
+        IAccount(agreement.borrowerAccount.addr).capitalize(
+            agreement.positionAddr,
+            agreement.collateralAsset,
+            agreement.collateralAmount,
+            agreement.borrowerAccount.parameters
+        );
+        IPosition(agreement.positionAddr).enter(
+            agreement.loanAsset, agreement.loanAmount, agreement.position.parameters
+        );
+    }
+
     // NOTE This puts the assets back into circulating via accounts. Should implement an option to send assets to
     //      a static account.
-    function exitPosition(SignedBlueprint calldata agreementBlueprint) external verifySignature(agreementBlueprint) {
-        (bytes1 blueprintDataType, bytes memory blueprintData) = decodeDataField(agreementBlueprint.blueprint.data);
+    function exitPosition(SignedBlueprint calldata agreementBlueprint)
+        external
+        payable
+        verifySignature(agreementBlueprint)
+    {
+        (bytes1 blueprintDataType, bytes memory blueprintData) = unpackDataField(agreementBlueprint.blueprint.data);
         require(
             blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "Bookkeeper: Invalid blueprint data type"
         );
@@ -113,11 +151,12 @@ contract Bookkeeper is Tractor {
         uint256 unpaidAmount = IPosition(agreement.positionAddr).exit(agreement, agreement.position.parameters);
 
         // Borrower must pay difference directly if there is not enough value to pay Lender.
+        // Amount is not a compatible concept with all agreements, in those cases unpaid amount should be 0.
         if (unpaidAmount > 0) {
             // Requires sender to have already approved account contract to use necessary assets.
-            IAccount(payable(agreement.borrowerAccount.addr)).addAssetBookkeeper{
-                value: Utils.isEth(agreement.loanAsset) ? unpaidAmount : 0
-            }(msg.sender, agreement.loanAsset, unpaidAmount, agreement.lenderAccount.parameters);
+            IAccount(payable(agreement.lenderAccount.addr)).sideLoad{value: msg.value}(
+                msg.sender, agreement.loanAsset, unpaidAmount, agreement.lenderAccount.parameters
+            );
         }
     }
 
@@ -147,11 +186,16 @@ contract Bookkeeper is Tractor {
         SignedBlueprint memory signedBlueprint;
         signedBlueprint.blueprint.publisher = address(this);
         signedBlueprint.blueprint.data =
-            encodeDataField(bytes1(uint8(BlueprintDataType.AGREEMENT)), abi.encode(agreement));
+            packDataField(bytes1(uint8(BlueprintDataType.AGREEMENT)), abi.encode(agreement));
         signedBlueprint.blueprint.endTime = type(uint256).max;
         signedBlueprint.blueprintHash = getBlueprintHash(signedBlueprint.blueprint);
         // NOTE: Security: Is is possible to intentionally manufacture a blueprint with different data that creates the same hash?
         signBlueprint(signedBlueprint.blueprintHash);
         publishBlueprint(signedBlueprint); // These verifiable blueprints will be used to interact with positions.
+    }
+
+    // NOTE why is this not public by EIP712 OZ impl default? What are the implications of exposing it here?
+    function getTypedDataHash(bytes32 structHash) external view returns (bytes32) {
+        return _hashTypedDataV4(structHash);
     }
 }

@@ -6,6 +6,7 @@ import {C} from "src/C.sol";
 
 import {Asset} from "src/LibUtil.sol";
 import {AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
+import {Agreement} from "src/bookkeeper/Bookkeeper.sol";
 import {Clones} from "lib/openzeppelin-contracts/contracts/proxy/Clones.sol";
 import {ITerminal} from "src/terminal/ITerminal.sol";
 import "lib/openzeppelin-contracts/contracts/proxy/utils/Initializable.sol";
@@ -30,7 +31,7 @@ import {Position} from "src/terminal/IPosition.sol";
 
 /// @dev not expected to be used outside of this file.
 interface IChildClone {
-    function initialize(Asset calldata asset, uint256 amount, bytes calldata parameters) external;
+    function initialize() external;
 }
 
 /*
@@ -38,13 +39,12 @@ interface IChildClone {
  */
 
 abstract contract Terminal is ITerminal, IChildClone, Position, Initializable {
-    bytes32 internal constant BOOKKEEPER_ROLE = keccak256("BOOKKEEPER_ROLE"); // pretty sure constants set in impl contract will be the same for all clones
-    address public constant PROTOCOL_ADDRESS = address(1); // Modulus address
+    address public immutable BOOKKEEPER_ADDRESS; // Modulus address
     address public immutable TERMINAL_ADDRESS; // Implementation contract address // assumes proxy constant values are set by implementation contract
 
     // Metadata metadata;
 
-    event PositionCreated(address terminal, Asset asset, uint256 amount, bytes parameters);
+    event PositionCreated(address indexed position);
     event PositionClosed(bytes parameters);
 
     modifier implementationExecution() {
@@ -52,33 +52,34 @@ abstract contract Terminal is ITerminal, IChildClone, Position, Initializable {
         _;
     }
 
-    modifier cloneExecution() {
+    modifier proxyExecution() {
         require(address(this) != TERMINAL_ADDRESS);
         _;
     }
 
     /// @dev constructor only called in implementation contract, not clones
-    constructor() {
+    constructor(address bookkeeperAddr) {
         // Do not allow initialization in implementation contract.
-        _disableInitializers(); // redundant with cloneExecution modifier?
+        _disableInitializers(); // redundant with proxyExecution modifier?
+        BOOKKEEPER_ADDRESS = bookkeeperAddr;
         TERMINAL_ADDRESS = address(this);
-        _grantRole(BOOKKEEPER_ROLE, PROTOCOL_ADDRESS); // Terminal role set
+        _grantRole(C.BOOKKEEPER_ROLE, BOOKKEEPER_ADDRESS); // Terminal role set
     }
 
     /*
      * Create position (clone) that will use this terminal.
      */
-    function createPosition(Asset calldata asset, uint256 amount, bytes memory parameters)
+    function createPosition()
         external
         override
         implementationExecution
-        onlyRole(BOOKKEEPER_ROLE)
+        onlyRole(C.BOOKKEEPER_ROLE)
         returns (address addr)
     {
         addr = Clones.clone(address(this));
-        IChildClone clone = IChildClone(addr); // does MPC guarantee unique addresses for clones?
-        clone.initialize(asset, amount, parameters);
+        IChildClone(addr).initialize();
         // addr.call(abi.encodeWithSignature("initialize(bytes)", parameters));
+        emit PositionCreated(addr);
     }
 
     /*
@@ -86,19 +87,12 @@ abstract contract Terminal is ITerminal, IChildClone, Position, Initializable {
      * NOTE "When used with inheritance, manual care must be taken to not invoke a parent initializer twice, or to ensure that all initializers are idempotent" <- idk what this is about, but sounds relevant.
      * NOTE cannot do role check modifier here because state not yet set
      */
-    function initialize(Asset calldata asset, uint256 amount, bytes calldata parameters)
-        external
-        override
-        initializer
-        cloneExecution
-    {
-        _grantRole(BOOKKEEPER_ROLE, PROTOCOL_ADDRESS); // Position role set
-
-        _enter(asset, amount, parameters);
-        emit PositionCreated(TERMINAL_ADDRESS, asset, amount, parameters);
+    function initialize() external override initializer proxyExecution {
+        require(msg.sender == TERMINAL_ADDRESS);
+        _grantRole(C.BOOKKEEPER_ROLE, BOOKKEEPER_ADDRESS); // Position role set
     }
 
-    function _enter(Asset calldata asset, uint256 amount, bytes calldata parameters) internal virtual;
+    receive() external payable {}
 
     // function _exit(bytes calldata parameters) internal virtual returns (uint256 exitAmount) internal virtual;
 }

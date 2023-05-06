@@ -84,13 +84,13 @@ contract InstantLiquidator is Liquidator {
         // NOTE Inefficient asset passthrough here, but can be optimized later if we go this route.
         if (lenderReturnExpected > 0) {
             Utils.receiveAsset(msg.sender, agreement.loanAsset, lenderReturnExpected);
-            lenderAccount.addAsset{value: Utils.isEth(agreement.loanAsset) ? lenderReturnExpected : 0}(
+            lenderAccount.load{value: Utils.isEth(agreement.loanAsset) ? lenderReturnExpected : 0}(
                 agreement.loanAsset, lenderReturnExpected, agreement.lenderAccount.parameters
             );
         }
         if (borrowerReturnExpected > 0) {
             Utils.receiveAsset(msg.sender, agreement.collateralAsset, borrowerReturnExpected);
-            borrowerAccount.addAsset{value: Utils.isEth(agreement.collateralAsset) ? borrowerReturnExpected : 0}(
+            borrowerAccount.load{value: Utils.isEth(agreement.collateralAsset) ? borrowerReturnExpected : 0}(
                 agreement.collateralAsset, borrowerReturnExpected, agreement.borrowerAccount.parameters
             );
         }

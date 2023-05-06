@@ -5,10 +5,11 @@ pragma solidity 0.8.19;
 import {C} from "src/C.sol";
 import {Terminal} from "src/terminal/Terminal.sol";
 import {IPosition} from "src/terminal/IPosition.sol";
-import {Asset} from "src/LibUtil.sol";
+import {Asset, ETH_STANDARD, ERC20_STANDARD} from "src/LibUtil.sol";
 
 import "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
+import "src/interfaces/IWETH9.sol";
 import {ISwapRouter} from "lib/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 import "lib/v3-periphery/contracts/libraries/PoolAddress.sol";
 import "lib/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
@@ -77,37 +78,62 @@ contract UniV3HoldTerminal is Terminal {
     using Path for bytes;
     using BytesLib for bytes;
 
+    constructor(address protocolAddr) Terminal(protocolAddr) {}
+
     /**
      * @notice Send ERC20 assets that Uniswap expects for swap.
      * @dev see lib/v3-core/contracts/interfaces/callback/IUniswapV3SwapCallback.sol
      * @param   amount0Delta 0 represents pool index (not directionality)
      * @param   amount1Delta 1 represents pool index (not directionality)
-     * @param   parameters  .
+     * @param   _data  .
      */
-    function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata parameters) external {
-        SwapCallbackData memory swapCallbackData = abi.decode(parameters, (SwapCallbackData));
-        require(swapCallbackData.payer == address(this));
+    function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata _data) external {
+        SwapCallbackData memory swapCallbackData = abi.decode(_data, (SwapCallbackData));
+        require(swapCallbackData.payer == address(this), "USTCBIP");
         (address tokenIn, address tokenOut, uint24 fee) = swapCallbackData.path.decodeFirstPool(); // Token order is directionality?
         CallbackValidation.verifyCallback(UNI_V3_FACTORY, tokenIn, tokenOut, fee); // requires sender == pool
 
         // Uniswap V3 gas optimization is just pushing gas, along with complexity, onto protocol users. <3
-        require(amount0Delta > 0 || amount1Delta > 0);
+        require(amount0Delta > 0 || amount1Delta > 0, "USTCBZAMS");
         uint256 amountToPay;
         if (amount0Delta > 0) {
             amountToPay = uint256(amount0Delta);
-            require(tokenIn < tokenOut); // Must be exact input with tokenIn as token0
+            require(tokenIn < tokenOut, "USTCBTOI0"); // Must be exact input with tokenIn as token0
         } else {
             amountToPay = uint256(amount1Delta);
-            require(tokenIn > tokenOut); // Must be exact input with tokenIn as token1
+            require(tokenIn > tokenOut, "USTCBTOI1"); // Must be exact input with tokenIn as token1
         }
 
-        require(IERC20(tokenIn).transfer(address(msg.sender), amountToPay));
+        require(IERC20(tokenIn).transfer(address(msg.sender), amountToPay), "USTCBTF");
     }
 
-    function _enter(Asset calldata, uint256 amount, bytes calldata parameters) internal override {
+    /// @dev assumes assets are already in Position.
+    function _enter(Asset calldata asset, uint256 amount, bytes calldata parameters) internal override {
         Parameters memory params = abi.decode(parameters, (Parameters));
         // verifyAssetAllowed(asset); // NOTE should check that asset is match to path.
         ISwapRouter router = ISwapRouter(UNI_V3_ROUTER);
+
+        // Convert ETH to WETH.
+        if (asset.standard == ETH_STANDARD) {
+            IWETH9(C.WETH).deposit{value: amount}();
+            IERC20(C.WETH).approve(UNI_V3_ROUTER, amount); // NOTE front running?
+        } else {
+            require(asset.standard == ERC20_STANDARD, "UniV3Hold: asset must be ETH or ERC20");
+            IERC20(asset.addr).approve(UNI_V3_ROUTER, amount); // NOTE front running?
+        }
+
+        // NOTE can use ExactInput instead to support single hop trades w/o worry for path.
+        // ISwapRouter.ExactInputSingleParams memory swapParams = ISwapRouter.ExactInputSingleParams({
+        //     path: params.enterPath,
+        //     recipient: address(this), // position address
+        //     deadline: block.timestamp + DEADLINE_OFFSET,
+        //     amountIn: amount,
+        //     amountOutMinimum: (
+        //         LibUniswapV3.getPathTWAP(params.enterPath, amount, TWAP_TIME) * STEP_SLIPPAGE_RATIO
+        //             * params.enterPath.numPools()
+        //         ) / C.RATIO_FACTOR
+        // });
+        // amountHeld = router.exactInputSingle(swapParams); // msg.sender from router pov is clone (Position) address
         ISwapRouter.ExactInputParams memory swapParams = ISwapRouter.ExactInputParams({
             path: params.enterPath,
             recipient: address(this), // position address
@@ -118,9 +144,9 @@ contract UniV3HoldTerminal is Terminal {
                     * params.enterPath.numPools()
                 ) / C.RATIO_FACTOR
         });
-
         amountHeld = router.exactInput(swapParams); // msg.sender from router pov is clone (Position) address
-            // return amountHeld; // can a named return value be used with a state variable?
+
+        // return amountHeld; // can a named return value be used with a state variable?
     }
 
     // TODO: can add recipient in certain scenarios to save an ERC20 transfer.

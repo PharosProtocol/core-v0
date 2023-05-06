@@ -35,7 +35,7 @@ contract AccountTest is Test {
     function setUp() public {
         vm.recordLogs();
         vm.createSelectFork(vm.rpcUrl("mainnet"), 17092863);
-        accountModule = new DoubleSidedAccount();
+        accountModule = new DoubleSidedAccount(address(1));
     }
 
     // NOTE it is unclear if this should be a fuzz or a direct unit tests. Are fuzzes handled by invariant tests?
@@ -61,37 +61,37 @@ contract AccountTest is Test {
 
         // Fail to add ETH because balance too low.
         vm.expectRevert(); // EvmError: OutOfFund
-        accountModule.addAsset{value: 11e18}(ASSETS[0], 11e18, parameters);
+        accountModule.load{value: 11e18}(ASSETS[0], 11e18, parameters);
 
         // Fail to add ERC20 because asset not approved.
         vm.expectRevert("ERC20: transfer amount exceeds allowance");
-        accountModule.addAsset{value: 0}(ASSETS[1], 1e18, parameters);
+        accountModule.load{value: 0}(ASSETS[1], 1e18, parameters);
 
         // Approve ERC20.
         IERC20(ASSETS[1].addr).approve(address(accountModule), 999e18);
 
         // Fail to add ERC20 because balance too low.
         vm.expectRevert("ERC20: transfer amount exceeds balance");
-        accountModule.addAsset{value: 0}(ASSETS[1], 11e18, parameters);
+        accountModule.load{value: 0}(ASSETS[1], 11e18, parameters);
 
         // Add ETH.
-        accountModule.addAsset{value: 1e18}(ASSETS[0], 1e18, parameters);
+        accountModule.load{value: 1e18}(ASSETS[0], 1e18, parameters);
         assertEq(accountModule.getBalance(ASSETS[0], parameters), 1e18);
-        accountModule.addAsset{value: 3e18}(ASSETS[0], 3e18, parameters);
+        accountModule.load{value: 3e18}(ASSETS[0], 3e18, parameters);
         assertEq(accountModule.getBalance(ASSETS[0], parameters), 4e18);
-        accountModule.addAsset{value: 1}(ASSETS[0], 1, parameters);
+        accountModule.load{value: 1}(ASSETS[0], 1, parameters);
         assertEq(accountModule.getBalance(ASSETS[0], parameters), 4000000000000000001);
-        accountModule.addAsset{value: 0}(ASSETS[0], 0, parameters); // NOTE should this be made to revert?
+        accountModule.load{value: 0}(ASSETS[0], 0, parameters); // NOTE should this be made to revert?
         assertEq(accountModule.getBalance(ASSETS[0], parameters), 4000000000000000001);
 
         // Add ERC20.
-        accountModule.addAsset{value: 0}(ASSETS[1], 1e18, parameters);
+        accountModule.load{value: 0}(ASSETS[1], 1e18, parameters);
         assertEq(accountModule.getBalance(ASSETS[1], parameters), 1e18);
-        accountModule.addAsset{value: 0}(ASSETS[1], 3e18, parameters);
+        accountModule.load{value: 0}(ASSETS[1], 3e18, parameters);
         assertEq(accountModule.getBalance(ASSETS[1], parameters), 4e18);
-        accountModule.addAsset{value: 0}(ASSETS[1], 1, parameters);
+        accountModule.load{value: 0}(ASSETS[1], 1, parameters);
         assertEq(accountModule.getBalance(ASSETS[1], parameters), 4000000000000000001);
-        accountModule.addAsset{value: 0}(ASSETS[1], 0, parameters); // NOTE should this be made to revert?
+        accountModule.load{value: 0}(ASSETS[1], 0, parameters); // NOTE should this be made to revert?
         assertEq(accountModule.getBalance(ASSETS[1], parameters), 4000000000000000001);
 
         // Verify other balances are still valid.
@@ -99,36 +99,36 @@ contract AccountTest is Test {
         // assertEq(accountModule.getBalance(ASSETS[1], parameters), 4000000000000000001);
 
         // Remove ETH.
-        accountModule.removeAsset(ASSETS[0], 1, parameters);
+        accountModule.unload(ASSETS[0], 1, parameters);
         assertEq(accountModule.getBalance(ASSETS[0], parameters), 4e18);
-        accountModule.removeAsset(ASSETS[0], 1e18, parameters);
+        accountModule.unload(ASSETS[0], 1e18, parameters);
         assertEq(accountModule.getBalance(ASSETS[0], parameters), 3e18);
-        accountModule.removeAsset(ASSETS[0], 0, parameters);
+        accountModule.unload(ASSETS[0], 0, parameters);
         assertEq(accountModule.getBalance(ASSETS[0], parameters), 3e18);
-        accountModule.removeAsset(ASSETS[0], 3e18, parameters);
+        accountModule.unload(ASSETS[0], 3e18, parameters);
         assertEq(accountModule.getBalance(ASSETS[0], parameters), 0);
 
         // Remove ERC20.
-        accountModule.removeAsset(ASSETS[1], 1, parameters);
+        accountModule.unload(ASSETS[1], 1, parameters);
         assertEq(accountModule.getBalance(ASSETS[1], parameters), 4e18);
-        accountModule.removeAsset(ASSETS[1], 1e18, parameters);
+        accountModule.unload(ASSETS[1], 1e18, parameters);
         assertEq(accountModule.getBalance(ASSETS[1], parameters), 3e18);
-        accountModule.removeAsset(ASSETS[1], 0, parameters);
+        accountModule.unload(ASSETS[1], 0, parameters);
         assertEq(accountModule.getBalance(ASSETS[1], parameters), 3e18);
-        accountModule.removeAsset(ASSETS[1], 3e18, parameters);
+        accountModule.unload(ASSETS[1], 3e18, parameters);
         assertEq(accountModule.getBalance(ASSETS[1], parameters), 0);
 
         // Revert because account empty.
         vm.expectRevert(stdError.arithmeticError);
-        accountModule.removeAsset(ASSETS[0], 1, parameters);
+        accountModule.unload(ASSETS[0], 1, parameters);
         vm.expectRevert(stdError.arithmeticError);
-        accountModule.removeAsset(ASSETS[1], 1, parameters);
+        accountModule.unload(ASSETS[1], 1, parameters);
 
         // Revert because non-owned account.
         vm.stopPrank();
         vm.prank(address(123)); // random addr
-        vm.expectRevert("removeAsset: not owner");
-        accountModule.removeAsset(ASSETS[0], 1, parameters);
+        vm.expectRevert("unload: not owner");
+        accountModule.unload(ASSETS[0], 1, parameters);
     }
 }
 
@@ -143,14 +143,14 @@ contract Handler is Test, HandlerUtils {
         ASSETS.push(Asset({standard: ETH_STANDARD, addr: address(0), id: 0, data: ""}));
         ASSETS.push(Asset({standard: ERC20_STANDARD, addr: C.USDC, id: 0, data: ""}));
         assetBalances = new uint256[](ASSETS.length);
-        accountModule = new DoubleSidedAccount();
+        accountModule = new DoubleSidedAccount(address(1));
     }
 
-    function addAsset(uint256 assetIdx, uint256 amount, address owner, bytes32 salt)
+    function load(uint256 assetIdx, uint256 amount, address owner, bytes32 salt)
         external
         payable
         createActor
-        countCall("addAsset")
+        countCall("load")
     {
         assetIdx = bound(assetIdx, 0, ASSETS.length - 1);
         amount = bound(amount, 0, type(uint128).max);
@@ -172,13 +172,13 @@ contract Handler is Test, HandlerUtils {
         }
 
         vm.prank(currentActor);
-        accountModule.addAsset{value: value}(asset, amount, parameters);
+        accountModule.load{value: value}(asset, amount, parameters);
     }
 
-    function removeAsset(uint256 actorIndexSeed, uint256 assetIdx, uint256 amount, address owner, bytes32 salt)
+    function unload(uint256 actorIndexSeed, uint256 assetIdx, uint256 amount, address owner, bytes32 salt)
         external
         useActor(actorIndexSeed)
-        countCall("removeAsset")
+        countCall("unload")
     {
         assetIdx = bound(assetIdx, 0, ASSETS.length - 1);
         amount = bound(amount, 0, type(uint128).max);
@@ -187,7 +187,7 @@ contract Handler is Test, HandlerUtils {
         assetBalances[assetIdx] -= amount; // NOTE how does invariant behave on reverts? will this protect lower failures?
 
         vm.prank(currentActor);
-        accountModule.removeAsset(asset, amount, parameters);
+        accountModule.unload(asset, amount, parameters);
     }
 
     /**
@@ -215,8 +215,8 @@ contract InvariantAccountTest is Test {
         // vm.targetContract(address(handler)); // how to do in 0.2.0?
 
         // bytes4[] memory selectors = new bytes4[](3);
-        // selectors[0] = Handler.addAsset.selector;
-        // selectors[1] = Handler.removeAsset.selector;
+        // selectors[0] = Handler.load.selector;
+        // selectors[1] = Handler.unload.selector;
 
         // targetSelectors(FuzzSelector({addr: address(handler), selectors: selectors}));
 
