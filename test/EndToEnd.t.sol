@@ -210,11 +210,21 @@ contract EndToEndTest is Test {
         // At this point the position is live. Things are happening and money is being made, hopefully. The agreement
         // was defined in the Bookkeeper contract and emitted as an event.
         Vm.Log[] memory entries = vm.getRecordedLogs();
-        // SignedBlueprint memory agreementSignedBlueprint = abi.decode(entries[entries.length - 1].data, (SignedBlueprint));
+        SignedBlueprint memory agreementSignedBlueprint; // = abi.decode(entries[entries.length - 1].data, (SignedBlueprint));
 
-        // // Move time and block forward arbitrarily.
-        // vm.warp(block.timestamp + 100 * 12);
-        // vm.roll(block.number + 100);
+        // Extract signed agreement from logs.
+        for (uint256 i; i < entries.length; i++) {
+            // hardcoded event sig for OrderFilled (from brownie console)
+            if (entries[i].topics[0] == 0x471ac8b1a049c99d4b6c211ae01f28ddacb8daefce60910d97c273627db7d4cd) {
+                console.log("entry data:");
+                console.logBytes(entries[i].data);
+                agreementSignedBlueprint = abi.decode(entries[i].data, (SignedBlueprint)); // signed blueprint is only thing in data
+            }
+        }
+
+        // Move time and block forward arbitrarily.
+        vm.warp(block.timestamp + 100 * 12);
+        vm.roll(block.number + 100);
 
         // // Borrower exits position.
         // vm.prank(borrower);

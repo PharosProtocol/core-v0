@@ -41,7 +41,7 @@ contract Bookkeeper is Tractor {
     string constant PROTOCOL_NAME = "pharos";
     string constant PROTOCOL_VERSION = "1.0.0";
 
-    event OrderFilled(Agreement agreement, bytes32 indexed blueprintHash, address indexed taker);
+    event OrderFilled(SignedBlueprint agreement, bytes32 indexed blueprintHash, address indexed taker);
     event LiquidationKicked(address liquidator, address position);
 
     constructor() Tractor(PROTOCOL_NAME, PROTOCOL_VERSION) {}
@@ -93,8 +93,11 @@ contract Bookkeeper is Tractor {
 
         createFundEnterPosition(agreement);
 
-        signPublishAgreement(agreement);
-        emit OrderFilled(agreement, orderBlueprint.blueprintHash, msg.sender);
+        console.log("agreement encoded:");
+        console.logBytes(abi.encode(agreement));
+
+        SignedBlueprint memory signedBlueprint = signAgreement(agreement);
+        emit OrderFilled(signedBlueprint, orderBlueprint.blueprintHash, msg.sender);
     }
 
     function kick(SignedBlueprint calldata agreementBlueprint) external verifySignature(agreementBlueprint) {
@@ -181,9 +184,8 @@ contract Bookkeeper is Tractor {
         agreement.loanAmount = fill.loanAmount;
     }
 
-    function signPublishAgreement(Agreement memory agreement) private {
+    function signAgreement(Agreement memory agreement) private returns(SignedBlueprint memory signedBlueprint) {
         // Create blueprint to store signed Agreement off chain via events.
-        SignedBlueprint memory signedBlueprint;
         signedBlueprint.blueprint.publisher = address(this);
         signedBlueprint.blueprint.data =
             packDataField(bytes1(uint8(BlueprintDataType.AGREEMENT)), abi.encode(agreement));
@@ -191,7 +193,7 @@ contract Bookkeeper is Tractor {
         signedBlueprint.blueprintHash = getBlueprintHash(signedBlueprint.blueprint);
         // NOTE: Security: Is is possible to intentionally manufacture a blueprint with different data that creates the same hash?
         signBlueprint(signedBlueprint.blueprintHash);
-        publishBlueprint(signedBlueprint); // These verifiable blueprints will be used to interact with positions.
+        // publishBlueprint(signedBlueprint); // These verifiable blueprints will be used to interact with positions.
     }
 
     // NOTE why is this not public by EIP712 OZ impl default? What are the implications of exposing it here?
