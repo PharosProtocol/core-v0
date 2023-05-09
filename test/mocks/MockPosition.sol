@@ -12,15 +12,17 @@ contract MockPosition is Position {
         currentAmount = amount;
     }
 
-    function getExitAmount(bytes calldata) external view override returns (uint256) {
+    function getExitAmount(Asset calldata, bytes calldata) external view override returns (uint256) {
         return currentAmount;
     }
 
-    function _enter(Asset calldata, uint256, bytes calldata) pure internal override {
+    function _enter(Asset calldata, uint256, bytes calldata) internal pure override {
         return;
     }
 
-    function _exit(bytes calldata) internal pure override returns (uint256) {
+    function _exit(Asset memory, bytes calldata) internal pure override returns (uint256) {
         return 0;
     }
+
+    function _transferAsset(address payable to, Asset memory asset, uint256 amount) override internal {}
 }

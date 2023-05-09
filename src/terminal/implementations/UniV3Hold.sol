@@ -2,6 +2,8 @@
 
 pragma solidity 0.8.19;
 
+import "forge-std/console.sol";
+
 import {C} from "src/C.sol";
 import {Terminal} from "src/terminal/Terminal.sol";
 import {IPosition} from "src/terminal/IPosition.sol";
@@ -94,14 +96,15 @@ contract UniV3HoldTerminal is Terminal {
         CallbackValidation.verifyCallback(UNI_V3_FACTORY, tokenIn, tokenOut, fee); // requires sender == pool
 
         // Uniswap V3 gas optimization is just pushing gas, along with complexity, onto protocol users. <3
-        require(amount0Delta > 0 || amount1Delta > 0, "USTCBZAMS");
         uint256 amountToPay;
         if (amount0Delta > 0) {
             amountToPay = uint256(amount0Delta);
             require(tokenIn < tokenOut, "USTCBTOI0"); // Must be exact input with tokenIn as token0
-        } else {
+        } else if (amount1Delta > 0) {
             amountToPay = uint256(amount1Delta);
             require(tokenIn > tokenOut, "USTCBTOI1"); // Must be exact input with tokenIn as token1
+        } else {
+            revert("USTCBZAMS");
         }
 
         require(IERC20(tokenIn).transfer(address(msg.sender), amountToPay), "USTCBTF");
@@ -114,6 +117,7 @@ contract UniV3HoldTerminal is Terminal {
         ISwapRouter router = ISwapRouter(UNI_V3_ROUTER);
 
         // Convert ETH to WETH.
+        // NOTE is wrapping built into uni v3 at lib/v3-periphery/contracts/base/PeripheryPayments.sol ?
         if (asset.standard == ETH_STANDARD) {
             IWETH9(C.WETH).deposit{value: amount}();
             IERC20(C.WETH).approve(UNI_V3_ROUTER, amount); // NOTE front running?
@@ -139,10 +143,7 @@ contract UniV3HoldTerminal is Terminal {
             recipient: address(this), // position address
             deadline: block.timestamp + DEADLINE_OFFSET,
             amountIn: amount,
-            amountOutMinimum: (
-                LibUniswapV3.getPathTWAP(params.enterPath, amount, TWAP_TIME) * STEP_SLIPPAGE_RATIO
-                    * params.enterPath.numPools()
-                ) / C.RATIO_FACTOR
+            amountOutMinimum: amountOutMin(params)
         });
         amountHeld = router.exactInput(swapParams); // msg.sender from router pov is clone (Position) address
 
@@ -155,33 +156,72 @@ contract UniV3HoldTerminal is Terminal {
     //       amount. then if they give themselves a bad deal they are the only one who loses. Alt Answer: Allow
     //       liquidator to pass through any function via callback, so long as they return enough assets to Modulend
     //       lender / borrower in end.
-    function _exit(bytes calldata parameters) internal override returns (uint256) {
+    function _exit(Asset memory exitAsset, bytes calldata parameters) internal override returns (uint256 exitAmount) {
         Parameters memory params = abi.decode(parameters, (Parameters));
+        require(
+            exitAsset.standard == ETH_STANDARD || exitAsset.standard == ERC20_STANDARD,
+            "UniV3Hold: exit asset must be ETH or ERC20"
+        );
+        (address heldAsset,,) = params.exitPath.decodeFirstPool();
+
+        uint256 transferAmount = amountHeld;
+        amountHeld = 0;
+
+        // Approve ERC20s.
+        IERC20(heldAsset).approve(UNI_V3_ROUTER, transferAmount); // NOTE front running?
+
         ISwapRouter router = ISwapRouter(UNI_V3_ROUTER);
         ISwapRouter.ExactInputParams memory swapParams = ISwapRouter.ExactInputParams({
             path: params.exitPath,
             recipient: address(this), // position address
             deadline: block.timestamp + DEADLINE_OFFSET,
-            amountIn: amountHeld,
-            amountOutMinimum: (
-                LibUniswapV3.getPathTWAP(params.exitPath, amountHeld, TWAP_TIME) * STEP_SLIPPAGE_RATIO
-                    * params.exitPath.numPools()
-                ) / C.RATIO_FACTOR
+            amountIn: transferAmount,
+            amountOutMinimum: amountOutMin(params)
         });
 
-        return router.exactInput(swapParams); // msg.sender from router pov is clone (Position) address
+        // console.log(IERC20(params.exitPath
+
+        exitAmount = router.exactInput(swapParams); // msg.sender from router pov is clone (Position) address
+
+        // Convert WETH to ETH.
+        if (exitAsset.standard == ETH_STANDARD) {
+            IWETH9(C.WETH).withdraw(exitAmount);
+        }
+    }
+
+    // Only used for transferring loan asset direct to user.
+    function _transferAsset(address payable to, Asset memory asset, uint256 amount) internal override {
+        if (asset.standard == ETH_STANDARD) {
+            // NOTE change to call and protec
+            to.transfer(amount);
+        } else if (asset.standard == ERC20_STANDARD) {
+            IERC20(asset.addr).transfer(to, amount);
+        } else {
+            revert("Incompatible asset");
+        }
     }
 
     // Public Helpers.
 
     // TODO fix this to be useable on chain efficiently
-    function getExitAmount(bytes calldata parameters) external view override returns (uint256) {
+    function getExitAmount(Asset calldata, bytes calldata parameters) external view override returns (uint256) {
         Parameters memory params = abi.decode(parameters, (Parameters));
-        return LibUniswapV3.getPathTWAP(params.exitPath, amountHeld, TWAP_TIME);
+        // (,address finalAssetAddr,) = params.exitPath.decodeFirstPool();
+        // require(asset.addr == finalAssetAddr); // by this point it is too late to be checking honestly.
+        return amountOutMin(params);
     }
 
-    // function verifyAssetAllowed(Asset asset) private view {
+    // NOTE this is an inexact method of computing multistep slippage. but exponentials are hard.
+    function amountOutMin(Parameters memory params) private view returns (uint256) {
+        return LibUniswapV3.getPathTWAP(params.exitPath, amountHeld, TWAP_TIME)
+            * (C.RATIO_FACTOR - STEP_SLIPPAGE_RATIO * params.exitPath.numPools()) / C.RATIO_FACTOR;
+    }
+
+    // function AssetParameters(Asset asset) private view {
     //     require(asset.standard == ERC20_STANDARD);
     //     require(asset.addr == path[0th token]);
+    // require paths to be compatible so no assets get stuck
+    // (,address finalAssetAddr,) = params.exitPath.decodeFirstPool();
+    // require(asset.addr == finalAssetAddr, "illegal exit path");
     // }
 }

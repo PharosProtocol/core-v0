@@ -44,6 +44,8 @@ library LibUniswapV3 {
         require(OracleLibrary.getOldestObservationSecondsAgo(pool) >= twapTime, "UniV3 pool observations too young"); // ensure needed data is available
         require(observationCardinality >= twapTime / 12, "UniV3 pool cardinality too low"); // shortest case scenario should always cover twap time
         (int24 arithmeticMeanTick,) = OracleLibrary.consult(pool, twapTime);
+        console.log("arithmeticMeanTick:");
+        console.logInt(arithmeticMeanTick);
         return OracleLibrary.getQuoteAtTick(arithmeticMeanTick, uint128(amount), tokenIn, tokenOut); // NOTE risk on uint downsize?
     }
 }

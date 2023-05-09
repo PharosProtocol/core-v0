@@ -63,7 +63,7 @@ abstract contract Terminal is ITerminal, IChildClone, Position, Initializable {
         _disableInitializers(); // redundant with proxyExecution modifier?
         BOOKKEEPER_ADDRESS = bookkeeperAddr;
         TERMINAL_ADDRESS = address(this);
-        _grantRole(C.BOOKKEEPER_ROLE, BOOKKEEPER_ADDRESS); // Terminal role set
+        _grantRole(C.CONTROLLER_ROLE, BOOKKEEPER_ADDRESS); // Terminal role set
     }
 
     /*
@@ -73,7 +73,7 @@ abstract contract Terminal is ITerminal, IChildClone, Position, Initializable {
         external
         override
         implementationExecution
-        onlyRole(C.BOOKKEEPER_ROLE)
+        onlyRole(C.CONTROLLER_ROLE)
         returns (address addr)
     {
         addr = Clones.clone(address(this));
@@ -89,10 +89,10 @@ abstract contract Terminal is ITerminal, IChildClone, Position, Initializable {
      */
     function initialize() external override initializer proxyExecution {
         require(msg.sender == TERMINAL_ADDRESS);
-        _grantRole(C.BOOKKEEPER_ROLE, BOOKKEEPER_ADDRESS); // Position role set
+        _grantRole(C.CONTROLLER_ROLE, BOOKKEEPER_ADDRESS); // Position role set
     }
 
     receive() external payable {}
 
-    // function _exit(bytes calldata parameters) internal virtual returns (uint256 exitAmount) internal virtual;
+    // function _exit(bytes memory parameters) internal virtual returns (uint256 exitAmount) internal virtual;
 }

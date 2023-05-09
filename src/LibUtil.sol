@@ -27,7 +27,7 @@ struct Asset {
     bytes3 standard; // id of token standard. Using ERC#, but can be arbitrary.
     address addr;
     uint256 id; // 721, 1155
-    bytes data; // 721, 1155
+    bytes data; // 721, 1155, arbitrary
 }
 
 library Utils {

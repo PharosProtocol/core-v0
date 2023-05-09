@@ -13,10 +13,12 @@ import "forge-std/console.sol";
 import {IUniswapV3Pool} from "lib/v3-core/contracts/UniswapV3Pool.sol";
 
 import {DoubleSidedAccount} from "src/modules/account/implementations/DoubleSidedAccount.sol";
+import {IAssessor} from "src/modules/assessor/IAssessor.sol";
 import {StandardAssessor} from "src/modules/assessor/implementations/StandardAssessor.sol";
 import {InstantLiquidator} from "src/modules/liquidator/implementations/InstantLiquidator.sol";
 import {UniswapV3Oracle} from "src/modules/oracle/implementations/UniswapV3Oracle.sol";
 import {StaticUsdcPriceOracle} from "src/modules/oracle/implementations/StaticValue.sol";
+import {IPosition} from "src/terminal/IPosition.sol";
 import {UniV3HoldTerminal} from "src/terminal/implementations/UniV3Hold.sol";
 
 import {Bookkeeper} from "src/bookkeeper/Bookkeeper.sol";
@@ -72,21 +74,25 @@ contract EndToEndTest is Test {
         address lender = vm.addr(LENDER_PRIVATE_KEY);
         address borrower = vm.addr(BORROWER_PRIVATE_KEY);
 
-        // Lender creates and funds account with ETH.
-        vm.deal(lender, 10e18);
         DoubleSidedAccount.Parameters memory lenderAccountParams =
             DoubleSidedAccount.Parameters({owner: lender, salt: bytes32(0)});
-        vm.prank(lender);
-        accountModule.load{value: 10e18}(ETH_ASSET, 10e18, abi.encode(lenderAccountParams));
-
-        // Borrower creates and funds account with USDC.
-        deal(USDC_ASSET.addr, borrower, 5_000e6, true);
         DoubleSidedAccount.Parameters memory borrowerAccountParams =
             DoubleSidedAccount.Parameters({owner: borrower, salt: bytes32(0)});
-        vm.prank(borrower);
-        IERC20(C.USDC).approve(address(accountModule), 5_000e6);
-        vm.prank(borrower);
-        accountModule.load(USDC_ASSET, 5_000e6, abi.encode(borrowerAccountParams));
+
+        {
+            // Lender creates and funds account with ETH.
+            vm.deal(lender, 10e18);
+            vm.prank(lender);
+            accountModule.load{value: 10e18}(ETH_ASSET, 10e18, abi.encode(lenderAccountParams));
+
+            // Borrower creates and funds account with USDC.
+            vm.deal(borrower, 1e18);
+            deal(USDC_ASSET.addr, borrower, 5_000e6, true);
+            vm.prank(borrower);
+            IERC20(C.USDC).approve(address(accountModule), 5_000e6);
+            vm.prank(borrower);
+            accountModule.load(USDC_ASSET, 5_000e6, abi.encode(borrowerAccountParams));
+        }
 
         Order memory offer;
         {
@@ -172,10 +178,10 @@ contract EndToEndTest is Test {
             signature: abi.encodePacked(r, s, v)
         });
 
-        // Borrower fills offer.
-        Fill memory fill;
-
         {
+            // Borrower fills offer.
+            Fill memory fill;
+
             BorrowerConfig memory borrowerConfig = BorrowerConfig({
                 initCollateralRatio: C.RATIO_FACTOR / 3,
                 positionParameters: abi.encode(
@@ -197,38 +203,51 @@ contract EndToEndTest is Test {
                 isOfferFill: true,
                 borrowerConfig: borrowerConfig
             });
+
+            ModuleReference memory borrowerAccount =
+                ModuleReference({addr: address(accountModule), parameters: abi.encode(borrowerAccountParams)});
+            vm.prank(borrower);
+            bookkeeper.fillOrder(fill, offerSignedBlueprint, borrowerAccount);
         }
-        ModuleReference memory borrowerAccount =
-            ModuleReference({addr: address(accountModule), parameters: abi.encode(borrowerAccountParams)});
-        vm.prank(borrower);
-        bookkeeper.fillOrder(fill, offerSignedBlueprint, borrowerAccount);
+
+        SignedBlueprint memory agreementSignedBlueprint;
+        Agreement memory agreement;
 
         // console.log("gas left: %s", gasleft());
         // IUniswapV3Pool(0x11950d141EcB863F01007AdD7D1A342041227b58).increaseObservationCardinalityNext(25);
         // console.log("gas left: %s", gasleft());
 
-        // At this point the position is live. Things are happening and money is being made, hopefully. The agreement
-        // was defined in the Bookkeeper contract and emitted as an event.
-        Vm.Log[] memory entries = vm.getRecordedLogs();
-        SignedBlueprint memory agreementSignedBlueprint; // = abi.decode(entries[entries.length - 1].data, (SignedBlueprint));
+        {
+            // At this point the position is live. Things are happening and money is being made, hopefully. The agreement
+            // was defined in the Bookkeeper contract and emitted as an event.
+            Vm.Log[] memory entries = vm.getRecordedLogs();
+            // = abi.decode(entries[entries.length - 1].data, (SignedBlueprint));
 
-        // Extract signed agreement from logs.
-        for (uint256 i; i < entries.length; i++) {
-            // hardcoded event sig for OrderFilled (from brownie console)
-            if (entries[i].topics[0] == 0x471ac8b1a049c99d4b6c211ae01f28ddacb8daefce60910d97c273627db7d4cd) {
-                console.log("entry data:");
-                console.logBytes(entries[i].data);
-                agreementSignedBlueprint = abi.decode(entries[i].data, (SignedBlueprint)); // signed blueprint is only thing in data
+            // Extract signed agreement from logs.
+            for (uint256 i; i < entries.length; i++) {
+                // hardcoded event sig for OrderFilled (from brownie console)
+                if (entries[i].topics[0] == 0x21a6001862375a91bbf0eff278ae1eaee77323f67273ed674a16f9607888696f) {
+                    // console.log("entry data:");
+                    // console.logBytes(entries[i].data);
+                    agreementSignedBlueprint = abi.decode(entries[i].data, (SignedBlueprint)); // signed blueprint is only thing in data
+                }
             }
+            require(agreementSignedBlueprint.blueprintHash != 0x0, "failed to find agreement in logs");
+            (, bytes memory data) = bookkeeper.unpackDataField(agreementSignedBlueprint.blueprint.data);
+            agreement = abi.decode(data, (Agreement));
         }
 
         // Move time and block forward arbitrarily.
         vm.warp(block.timestamp + 100 * 12);
         vm.roll(block.number + 100);
 
-        // // Borrower exits position.
-        // vm.prank(borrower);
-        // bookkeeper.exitPosition(agreementSignedBlueprint);
+        // Borrower exits position. Send cost in eth because on local fork no value of assets occurs but cost increases.
+        uint256 cost = IAssessor(agreement.assessor.addr).getCost(agreement);
+        uint256 exitAmount = IPosition(agreement.position.addr).getExitAmount(agreement.loanAsset, agreement.position.parameters);
+        console.log("exitAmount: %s", exitAmount);
+        vm.prank(borrower);
+        // bookkeeper.exitPosition{value: cost}(agreementSignedBlueprint);
+        bookkeeper.exitPosition{value: 4e18 / 100}(agreementSignedBlueprint);
 
         console.log("done");
     }

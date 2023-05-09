@@ -4,4 +4,10 @@ out = 'out'
 libs = ['lib']
 solc = "0.8.19"
 
+[profile.default.fuzz]
+seed = 1
+
+[rpc_endpoints]
+mainnet = "${ALCHEMY_ETH_API_URL}" 
+
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config

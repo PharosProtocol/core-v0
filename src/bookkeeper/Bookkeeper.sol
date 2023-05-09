@@ -15,6 +15,7 @@ import {IPosition} from "src/terminal/IPosition.sol";
 import {ITerminal} from "src/terminal/ITerminal.sol";
 import {ILiquidator} from "src/modules/liquidator/ILiquidator.sol";
 import {Utils} from "src/LibUtil.sol";
+import {IAssessor} from "src/modules/assessor/IAssessor.sol";
 
 // NOTE bookkeeper will be far more difficult to update / fix / expand than any of the modules. For this reason
 //      simplicity should be aggressively pursued.
@@ -88,13 +89,13 @@ contract Bookkeeper is Tractor {
         // Set Position data that cannot be computed off chain by caller.
         agreement.deploymentTime = block.timestamp;
 
-        console.log("loanAmount: %s", agreement.loanAmount);
-        console.log("collateralAmount: %s", agreement.collateralAmount);
+        // console.log("loanAmount: %s", agreement.loanAmount);
+        // console.log("collateralAmount: %s", agreement.collateralAmount);
 
         createFundEnterPosition(agreement);
 
-        console.log("agreement encoded:");
-        console.logBytes(abi.encode(agreement));
+        // console.log("agreement encoded:");
+        // console.logBytes(abi.encode(agreement));
 
         SignedBlueprint memory signedBlueprint = signAgreement(agreement);
         emit OrderFilled(signedBlueprint, orderBlueprint.blueprintHash, msg.sender);
@@ -106,8 +107,8 @@ contract Bookkeeper is Tractor {
         Agreement memory agreement = abi.decode(blueprintData, (Agreement));
         IPosition position = IPosition(agreement.positionAddr);
 
-        // Cannot liquidate if not owned by protocol (liquidating/liquidated/exited).
-        require(position.hasRole(C.CONTROLLER_ROLE, address(this)), "Position not owned by protocol");
+        // // Cannot liquidate if not owned by protocol (liquidating/liquidated/exited).
+        // require(position.hasRole(C.CONTROLLER_ROLE, address(this)), "Position not owned by protocol");
 
         require(LibBookkeeper.isLiquidatable(agreement), "Bookkeeper: Position is not liquidatable");
         // Transfer ownership of the position to the liquidator, which includes collateral.
@@ -157,9 +158,39 @@ contract Bookkeeper is Tractor {
         // Amount is not a compatible concept with all agreements, in those cases unpaid amount should be 0.
         if (unpaidAmount > 0) {
             // Requires sender to have already approved account contract to use necessary assets.
-            IAccount(payable(agreement.lenderAccount.addr)).sideLoad{value: msg.value}(
-                msg.sender, agreement.loanAsset, unpaidAmount, agreement.lenderAccount.parameters
-            );
+            IAccount(payable(agreement.lenderAccount.addr)).sideLoad{
+                value: Utils.isEth(agreement.loanAsset) ? unpaidAmount : 0
+            }(msg.sender, agreement.loanAsset, unpaidAmount, agreement.lenderAccount.parameters);
+        }
+    }
+
+    // @notice Borrower directly pays lender and claim control over position MPC.
+    function detachPosition(SignedBlueprint calldata agreementBlueprint)
+        external
+        payable
+        verifySignature(agreementBlueprint)
+    {
+        (bytes1 blueprintDataType, bytes memory blueprintData) = unpackDataField(agreementBlueprint.blueprint.data);
+        require(
+            blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "Bookkeeper: Invalid blueprint data type"
+        );
+        Agreement memory agreement = abi.decode(blueprintData, (Agreement));
+        require(
+            msg.sender == IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters),
+            "Bookkeeper: Only borrower can exit position without liquidation"
+        );
+
+        IPosition(agreement.positionAddr).transferContract(agreement.liquidator.addr);
+
+        uint256 owedAmount = IAssessor(agreement.assessor.addr).getCost(agreement);
+
+        // Borrower must pay difference directly if there is not enough value to pay Lender.
+        // Amount is not a compatible concept with all agreements, in those cases unpaid amount should be 0.
+        if (owedAmount > 0) {
+            // Requires sender to have already approved account contract to use necessary assets.
+            IAccount(payable(agreement.lenderAccount.addr)).sideLoad{
+                value: Utils.isEth(agreement.loanAsset) ? owedAmount : 0
+            }(msg.sender, agreement.loanAsset, owedAmount, agreement.lenderAccount.parameters);
         }
     }
 
@@ -184,7 +215,7 @@ contract Bookkeeper is Tractor {
         agreement.loanAmount = fill.loanAmount;
     }
 
-    function signAgreement(Agreement memory agreement) private returns(SignedBlueprint memory signedBlueprint) {
+    function signAgreement(Agreement memory agreement) private returns (SignedBlueprint memory signedBlueprint) {
         // Create blueprint to store signed Agreement off chain via events.
         signedBlueprint.blueprint.publisher = address(this);
         signedBlueprint.blueprint.data =

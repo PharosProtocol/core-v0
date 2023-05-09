@@ -40,7 +40,7 @@ contract InstantLiquidator is Liquidator {
         uint256 borrowerReturnExpected;
         {
             IPosition position = IPosition(agreement.positionAddr);
-            uint256 positionAmount = position.getExitAmount(agreement.position.parameters); // denoted in loan asset
+            uint256 positionAmount = position.getExitAmount(agreement.loanAsset, agreement.position.parameters); // denoted in loan asset
 
             // Distribution of value. Priority: liquidator, lender, borrower.
             uint256 liquidatorReward = getRewardValue(agreement); // denoted in loan asset

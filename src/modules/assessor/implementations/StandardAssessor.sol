@@ -2,6 +2,8 @@
 
 pragma solidity 0.8.19;
 
+import "forge-std/console.sol";
+
 import {IAssessor} from "src/modules/assessor/IAssessor.sol";
 import {IPosition} from "src/terminal/IPosition.sol";
 import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
@@ -21,13 +23,17 @@ contract StandardAssessor is IAssessor {
     /// @notice Return the cost of a loan, quantified in the Loan Asset.
     function getCost(Agreement calldata agreement) external view override returns (uint256) {
         Parameters memory p = abi.decode(agreement.assessor.parameters, (Parameters));
-        uint256 positionValue = IPosition(agreement.positionAddr).getExitAmount(agreement.position.parameters); // duplicate decode here
+        uint256 positionValue =
+            IPosition(agreement.positionAddr).getExitAmount(agreement.loanAsset, agreement.position.parameters); // duplicate decode here
         uint256 originationFee = agreement.loanAmount * p.originationFeeRatio / C.RATIO_FACTOR;
         uint256 interest =
             agreement.loanAmount * (block.timestamp - agreement.deploymentTime) * p.interestRatio / C.RATIO_FACTOR;
         uint256 lenderValue = originationFee + interest + agreement.loanAmount;
         uint256 profitShare =
             positionValue > lenderValue ? (positionValue - lenderValue) * p.profitShareRatio / C.RATIO_FACTOR : 0;
+
+        console.log("cost: %s", originationFee + interest + profitShare);
+
         return originationFee + interest + profitShare;
     }
 
