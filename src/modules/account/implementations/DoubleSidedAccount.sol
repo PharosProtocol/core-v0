@@ -8,12 +8,13 @@ import {C} from "src/C.sol";
 
 import {AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
 import {IAccount} from "src/modules/account/IAccount.sol";
+import {Module} from "src/modules/Module.sol";
 
 /**
  * Account for holding ETH and ERC20 assets, to use for either lending or borrowing through an Agreement.
  * ~ Not compatible with other asset types ~
  */
-contract DoubleSidedAccount is AccessControl, IAccount {
+contract DoubleSidedAccount is AccessControl, IAccount, Module {
     struct Parameters {
         address owner;
         // An owner-unique id for this account.
@@ -30,6 +31,9 @@ contract DoubleSidedAccount is AccessControl, IAccount {
     constructor(address bookkeeperAddr) {
         _grantRole(C.BOOKKEEPER_ROLE, bookkeeperAddr);
         _this = address(this);
+
+        COMPATIBLE_LOAN_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
+        COMPATIBLE_COLL_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
     }
 
     receive() external payable {}
@@ -107,7 +111,6 @@ contract DoubleSidedAccount is AccessControl, IAccount {
 
         emit PositionCapitalized(position, asset, amount, parameters);
     }
-
 
     function getOwner(bytes calldata parameters) external pure override returns (address) {
         return abi.decode(parameters, (Parameters)).owner;

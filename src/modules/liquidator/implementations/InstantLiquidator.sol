@@ -10,6 +10,7 @@ import {IPosition} from "src/Terminal/IPosition.sol";
 import {IAssessor} from "src/modules/assessor/IAssessor.sol";
 import {IAccount} from "src/modules/account/IAccount.sol";
 import {IOracle} from "src/modules/oracle/IOracle.sol";
+import {Module} from "src/modules/Module.sol";
 
 struct Parameters {
     uint256 valueRatio;
@@ -23,8 +24,13 @@ struct Parameters {
  * Liquidator reward is a ratio of position value with absolute minimum and maximum value.
  */
 
-contract InstantLiquidator is Liquidator {
+contract InstantLiquidator is Liquidator, Module {
     event Liquidated(address position, uint256 lenderReturn, uint256 borrowerReturn);
+
+    constructor() {
+        COMPATIBLE_LOAN_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
+        COMPATIBLE_COLL_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
+    }
 
     function verifyCompatibility(Agreement memory agreement) external pure {
         require(agreement.loanAsset.standard == ERC20_STANDARD, "loan asset must be ERC20"); // can also do eth?

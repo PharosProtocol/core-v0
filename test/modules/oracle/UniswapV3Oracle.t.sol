@@ -10,7 +10,7 @@ pragma solidity 0.8.19;
 import "forge-std/Test.sol";
 import {console} from "lib/forge-std/src/console.sol";
 import {HandlerUtils} from "test/TestUtils.sol";
-import {MockPosition} from "test/mocks/MockPosition.sol";
+import {Module} from "src/modules/Module.sol";
 
 import "lib/v3-periphery/contracts/libraries/PoolAddress.sol";
 import "lib/v3-core/contracts/UniswapV3Pool.sol";
@@ -24,13 +24,16 @@ import "src/LibUtil.sol";
 import {C} from "src/C.sol";
 import {UniswapV3Oracle} from "src/modules/oracle/implementations/UniswapV3Oracle.sol";
 
-contract UniswapV3OracleTest is Test {
+contract UniswapV3OracleTest is Test, Module {
     UniswapV3Oracle public oracleModule;
     uint256 POOL_USDC_AT_BLOCK = 147_000_000e6;
     uint256 POOL_WETH_AT_BLOCK = 84_000e18;
     Asset WETH_ASSET = Asset({standard: ERC20_STANDARD, addr: address(C.WETH), id: 0, data: ""});
 
-    constructor() {}
+    constructor() {
+        COMPATIBLE_LOAN_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
+        COMPATIBLE_COLL_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
+    }
 
     function POOL_INIT_CODE_HASH() external pure returns (bytes32) {
         return PoolAddress.POOL_INIT_CODE_HASH;

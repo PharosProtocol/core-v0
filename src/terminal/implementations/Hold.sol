@@ -8,6 +8,7 @@ import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
 import {C} from "src/C.sol";
 import {Position} from "src/terminal/Position.sol";
 import {Asset, ETH_STANDARD, ERC20_STANDARD} from "src/LibUtil.sol";
+import {Module} from "src/modules/Module.sol";
 
 import "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
@@ -18,7 +19,7 @@ struct SwapCallbackData {
 }
 
 /*
- * The Hold terminal simply holds assets and performs not actions with them. This allows users to long or short assets
+ * The Hold terminal simply holds assets and performs no actions with them. This allows users to long or short assets
  * as long as the necessary supply of their interested asset is available. This is similar to how existing lending
  * markets provided by protocols like Aave or Compound.
  *
@@ -26,13 +27,16 @@ struct SwapCallbackData {
  * to support in v1.
  */
 
-contract HoldTerminal is Position {
+contract HoldTerminal is Position, Module {
     // struct Parameters {}
 
     // Position state
     uint256 private amountHeld;
 
-    constructor(address protocolAddr) Position(protocolAddr) {}
+    constructor(address protocolAddr) Position(protocolAddr) {
+        COMPATIBLE_LOAN_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
+        COMPATIBLE_COLL_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
+    }
 
     /// @notice Do nothing.
     /// @dev assumes assets have already been transferred to Position.
@@ -41,16 +45,13 @@ contract HoldTerminal is Position {
     }
 
     /// @notice Do nothing.
-    function _exit(Agreement calldata agreement, bytes calldata parameters)
-        internal
-        override
-    {
+    function _exit(Agreement calldata agreement, bytes calldata parameters) internal override {
         // Parameters memory params = abi.decode(parameters, (Parameters));
     }
 
     // Public Helpers.
 
-    function getExitAmount(bytes calldata parameters) external view override returns (uint256) {
+    function getExitAmount(bytes calldata) external view override returns (uint256) {
         return amountHeld;
     }
 }

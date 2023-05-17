@@ -26,10 +26,7 @@ contract AccountTest is Test {
     event AssetAdded(address owner, bytes32 salt, Asset asset, uint256 amount);
     event AssetRemoved(address owner, bytes32 salt, Asset asset, uint256 amount);
 
-    constructor() {
-        ASSETS.push(Asset({standard: ETH_STANDARD, addr: address(0), id: 0, data: ""})); // Tests expect 0 index to be ETH
-        ASSETS.push(Asset({standard: ERC20_STANDARD, addr: C.USDC, id: 0, data: ""})); // Tests expect 1 index to be an ERC20
-    }
+    constructor() {}
 
     // invoked before each test case is run
     function setUp() public {
