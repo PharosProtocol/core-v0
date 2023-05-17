@@ -23,7 +23,7 @@ struct ModuleReference {
 struct Order {
     uint256[] minLoanAmounts; // idx parity with loanAssets
     Asset[] loanAssets;
-    Asset[] collateralAssets;
+    Asset[] collAssets;
     address[] takers;
     uint256 maxDuration;
     uint256 minCollateralRatio;
@@ -49,7 +49,7 @@ struct Fill {
     uint256 loanAmount; // should be valid with both minFillRatios and account balances
     uint256 takerIdx; // ignored if no taker allowlist.
     uint256 loanAssetIdx; // need to verify with the oracle
-    uint256 collateralAssetIdx; // need to verify with the oracle
+    uint256 collAssetIdx; // need to verify with the oracle
     uint256 loanOracleIdx;
     uint256 collateralOracleIdx;
     uint256 terminalIdx;
@@ -69,7 +69,7 @@ struct Agreement {
     uint256 loanAmount;
     uint256 collateralAmount;
     Asset loanAsset;
-    Asset collateralAsset;
+    Asset collAsset;
     uint256 minCollateralRatio; // Position value / collateral value
     uint256 maxDuration;
     ModuleReference lenderAccount;
@@ -97,8 +97,12 @@ library LibBookkeeper {
         // NOTE this looks expensive. could have the caller pass in the expected position value and exit if not enough
         //      assets at exit time
         // (position value - cost) / collateral value
-        uint256 adjustedPositionAmount = position.getExitAmount(agreement.loanAsset, agreement.position.parameters)
-            - IAssessor(agreement.assessor.addr).getCost(agreement);
+        uint256 exitAmount = position.getExitAmount(agreement.position.parameters);
+        uint256 cost = IAssessor(agreement.assessor.addr).getCost(agreement);
+        if (cost > exitAmount) {
+            return true;
+        }
+        uint256 adjustedPositionAmount = exitAmount - cost;
         uint256 collateralRatio = C.RATIO_FACTOR
             * IOracle(agreement.loanOracle.addr).getValue(
                 agreement.loanAsset, adjustedPositionAmount, agreement.loanOracle.parameters

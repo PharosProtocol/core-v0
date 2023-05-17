@@ -37,7 +37,6 @@ interface IAccount {
     /// @notice Transfer asset from account to Position MPC. Pushes.
     function capitalize(address position, Asset calldata asset, uint256 amount, bytes calldata parameters) external; // onlyRole(BOOKKEEPER_ROLE)
 
-    function isCompatible(Asset calldata asset, bytes calldata parameters) external view returns (bool);
     function getOwner(bytes calldata parameters) external view returns (address);
     function getBalance(Asset calldata asset, bytes calldata parameters) external view returns (uint256);
 }

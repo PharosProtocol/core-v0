@@ -12,7 +12,6 @@ import {C} from "src/C.sol";
 import "src/modules/oracle/IOracle.sol";
 import {IAccount} from "src/modules/account/IAccount.sol";
 import {IPosition} from "src/terminal/IPosition.sol";
-import {ITerminal} from "src/terminal/ITerminal.sol";
 import {ILiquidator} from "src/modules/liquidator/ILiquidator.sol";
 import {Utils} from "src/LibUtil.sol";
 import {IAssessor} from "src/modules/assessor/IAssessor.sol";
@@ -84,7 +83,7 @@ contract Bookkeeper is Tractor {
             agreement.position.parameters = order.borrowerConfig.positionParameters;
         }
         agreement.collateralAmount = IOracle(agreement.collateralOracle.addr).getAmount(
-            agreement.collateralAsset, collateralValue, agreement.collateralOracle.parameters
+            agreement.collAsset, collateralValue, agreement.collateralOracle.parameters
         );
         // Set Position data that cannot be computed off chain by caller.
         agreement.deploymentTime = block.timestamp;
@@ -120,23 +119,24 @@ contract Bookkeeper is Tractor {
 
     // NOTE this function succinctly represents a lot of the inefficiency of a module system design.
     function createFundEnterPosition(Agreement memory agreement) private {
-        agreement.positionAddr = ITerminal(agreement.position.addr).createPosition();
+        // agreement.positionAddr = ITerminal(agreement.position.addr).createPosition();
+        (bool success,) = agreement.position.addr.call(abi.encodeWithSignature("createPosition()"));
+        require(success, "BKFCP");
         IAccount(agreement.lenderAccount.addr).capitalize(
             agreement.positionAddr, agreement.loanAsset, agreement.loanAmount, agreement.lenderAccount.parameters
         );
+        // NOTE lots of gas savings if collateral can be kept in borrower account until absolutely necessary.
         IAccount(agreement.borrowerAccount.addr).capitalize(
             agreement.positionAddr,
-            agreement.collateralAsset,
+            agreement.collAsset,
             agreement.collateralAmount,
             agreement.borrowerAccount.parameters
         );
-        IPosition(agreement.positionAddr).enter(
+        IPosition(agreement.positionAddr).deploy(
             agreement.loanAsset, agreement.loanAmount, agreement.position.parameters
         );
     }
 
-    // NOTE This puts the assets back into circulating via accounts. Should implement an option to send assets to
-    //      a static account.
     function exitPosition(SignedBlueprint calldata agreementBlueprint)
         external
         payable
@@ -152,16 +152,9 @@ contract Bookkeeper is Tractor {
             "Bookkeeper: Only borrower can exit position without liquidation"
         );
 
-        uint256 unpaidAmount = IPosition(agreement.positionAddr).exit(agreement, agreement.position.parameters);
+        // All asset management must be done within this call, else bk would need to have asset-specific knowledge.
+        IPosition(agreement.positionAddr).exit(agreement, agreement.position.parameters);
 
-        // Borrower must pay difference directly if there is not enough value to pay Lender.
-        // Amount is not a compatible concept with all agreements, in those cases unpaid amount should be 0.
-        if (unpaidAmount > 0) {
-            // Requires sender to have already approved account contract to use necessary assets.
-            IAccount(payable(agreement.lenderAccount.addr)).sideLoad{
-                value: Utils.isEth(agreement.loanAsset) ? unpaidAmount : 0
-            }(msg.sender, agreement.loanAsset, unpaidAmount, agreement.lenderAccount.parameters);
-        }
     }
 
     // @notice Borrower directly pays lender and claim control over position MPC.
@@ -207,8 +200,9 @@ contract Bookkeeper is Tractor {
 
         agreement.loanAsset = order.loanAssets[fill.loanAssetIdx];
         agreement.loanOracle = order.loanOracles[fill.loanOracleIdx];
-        agreement.collateralAsset = order.collateralAssets[fill.collateralAssetIdx];
+        agreement.collAsset = order.collAssets[fill.collAssetIdx];
         agreement.collateralOracle = order.collateralOracles[fill.collateralOracleIdx];
+        // NOTE confusion here (and everywhere) on position address vs terminal address. Naming fix?
         agreement.position.addr = order.terminals[fill.terminalIdx];
 
         require(fill.loanAmount >= order.minLoanAmounts[fill.loanAssetIdx], "Bookkeeper: fill loan amount too small");

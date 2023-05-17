@@ -3,26 +3,27 @@
 pragma solidity 0.8.19;
 
 import {Asset} from "src/LibUtil.sol";
-import {Position} from "src/terminal/IPosition.sol";
+import {Position} from "src/terminal/Position.sol";
+import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
 
 contract MockPosition is Position {
     uint256 currentAmount;
 
-    constructor(uint256 amount) {
+    constructor(address bookkeeperAddr, uint256 amount) Position(bookkeeperAddr) {
         currentAmount = amount;
     }
 
-    function getExitAmount(Asset calldata, bytes calldata) external view override returns (uint256) {
+    function getExitAmount(bytes calldata) external view override returns (uint256) {
         return currentAmount;
     }
 
-    function _enter(Asset calldata, uint256, bytes calldata) internal pure override {
+    function _deploy(Asset calldata, uint256, bytes calldata) internal pure override {
         return;
     }
 
-    function _exit(Asset memory, bytes calldata) internal pure override returns (uint256) {
-        return 0;
+    function _exit(Agreement calldata, bytes calldata) internal pure override {
+        return;
     }
 
-    function _transferAsset(address payable to, Asset memory asset, uint256 amount) override internal {}
+    // function _transferLoanAsset(address payable to, Asset memory asset, uint256 amount) internal override {}
 }

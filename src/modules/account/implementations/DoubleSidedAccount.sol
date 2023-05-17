@@ -67,17 +67,11 @@ contract DoubleSidedAccount is AccessControl, IAccount {
         }
     }
 
-    // function throughPush(address to, Asset calldata asset, uint256 amount) {
-    //     require(address(this) != _this, "loadPush: must be delegatecall");
-    //     if (asset.standard == ETH_STANDARD) {
-    //         // NOTE yes yes someday the gas may become invalid. But simplest way to start.
-    //         to.transfer(amount);
-    //     } else if (asset.standard == ERC20_STANDARD) {
-    //         // IERC20 memory erc20 = IERC20(asset.addr);
-    //         // erc20.approve(amount);
-    //         IERC20(asset.addr).transfer(to, amount);
-    //     }
+    // // Use callback. Allows for 3rdparty transferFroms without extra transfers.
+    // function loadPushFrom(address from, Asset calldata asset, uint256 amount, bytes calldata parameters) external payable override {
     // }
+
+    // function throughPushWithCallback(address to, Asset calldata asset, uint256 amount) {}
 
     function unload(Asset calldata asset, uint256 amount, bytes calldata parameters) external override {
         Parameters memory params = abi.decode(parameters, (Parameters));
@@ -114,12 +108,6 @@ contract DoubleSidedAccount is AccessControl, IAccount {
         emit PositionCapitalized(position, asset, amount, parameters);
     }
 
-    function isCompatible(Asset calldata asset, bytes calldata parameters) external view returns (bool) {
-        if (asset.standard == ETH_STANDARD || asset.standard == ERC20_STANDARD) {
-            return true;
-        }
-        return false;
-    }
 
     function getOwner(bytes calldata parameters) external pure override returns (address) {
         return abi.decode(parameters, (Parameters)).owner;

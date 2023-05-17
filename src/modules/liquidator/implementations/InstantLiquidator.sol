@@ -28,7 +28,7 @@ contract InstantLiquidator is Liquidator {
 
     function verifyCompatibility(Agreement memory agreement) external pure {
         require(agreement.loanAsset.standard == ERC20_STANDARD, "loan asset must be ERC20"); // can also do eth?
-        require(agreement.collateralAsset.standard == ERC20_STANDARD, "collateral asset must be ERC20"); // can also do eth?
+        require(agreement.collAsset.standard == ERC20_STANDARD, "collateral asset must be ERC20"); // can also do eth?
     }
 
     function _liquidate(Agreement memory agreement) internal override {
@@ -40,7 +40,7 @@ contract InstantLiquidator is Liquidator {
         uint256 borrowerReturnExpected;
         {
             IPosition position = IPosition(agreement.positionAddr);
-            uint256 positionAmount = position.getExitAmount(agreement.loanAsset, agreement.position.parameters); // denoted in loan asset
+            uint256 positionAmount = position.getExitAmount(agreement.position.parameters); // denoted in loan asset
 
             // Distribution of value. Priority: liquidator, lender, borrower.
             uint256 liquidatorReward = getRewardValue(agreement); // denoted in loan asset
@@ -65,7 +65,7 @@ contract InstantLiquidator is Liquidator {
          * OPTION 1 - Liquidator takes position and handles callback **
          */
         // lenderBalanceBefore = lenderAccount.getAssetBalance(agreement.loanAsset);
-        // borrowerBalanceBefore = borrowerAccount.getAssetBalance(agreement.collateralAsset); // this should be balance wi/o collateral, regardless of whether collateral literally leaves the account or not
+        // borrowerBalanceBefore = borrowerAccount.getAssetBalance(agreement.collAsset); // this should be balance wi/o collateral, regardless of whether collateral literally leaves the account or not
         // // Callback to allow liquidator to do whatever it wants with the position as long as it returns the expected Returns.
         // IPosition(agreement.positionAddr).setOwner(msg.sender);
         // ILiquidator(msg.sender).returnAssets(agreement, lenderReturnExpected, borrowerReturnExpected);
@@ -74,7 +74,7 @@ contract InstantLiquidator is Liquidator {
         //     "lender balance too low"
         // );
         // require(
-        //     borrowerAccount.getAssetBalance(agreement.collateralAsset) >= borrowerBalanceBefore + borrowerReturnExpected,
+        //     borrowerAccount.getAssetBalance(agreement.collAsset) >= borrowerBalanceBefore + borrowerReturnExpected,
         //     "borrower balance too low"
         // );
 
@@ -89,9 +89,9 @@ contract InstantLiquidator is Liquidator {
             );
         }
         if (borrowerReturnExpected > 0) {
-            Utils.receiveAsset(msg.sender, agreement.collateralAsset, borrowerReturnExpected);
-            borrowerAccount.load{value: Utils.isEth(agreement.collateralAsset) ? borrowerReturnExpected : 0}(
-                agreement.collateralAsset, borrowerReturnExpected, agreement.borrowerAccount.parameters
+            Utils.receiveAsset(msg.sender, agreement.collAsset, borrowerReturnExpected);
+            borrowerAccount.load{value: Utils.isEth(agreement.collAsset) ? borrowerReturnExpected : 0}(
+                agreement.collAsset, borrowerReturnExpected, agreement.borrowerAccount.parameters
             );
         }
         IPosition(agreement.positionAddr).transferContract(msg.sender);

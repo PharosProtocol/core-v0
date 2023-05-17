@@ -116,8 +116,8 @@ contract EndToEndTest is Test {
             minLoanAmounts[0] = 1e18;
             Asset[] memory loanAssets = new Asset[](1);
             loanAssets[0] = ETH_ASSET;
-            Asset[] memory collateralAssets = new Asset[](1);
-            collateralAssets[0] = USDC_ASSET;
+            Asset[] memory collAssets = new Asset[](1);
+            collAssets[0] = USDC_ASSET;
             address[] memory takers = new address[](0);
             ModuleReference[] memory loanOracles = new ModuleReference[](1);
             loanOracles[0] = ModuleReference({
@@ -143,7 +143,7 @@ contract EndToEndTest is Test {
             offer = Order({
                 minLoanAmounts: minLoanAmounts,
                 loanAssets: loanAssets,
-                collateralAssets: collateralAssets,
+                collAssets: collAssets,
                 takers: takers,
                 maxDuration: 7 days,
                 minCollateralRatio: C.RATIO_FACTOR / 5,
@@ -196,7 +196,7 @@ contract EndToEndTest is Test {
                 loanAmount: 2e18, // must be valid with init CR and available collateral value
                 takerIdx: 0,
                 loanAssetIdx: 0,
-                collateralAssetIdx: 0,
+                collAssetIdx: 0,
                 loanOracleIdx: 0,
                 collateralOracleIdx: 0,
                 terminalIdx: 0,
@@ -242,9 +242,9 @@ contract EndToEndTest is Test {
         vm.roll(block.number + 100);
 
         // Borrower exits position. Send cost in eth because on local fork no value of assets occurs but cost increases.
-        uint256 cost = IAssessor(agreement.assessor.addr).getCost(agreement);
-        uint256 exitAmount = IPosition(agreement.position.addr).getExitAmount(agreement.loanAsset, agreement.position.parameters);
-        console.log("exitAmount: %s", exitAmount);
+        // uint256 cost = IAssessor(agreement.assessor.addr).getCost(agreement);
+        // uint256 exitAmount = IPosition(agreement.position.addr).getExitAmount(agreement.loanAsset, agreement.position.parameters);
+        // console.log("exitAmount: %s", exitAmount);
         vm.prank(borrower);
         // bookkeeper.exitPosition{value: cost}(agreementSignedBlueprint);
         bookkeeper.exitPosition{value: 4e18 / 100}(agreementSignedBlueprint);

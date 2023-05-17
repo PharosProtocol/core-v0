@@ -7,10 +7,12 @@ import "forge-std/console.sol";
 import {IAssessor} from "src/modules/assessor/IAssessor.sol";
 import {IPosition} from "src/terminal/IPosition.sol";
 import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
+import {Asset} from "src/LibUtil.sol";
 import {C} from "src/C.sol";
 
 /*
  * Example Assessor type that calculates cost using configurable origination fee, interest rate, and profit share ratio.
+ * Cost is in loan asset.
  */
 
 contract StandardAssessor is IAssessor {
@@ -21,10 +23,10 @@ contract StandardAssessor is IAssessor {
     }
 
     /// @notice Return the cost of a loan, quantified in the Loan Asset.
-    function getCost(Agreement calldata agreement) external view override returns (uint256) {
+    function getCost(Agreement calldata agreement) external view override returns (uint256 amount) {
         Parameters memory p = abi.decode(agreement.assessor.parameters, (Parameters));
         uint256 positionValue =
-            IPosition(agreement.positionAddr).getExitAmount(agreement.loanAsset, agreement.position.parameters); // duplicate decode here
+            IPosition(agreement.positionAddr).getExitAmount(agreement.position.parameters); // duplicate decode here
         uint256 originationFee = agreement.loanAmount * p.originationFeeRatio / C.RATIO_FACTOR;
         uint256 interest =
             agreement.loanAmount * (block.timestamp - agreement.deploymentTime) * p.interestRatio / C.RATIO_FACTOR;
@@ -32,9 +34,9 @@ contract StandardAssessor is IAssessor {
         uint256 profitShare =
             positionValue > lenderValue ? (positionValue - lenderValue) * p.profitShareRatio / C.RATIO_FACTOR : 0;
 
-        console.log("cost: %s", originationFee + interest + profitShare);
 
-        return originationFee + interest + profitShare;
+        amount = originationFee + interest + profitShare;
+        console.log("cost: %s", amount);
     }
 
     function isGTE(bytes calldata parameters0, bytes calldata parameters1) external pure returns (bool) {

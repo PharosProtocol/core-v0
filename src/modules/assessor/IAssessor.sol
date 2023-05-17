@@ -4,20 +4,16 @@ pragma solidity 0.8.19;
 
 import {IComparableParameters} from "src/modules/IComparableParameters.sol";
 import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
+import {Asset} from "src/LibUtil.sol";
 
 /**
  * Assessors are used to determine the cost a borrower must pay for a loan.
- * Each instance of an Assessor is permissionlessly deployed as an independent contract and represents one computation
- * method for assessing cost of a loan. Each type of Assessor may use an arbitrary set of parameters, which will be
- * set and stored per position.
- * Each implementation contract must implement the functionality of the standard Assessor Interface defined here.
- * Implementations may also offer additional non-essential functionality beyond the standard interface.
+ * Cost is denoted in loan asset. This is a known restriction to generalizability. However, it is a significant
+ * simplification wrt to sending arbitrary assets to user accounts and offers notable gas reductions in
+ * terminal exit implementations as well.
  */
 
-/*
- * Each Assessor clone is used to determine the cost of a loan.
- */
 interface IAssessor is IComparableParameters {
-    /// @notice Returns the cost of a loan beyond original assets, denoted in loan asset.
-    function getCost(Agreement calldata agreement) external view returns (uint256);
+    /// @notice Returns the cost of a loan (not including principle), denoted in loan asset.
+    function getCost(Agreement calldata agreement) external view returns (uint256 amount);
 }

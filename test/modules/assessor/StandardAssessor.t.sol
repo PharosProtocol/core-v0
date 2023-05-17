@@ -32,6 +32,7 @@ contract StandardAssessorTest is Test {
         vm.recordLogs();
         // // requires fork
         // vm.activeFork();
+        vm.createSelectFork(vm.rpcUrl("mainnet"), 17092863); // seems that test begin at end of block.
         assessorModule = new StandardAssessor();
     }
 
@@ -43,13 +44,14 @@ contract StandardAssessorTest is Test {
         uint256 currentValueRatio,
         uint256 timePassed
     ) private returns (uint256) {
-        position = new MockPosition(loanAmount * currentValueRatio / C.RATIO_FACTOR);
+        position = new MockPosition(address(0), loanAmount * currentValueRatio / C.RATIO_FACTOR);
 
         Agreement memory agreement;
         agreement.loanAmount = loanAmount;
         // agreement.terminal.parameters =
         agreement.positionAddr = address(position);
         agreement.deploymentTime = block.timestamp - timePassed;
+        console.log("deploymentTime: %s", agreement.deploymentTime);
 
         StandardAssessor.Parameters memory parameters = StandardAssessor.Parameters({
             originationFeeRatio: originationFeeRatio,
@@ -57,7 +59,6 @@ contract StandardAssessorTest is Test {
             profitShareRatio: profitShareRatio
         });
         agreement.assessor = ModuleReference({addr: address(assessorModule), parameters: abi.encode(parameters)});
-
         return assessorModule.getCost(agreement);
     }
 
@@ -94,17 +95,39 @@ contract StandardAssessorTest is Test {
         loanAmount = bound(loanAmount, 0, type(uint64).max);
         currentValueRatio = bound(currentValueRatio, 0, 3 * C.RATIO_FACTOR);
         timePassed = bound(timePassed, 0, 365 * 24 * 60 * 60);
-        uint256 cost = getCost(originationFeeRatio, interestRatio, profitShareRatio, loanAmount, currentValueRatio, timePassed);
+        uint256 cost =
+            getCost(originationFeeRatio, interestRatio, profitShareRatio, loanAmount, currentValueRatio, timePassed);
+        uint256 currentValue = loanAmount * currentValueRatio / C.RATIO_FACTOR;
 
-        assertLe(cost, loanAmount);
-        assertGe(cost, loanAmount * originationFeeRatio / C.RATIO_FACTOR);
-        assertGe(cost, loanAmount * timePassed * interestRatio / C.RATIO_FACTOR);
-        assertGe(cost, loanAmount * profitShareRatio / C.RATIO_FACTOR);
+        {
+            // assertLe(cost, loanAmount); // May not be true if cost parameters v high.
+            uint256 originationFee = loanAmount * originationFeeRatio / C.RATIO_FACTOR;
+            assertGe(cost, originationFee);
+            uint256 interest = loanAmount * timePassed * interestRatio / C.RATIO_FACTOR;
+            assertGe(cost, interest);
+            uint256 nonProfitCost = loanAmount + originationFee + interest;
+            if (currentValue > nonProfitCost) {
+                uint256 profitShare = (currentValue - nonProfitCost) * profitShareRatio / C.RATIO_FACTOR;
+                assertGe(cost, profitShare);
+            }
+        }
 
-        scaleUpRatio = bound(scaleUpRatio, 0, C.RATIO_FACTOR) + C.RATIO_FACTOR;
-        uint256 loanAmountBig = loanAmount + scaleUpRatio;
-        uint256 timePassedBig = timePassed + scaleUpRatio;
-        assertLe(cost, getCost(originationFeeRatio, interestRatio, profitShareRatio, loanAmountBig, currentValueRatio, timePassed));
-        assertLe(cost, getCost(originationFeeRatio, interestRatio, profitShareRatio, loanAmount, currentValueRatio, timePassedBig));
+        {
+            scaleUpRatio = bound(scaleUpRatio, 0, C.RATIO_FACTOR) + C.RATIO_FACTOR;
+            uint256 loanAmountBig = loanAmount * scaleUpRatio / C.RATIO_FACTOR;
+            uint256 timePassedBig = timePassed * scaleUpRatio / C.RATIO_FACTOR;
+            assertLe(
+                cost,
+                getCost(
+                    originationFeeRatio, interestRatio, profitShareRatio, loanAmountBig, currentValueRatio, timePassed
+                )
+            );
+            assertLe(
+                cost,
+                getCost(
+                    originationFeeRatio, interestRatio, profitShareRatio, loanAmount, currentValueRatio, timePassedBig
+                )
+            );
+        }
     }
 }
