@@ -8,10 +8,7 @@ import {Asset} from "src/LibUtil.sol";
 import {AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
 import {Agreement} from "src/bookkeeper/Bookkeeper.sol";
 import {Clones} from "lib/openzeppelin-contracts/contracts/proxy/Clones.sol";
-import {ITerminal} from "src/terminal/ITerminal.sol";
 import "lib/openzeppelin-contracts/contracts/proxy/utils/Initializable.sol";
-
-import {Position} from "src/terminal/IPosition.sol";
 
 /// NOTE: Should define parameter invariants to confirm that clone parameters are valid before showing in UI.
 
@@ -29,23 +26,18 @@ import {Position} from "src/terminal/IPosition.sol";
  *    minimal set of features in the standard interface.
  */
 
-/// @dev not expected to be used outside of this file.
-interface IChildClone {
-    function initialize() external;
-}
 
 /*
  * The Terminal is used to spawn positions (clones) and call their intializers.
  */
 
-abstract contract Terminal is ITerminal, IChildClone, Position, Initializable {
+abstract contract Terminal is AccessControl, Initializable {
     address public immutable BOOKKEEPER_ADDRESS; // Modulus address
     address public immutable TERMINAL_ADDRESS; // Implementation contract address // assumes proxy constant values are set by implementation contract
 
     // Metadata metadata;
 
     event PositionCreated(address indexed position);
-    event PositionClosed(bytes parameters);
 
     modifier implementationExecution() {
         require(address(this) == TERMINAL_ADDRESS);
@@ -71,14 +63,13 @@ abstract contract Terminal is ITerminal, IChildClone, Position, Initializable {
      */
     function createPosition()
         external
-        override
         implementationExecution
         onlyRole(C.CONTROLLER_ROLE)
         returns (address addr)
     {
         addr = Clones.clone(address(this));
-        IChildClone(addr).initialize();
-        // addr.call(abi.encodeWithSignature("initialize(bytes)", parameters));
+        (bool success,) = addr.call(abi.encodeWithSignature("initialize()"));
+        require(success, "createPosition: initialize fail");
         emit PositionCreated(addr);
     }
 
@@ -87,7 +78,7 @@ abstract contract Terminal is ITerminal, IChildClone, Position, Initializable {
      * NOTE "When used with inheritance, manual care must be taken to not invoke a parent initializer twice, or to ensure that all initializers are idempotent" <- idk what this is about, but sounds relevant.
      * NOTE cannot do role check modifier here because state not yet set
      */
-    function initialize() external override initializer proxyExecution {
+    function initialize() external initializer proxyExecution {
         require(msg.sender == TERMINAL_ADDRESS);
         _grantRole(C.CONTROLLER_ROLE, BOOKKEEPER_ADDRESS); // Position role set
     }

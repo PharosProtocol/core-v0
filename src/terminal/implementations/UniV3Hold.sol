@@ -4,10 +4,13 @@ pragma solidity 0.8.19;
 
 import "forge-std/console.sol";
 
+import {IAccount} from "src/modules/account/IAccount.sol";
 import {C} from "src/C.sol";
-import {Terminal} from "src/terminal/Terminal.sol";
-import {IPosition} from "src/terminal/IPosition.sol";
+import {Position} from "src/terminal/Position.sol";
 import {Asset, ETH_STANDARD, ERC20_STANDARD} from "src/LibUtil.sol";
+import {Module} from "src/modules/Module.sol";
+import {IAssessor} from "src/modules/assessor/IAssessor.sol";
+import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
 
 import "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
@@ -57,7 +60,7 @@ struct SwapCallbackData {
  *
  * NOTE for sake of efficiency, should split into multi-hop and single pool paths.
  */
-contract UniV3HoldTerminal is Terminal {
+contract UniV3HoldTerminal is Position, Module {
     struct Parameters {
         bytes enterPath;
         bytes exitPath;
@@ -80,7 +83,12 @@ contract UniV3HoldTerminal is Terminal {
     using Path for bytes;
     using BytesLib for bytes;
 
-    constructor(address protocolAddr) Terminal(protocolAddr) {}
+    constructor(address protocolAddr) Position(protocolAddr) 
+    // Component(compatibleLoanAssets, compatibleCollAssets)
+    {
+        COMPATIBLE_LOAN_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
+        COMPATIBLE_COLL_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
+    }
 
     /**
      * @notice Send ERC20 assets that Uniswap expects for swap.
@@ -111,20 +119,19 @@ contract UniV3HoldTerminal is Terminal {
     }
 
     /// @dev assumes assets are already in Position.
-    function _enter(Asset calldata asset, uint256 amount, bytes calldata parameters) internal override {
+    function _deploy(Asset calldata asset, uint256 amount, bytes calldata parameters) internal override {
         Parameters memory params = abi.decode(parameters, (Parameters));
         // verifyAssetAllowed(asset); // NOTE should check that asset is match to path.
         ISwapRouter router = ISwapRouter(UNI_V3_ROUTER);
 
-        // Convert ETH to WETH.
-        // NOTE is wrapping built into uni v3 at lib/v3-periphery/contracts/base/PeripheryPayments.sol ?
-        if (asset.standard == ETH_STANDARD) {
-            IWETH9(C.WETH).deposit{value: amount}();
-            IERC20(C.WETH).approve(UNI_V3_ROUTER, amount); // NOTE front running?
-        } else {
-            require(asset.standard == ERC20_STANDARD, "UniV3Hold: asset must be ETH or ERC20");
-            IERC20(asset.addr).approve(UNI_V3_ROUTER, amount); // NOTE front running?
-        }
+        // // NOTE is wrapping built into uni v3 at lib/v3-periphery/contracts/base/PeripheryPayments.sol ?
+        // if (asset.standard == ETH_STANDARD) {
+        //     IWETH9(C.WETH).deposit{value: amount}();
+        //     IERC20(C.WETH).approve(UNI_V3_ROUTER, amount); // NOTE front running?
+        // } else {
+        require(asset.standard == ERC20_STANDARD, "UniV3Hold: asset must be ERC20");
+        IERC20(asset.addr).approve(UNI_V3_ROUTER, amount); // NOTE front running?
+        // }
 
         // NOTE can use ExactInput instead to support single hop trades w/o worry for path.
         // ISwapRouter.ExactInputSingleParams memory swapParams = ISwapRouter.ExactInputSingleParams({
@@ -150,26 +157,23 @@ contract UniV3HoldTerminal is Terminal {
         // return amountHeld; // can a named return value be used with a state variable?
     }
 
-    // TODO: can add recipient in certain scenarios to save an ERC20 transfer.
     // NOTE: How to liquidate if min acceptable price is uncontrollable? Better to liquidate at a bad price now than wait
     //       until volatility slows. Answer: Allow liquidator to pass in min price, but require them to return some
     //       amount. then if they give themselves a bad deal they are the only one who loses. Alt Answer: Allow
     //       liquidator to pass through any function via callback, so long as they return enough assets to Modulend
     //       lender / borrower in end.
-    function _exit(Asset memory exitAsset, bytes calldata parameters) internal override returns (uint256 exitAmount) {
+    function _exit(Agreement calldata agreement, bytes calldata parameters) internal override {
         Parameters memory params = abi.decode(parameters, (Parameters));
-        require(
-            exitAsset.standard == ETH_STANDARD || exitAsset.standard == ERC20_STANDARD,
-            "UniV3Hold: exit asset must be ETH or ERC20"
-        );
+        // require(heldAsset.standard == ERC20_STANDARD, "UniV3Hold: exit asset must be ETH or ERC20");
         (address heldAsset,,) = params.exitPath.decodeFirstPool();
 
-        uint256 transferAmount = amountHeld;
         amountHeld = 0;
+        uint256 transferAmount = amountHeld;
 
         // Approve ERC20s.
         IERC20(heldAsset).approve(UNI_V3_ROUTER, transferAmount); // NOTE front running?
 
+        // TODO: can add recipient in certain scenarios to save an ERC20 transfer.
         ISwapRouter router = ISwapRouter(UNI_V3_ROUTER);
         ISwapRouter.ExactInputParams memory swapParams = ISwapRouter.ExactInputParams({
             path: params.exitPath,
@@ -180,31 +184,76 @@ contract UniV3HoldTerminal is Terminal {
         });
 
         // console.log(IERC20(params.exitPath
+        uint256 lenderOwed;
+        uint256 borrowerAmount;
+        IERC20 loanAsset = IERC20(address(agreement.loanAsset.addr));
 
-        exitAmount = router.exactInput(swapParams); // msg.sender from router pov is clone (Position) address
+        {
+            uint256 exitedAmount = router.exactInput(swapParams); // msg.sender from router pov is clone (Position) address
 
-        // Convert WETH to ETH.
-        if (exitAsset.standard == ETH_STANDARD) {
-            IWETH9(C.WETH).withdraw(exitAmount);
+            // uint256 costAmount = IAssessor(agreement.assessor.addr).getCost(agreement)
+            lenderOwed = agreement.loanAmount + IAssessor(agreement.assessor.addr).getCost(agreement);
+
+            if (lenderOwed < exitedAmount) {
+                borrowerAmount = exitedAmount - lenderOwed;
+            } else {
+                // Lender is owed more than the position is worth.
+                // Lender gets all of the position and borrower pays the difference.
+                // NOTE could maybe save gas if account PushFrom implemented. Or some decoupling of transfer logic and incrementing.
+                loanAsset.transferFrom(msg.sender, address(this), lenderOwed - exitedAmount);
+                borrowerAmount = 0;
+            }
         }
+
+        if (lenderOwed > 0) {
+            // Delegate calling to a third party contract is dangerous, but they only have access to the state of
+            // this position, which was created with explicit agreement by both parties to allow the account contract.
+            (bool success,) = agreement.lenderAccount.addr.delegatecall(
+                abi.encodeWithSignature(
+                    "loadPush((bytes3,address,uint256,bytes),uint256,bytes)",
+                    agreement.loanAsset,
+                    lenderOwed,
+                    agreement.lenderAccount.parameters
+                )
+            );
+            require(success, "failed to loadPush into lender account");
+        }
+
+        // Send borrower loan asset funds to their wallet, bc it is unknown if compatible with collateral account.
+        // Could require compatibility between loan asset and borrow account, but would cause unneeded compatibility
+        // restrictions.
+        if (borrowerAmount > 0) {
+            require(
+                loanAsset.transfer(
+                    IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters),
+                    borrowerAmount
+                ),
+                "failed to transfer to borrower"
+            );
+        }
+
+        // // Convert WETH to ETH.
+        // if (exitAsset.standard == ETH_STANDARD) {
+        //     IWETH9(C.WETH).withdraw(exitAmount);
+        // }
     }
 
-    // Only used for transferring loan asset direct to user.
-    function _transferAsset(address payable to, Asset memory asset, uint256 amount) internal override {
-        if (asset.standard == ETH_STANDARD) {
-            // NOTE change to call and protec
-            to.transfer(amount);
-        } else if (asset.standard == ERC20_STANDARD) {
-            IERC20(asset.addr).transfer(to, amount);
-        } else {
-            revert("Incompatible asset");
-        }
-    }
+    // // Only used for transferring loan asset direct to user.
+    // function _transferLoanAsset(address payable to, Asset memory asset, uint256 amount) internal override {
+    //     if (asset.standard == ETH_STANDARD) {
+    //         // NOTE change to call and protec
+    //         to.transfer(amount);
+    //     } else if (asset.standard == ERC20_STANDARD) {
+    //         IERC20(asset.addr).transfer(to, amount);
+    //     } else {
+    //         revert("Incompatible asset");
+    //     }
+    // }
 
     // Public Helpers.
 
     // TODO fix this to be useable on chain efficiently
-    function getExitAmount(Asset calldata, bytes calldata parameters) external view override returns (uint256) {
+    function getExitAmount(bytes calldata parameters) external view override returns (uint256) {
         Parameters memory params = abi.decode(parameters, (Parameters));
         // (,address finalAssetAddr,) = params.exitPath.decodeFirstPool();
         // require(asset.addr == finalAssetAddr); // by this point it is too late to be checking honestly.
