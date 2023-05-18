@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.19;
 
-import {IAccount} from "src/modules/account/IAccount.sol";
+import {IAccount} from "src/interfaces/IAccount.sol";
 import {IndexPair, ModuleReference} from "src/bookkeeper/LibBookkeeper.sol";
 import {IComparableParameters} from "src/modules/IComparableParameters.sol";
 

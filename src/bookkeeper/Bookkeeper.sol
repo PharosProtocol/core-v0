@@ -10,7 +10,7 @@ import "src/LibUtil.sol";
 import {Order, Fill, Agreement, LibBookkeeper} from "src/bookkeeper/LibBookkeeper.sol";
 import {C} from "src/C.sol";
 import "src/modules/oracle/IOracle.sol";
-import {IAccount} from "src/modules/account/IAccount.sol";
+import {IAccount} from "src/interfaces/IAccount.sol";
 import {IPosition} from "src/terminal/IPosition.sol";
 import {ILiquidator} from "src/modules/liquidator/ILiquidator.sol";
 import {Utils} from "src/LibUtil.sol";

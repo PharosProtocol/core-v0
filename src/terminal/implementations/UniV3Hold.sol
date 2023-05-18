@@ -4,7 +4,7 @@ pragma solidity 0.8.19;
 
 import "forge-std/console.sol";
 
-import {IAccount} from "src/modules/account/IAccount.sol";
+import {IAccount} from "src/interfaces/IAccount.sol";
 import {C} from "src/C.sol";
 import {Position} from "src/terminal/Position.sol";
 import {Asset, ETH_STANDARD, ERC20_STANDARD} from "src/LibUtil.sol";

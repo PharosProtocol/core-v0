@@ -8,7 +8,7 @@ import "src/LibUtil.sol";
 import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
 import {IPosition} from "src/Terminal/IPosition.sol";
 import {IAssessor} from "src/modules/assessor/IAssessor.sol";
-import {IAccount} from "src/modules/account/IAccount.sol";
+import {IAccount} from "src/interfaces/IAccount.sol";
 import {IOracle} from "src/modules/oracle/IOracle.sol";
 import {Module} from "src/modules/Module.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";

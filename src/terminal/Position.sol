@@ -5,7 +5,7 @@ pragma solidity 0.8.19;
 import {IPosition} from "src/terminal/IPosition.sol";
 import {Terminal} from "src/terminal/Terminal.sol";
 import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
-import {IAccount} from "src/modules/account/IAccount.sol";
+import {IAccount} from "src/interfaces/IAccount.sol";
 import {AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
 import {IAccessControl} from "lib/openzeppelin-contracts/contracts/access/IAccessControl.sol";
 import {IAssessor} from "src/modules/assessor/IAssessor.sol";
