@@ -9,12 +9,12 @@ import "src/LibUtil.sol";
 
 import {Order, Fill, Agreement, LibBookkeeper} from "src/bookkeeper/LibBookkeeper.sol";
 import {C} from "src/C.sol";
-import "src/modules/oracle/IOracle.sol";
+import "src/interfaces/IOracle.sol";
 import {IAccount} from "src/interfaces/IAccount.sol";
-import {IPosition} from "src/terminal/IPosition.sol";
-import {ILiquidator} from "src/modules/liquidator/ILiquidator.sol";
+import {IPosition} from "src/interfaces/IPosition.sol";
+import {ILiquidator} from "src/interfaces/ILiquidator.sol";
 import {Utils} from "src/LibUtil.sol";
-import {IAssessor} from "src/modules/assessor/IAssessor.sol";
+import {IAssessor} from "src/interfaces/IAssessor.sol";
 
 // NOTE bookkeeper will be far more difficult to update / fix / expand than any of the modules. For this reason
 //      simplicity should be aggressively pursued.
@@ -102,7 +102,6 @@ contract Bookkeeper is Tractor {
 
     // NOTE this function succinctly represents a lot of the inefficiency of a module system design.
     function createFundEnterPosition(Agreement memory agreement) private {
-        // agreement.position.addr = ITerminal(agreement.position.addr).createPosition();
         (bool success, bytes memory data) = agreement.position.addr.call(abi.encodeWithSignature("createPosition()"));
         require(success, "BKFCP");
         agreement.position.addr = abi.decode(data, (address));
@@ -137,9 +136,9 @@ contract Bookkeeper is Tractor {
         agreement.loanOracle = order.loanOracles[fill.loanOracleIdx];
         agreement.collAsset = order.collAssets[fill.collAssetIdx];
         agreement.collateralOracle = order.collateralOracles[fill.collateralOracleIdx];
-        // NOTE confusion here (and everywhere) on position address vs terminal address. Naming fix?
-        agreement.terminal = order.terminals[fill.terminalIdx];
-        agreement.position.addr = order.terminals[fill.terminalIdx];
+        // NOTE confusion here (and everywhere) on position address vs factory address. Naming fix?
+        agreement.factory = order.factories[fill.factoryIdx];
+        agreement.position.addr = order.factories[fill.factoryIdx];
 
         require(fill.loanAmount >= order.minLoanAmounts[fill.loanAssetIdx], "Bookkeeper: fill loan amount too small");
         agreement.loanAmount = fill.loanAmount;

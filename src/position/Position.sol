@@ -2,20 +2,20 @@
 
 pragma solidity 0.8.19;
 
-import {IPosition} from "src/terminal/IPosition.sol";
-import {Terminal} from "src/terminal/Terminal.sol";
+import {IPosition} from "src/interfaces/IPosition.sol";
+import {PositionFactory} from "src/position/PositionFactory.sol";
 import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
 import {IAccount} from "src/interfaces/IAccount.sol";
 import {AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
 import {IAccessControl} from "lib/openzeppelin-contracts/contracts/access/IAccessControl.sol";
-import {IAssessor} from "src/modules/assessor/IAssessor.sol";
+import {IAssessor} from "src/interfaces/IAssessor.sol";
 import {C} from "src/C.sol";
 import "src/LibUtil.sol";
 
-abstract contract Position is Terminal, IPosition {
+abstract contract Position is IPosition, PositionFactory {
     event ControlTransferred(address previousController, address newController);
 
-    constructor(address bookkeeperAddr) Terminal(bookkeeperAddr) {
+    constructor(address bookkeeperAddr) PositionFactory(bookkeeperAddr) {
         // _setupRole
         // _setupRole
     }

@@ -5,9 +5,9 @@ pragma solidity 0.8.19;
 import {C} from "src/C.sol";
 import "src/LibUtil.sol";
 import "lib/tractor/Tractor.sol";
-import "src/Terminal/IPosition.sol";
-import {IOracle} from "src/modules/oracle/IOracle.sol";
-import {IAssessor} from "src/modules/assessor/IAssessor.sol";
+import "src/interfaces/IPosition.sol";
+import {IOracle} from "src/interfaces/IOracle.sol";
+import {IAssessor} from "src/interfaces/IAssessor.sol";
 
 struct IndexPair {
     uint128 offer;
@@ -33,7 +33,7 @@ struct Order {
     ModuleReference liquidator;
     ModuleReference[] loanOracles;
     ModuleReference[] collateralOracles;
-    address[] terminals;
+    address[] factories;
     // Sided config
     bool isOffer;
     BorrowerConfig borrowerConfig; // Only set in Requests
@@ -52,7 +52,7 @@ struct Fill {
     uint256 collAssetIdx; // need to verify with the oracle
     uint256 loanOracleIdx;
     uint256 collateralOracleIdx;
-    uint256 terminalIdx;
+    uint256 factoryIdx;
     // Sided config
     bool isOfferFill;
     BorrowerConfig borrowerConfig; // Only set when filling Offers
@@ -78,7 +78,7 @@ struct Agreement {
     ModuleReference liquidator;
     ModuleReference loanOracle;
     ModuleReference collateralOracle;
-    address terminal;
+    address factory;
     ModuleReference position; // addr set by bookkeeper.
     uint256 deploymentTime; // set by bookkeeper
 }

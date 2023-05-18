@@ -10,7 +10,7 @@ import {Asset} from "src/LibUtil.sol";
 import {IAccount} from "src/interfaces/IAccount.sol";
 import {Module} from "src/modules/Module.sol";
 
-abstract contract Account is AccessControl, IAccount, Module {
+abstract contract Account is IAccount, AccessControl, Module {
     event Loaded(Asset indexed asset, uint256 amount, bytes indexed parameters);
     event Unloaded(Asset indexed asset, uint256 amount, bytes indexed parameters);
     event TransferredToPosition(

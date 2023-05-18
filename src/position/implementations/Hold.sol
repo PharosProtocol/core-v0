@@ -6,7 +6,7 @@ import "forge-std/console.sol";
 
 import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
 import {C} from "src/C.sol";
-import {Position} from "src/terminal/Position.sol";
+import {Position} from "src/position/Position.sol";
 import {Asset, ETH_STANDARD, ERC20_STANDARD} from "src/LibUtil.sol";
 import {Module} from "src/modules/Module.sol";
 
@@ -19,7 +19,7 @@ struct SwapCallbackData {
 }
 
 /*
- * The Hold terminal simply holds assets and performs no actions with them. This allows users to long or short assets
+ * The Hold Factory simply holds assets and performs no actions with them. This allows users to long or short assets
  * as long as the necessary supply of their interested asset is available. This is similar to how existing lending
  * markets provided by protocols like Aave or Compound.
  *
@@ -27,7 +27,7 @@ struct SwapCallbackData {
  * to support in v1.
  */
 
-contract HoldTerminal is Position, Module {
+contract HoldFactory is Position, Module {
     // struct Parameters {}
 
     // Position state

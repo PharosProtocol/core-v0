@@ -4,9 +4,9 @@ pragma solidity 0.8.19;
 
 import {AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
 import {C} from "src/C.sol";
-import {IComparableParameters} from "src/modules/IComparableParameters.sol";
+import {IComparableParameters} from "src/interfaces/IComparableParameters.sol";
 import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
-import {IPosition} from "src/Terminal/IPosition.sol";
+import {IPosition} from "src/interfaces/IPosition.sol";
 
 /**
  * Liquidators are used to dismantle a kicked Position and return capital to Lender and Borrower. Liquidators will be
@@ -31,20 +31,4 @@ interface ILiquidator is IComparableParameters {
     //      auction, will not have a clear set reward.
     /// @dev may return a number that is larger than the total collateral amount
     // function getRewardValue(Agreement calldata agreement) external view returns (uint256);
-}
-
-abstract contract Liquidator is ILiquidator, AccessControl {
-    // NOTE need a system to ensure the same "position" signed message cannot be double liquidated
-    // mapping(bytes32 => bool) internal liquidating;
-
-    function liquidate(Agreement memory agreement) external {
-        require(
-            IPosition(agreement.position.addr).hasRole(C.CONTROLLER_ROLE, address(this)),
-            "Liquidator: not currently liquidating this position"
-        );
-        _liquidate(agreement);
-        // IPosition(agreement.position.addr).transferContract(agreement.liquidator.addr);
-    }
-
-    function _liquidate(Agreement memory agreement) internal virtual;
 }

@@ -16,13 +16,13 @@ import {IUniswapV3Pool} from "lib/v3-core/contracts/UniswapV3Pool.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {DoubleSidedAccount} from "src/modules/account/implementations/DoubleSidedAccount.sol";
-import {IAssessor} from "src/modules/assessor/IAssessor.sol";
+import {IAssessor} from "src/interfaces/IAssessor.sol";
 import {StandardAssessor} from "src/modules/assessor/implementations/StandardAssessor.sol";
 import {InstantLiquidator} from "src/modules/liquidator/implementations/InstantLiquidator.sol";
 import {UniswapV3Oracle} from "src/modules/oracle/implementations/UniswapV3Oracle.sol";
 import {StaticUsdcPriceOracle} from "src/modules/oracle/implementations/StaticValue.sol";
-import {IPosition} from "src/terminal/IPosition.sol";
-import {UniV3HoldTerminal} from "src/terminal/implementations/UniV3Hold.sol";
+import {IPosition} from "src/interfaces/IPosition.sol";
+import {UniV3HoldFactory} from "src/position/implementations/UniV3Hold.sol";
 
 import {Bookkeeper} from "src/bookkeeper/Bookkeeper.sol";
 import {IndexPair, ModuleReference, BorrowerConfig, Order, Fill, Agreement} from "src/bookkeeper/LibBookkeeper.sol";
@@ -38,7 +38,7 @@ contract EndToEndTest is TestUtils {
     InstantLiquidator public liquidatorModule;
     UniswapV3Oracle public uniOracleModule;
     StaticUsdcPriceOracle public staticUsdcPriceOracle;
-    UniV3HoldTerminal public terminal;
+    UniV3HoldFactory public factory;
 
     // Mirrors OZ EIP712 impl.
     bytes32 SIG_DOMAIN_SEPARATOR;
@@ -70,7 +70,7 @@ contract EndToEndTest is TestUtils {
         liquidatorModule = new InstantLiquidator();
         uniOracleModule = new UniswapV3Oracle();
         staticUsdcPriceOracle = new StaticUsdcPriceOracle();
-        terminal = new UniV3HoldTerminal(address(bookkeeper));
+        factory = new UniV3HoldFactory(address(bookkeeper));
     }
 
     // Using USDC as collateral, borrow ETH and trade it into a leveraged long PEPE position.
@@ -147,8 +147,8 @@ contract EndToEndTest is TestUtils {
                 addr: address(staticUsdcPriceOracle),
                 parameters: abi.encode(StaticUsdcPriceOracle.Parameters({value: 1000000}))
             });
-            address[] memory terminals = new address[](1);
-            terminals[0] = address(terminal);
+            address[] memory factories = new address[](1);
+            factories[0] = address(factory);
 
             // Lender creates an offer.
             offer = Order({
@@ -164,8 +164,8 @@ contract EndToEndTest is TestUtils {
                 /* Allowlisted variables */
                 loanOracles: loanOracles,
                 collateralOracles: collateralOracles,
-                // Lender would need to list parameters for all possible holdable tokens from all possible lent tokens. Instead just allow a whole terminal.
-                terminals: terminals,
+                // Lender would need to list parameters for all possible holdable tokens from all possible lent tokens. Instead just allow a whole factory.
+                factories: factories,
                 isOffer: true,
                 borrowerConfig: BorrowerConfig(0, "")
             });
@@ -196,7 +196,7 @@ contract EndToEndTest is TestUtils {
             BorrowerConfig memory borrowerConfig = BorrowerConfig({
                 initCollateralRatio: C.RATIO_FACTOR / 2,
                 positionParameters: abi.encode(
-                    UniV3HoldTerminal.Parameters({
+                    UniV3HoldFactory.Parameters({
                         enterPath: abi.encodePacked(C.WETH, uint24(3000), SHIB),
                         exitPath: abi.encodePacked(SHIB, uint24(3000), C.WETH)
                     })
@@ -210,7 +210,7 @@ contract EndToEndTest is TestUtils {
                 collAssetIdx: 0,
                 loanOracleIdx: 0,
                 collateralOracleIdx: 0,
-                terminalIdx: 0,
+                factoryIdx: 0,
                 isOfferFill: true,
                 borrowerConfig: borrowerConfig
             });

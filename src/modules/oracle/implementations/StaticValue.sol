@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.19;
 
-import {IOracle} from "../IOracle.sol";
+import {Oracle} from "../Oracle.sol";
 import {Asset} from "src/LibUtil.sol";
 
 /*
@@ -10,7 +10,7 @@ import {Asset} from "src/LibUtil.sol";
  * Its computation will differ for each set of parameters provided.
  * Modulus will interact directly with the clone using only the standard functions.
  */
-contract StaticUsdcPriceOracle is IOracle {
+contract StaticUsdcPriceOracle is Oracle {
     struct Parameters {
         uint256 value; // decimals = 6
     }

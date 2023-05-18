@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.19;
 
-import {IOracle} from "../IOracle.sol";
+import {Oracle} from "../Oracle.sol";
 
 import {C} from "src/C.sol";
 import {Asset, ETH_STANDARD} from "src/LibUtil.sol";
@@ -10,7 +10,7 @@ import {LibUniswapV3} from "src/util/LibUniswapV3.sol";
 import {Path} from "lib/v3-periphery/contracts/libraries/path.sol";
 import {BytesLib} from "lib/v3-periphery/contracts/libraries/BytesLib.sol";
 
-contract UniswapV3Oracle is IOracle {
+contract UniswapV3Oracle is Oracle {
     struct Parameters {
         bytes pathFromUsd;
         bytes pathToUsd;
@@ -27,7 +27,7 @@ contract UniswapV3Oracle is IOracle {
     ///         suboptimal values, but not outright invalid or hostile values.
     /// NOTE should call at position creation time, but gAs OpTImiZaTiONs will probably push it to UI
     /// NOTE ^^ alternatively pass in arguments to below functions which are verified at runtime, like asset. this
-    ///         guards against using a terminal maliciously and removes need to ensure compatibility between
+    ///         guards against using a factory maliciously and removes need to ensure compatibility between
     ///         agreement fields and encoded bytes of module parameters.
     function verifyParameters(Asset calldata, bytes calldata parameters) external pure override {
         Parameters memory params = abi.decode(parameters, (Parameters));

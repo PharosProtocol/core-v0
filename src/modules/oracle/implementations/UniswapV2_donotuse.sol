@@ -11,7 +11,7 @@ pragma solidity 0.8.19;
 
 /*
 
-import {IOracle} from "src/modules/oracle/IOracle.sol";
+import {IOracle} from "src/interfaces/IOracle.sol";
 
 import {C} from "src/C.sol";
 import "lib/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
@@ -37,7 +37,7 @@ contract UniswapV2Oracle is IOracle {
     ///         suboptimal values, but not outright invalid or hostile values.
     /// NOTE should call at position creation time, but gAs OpTImiZaTiONs will probably push it to UI
     /// NOTE ^^ alternatively pass in arguments to below functions which are verified at runtime, like asset. this
-    ///         guards against using a terminal maliciously and removes need to ensure compatibility between
+    ///         guards against using a factory maliciously and removes need to ensure compatibility between
     ///         agreement fields and encoded bytes of module parameters.
     function verifyParameters(address asset, bytes calldata parameters) external pure override {
         Parameters memory params = abi.decode(parameters, (Parameters));

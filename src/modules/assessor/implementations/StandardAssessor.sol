@@ -4,8 +4,8 @@ pragma solidity 0.8.19;
 
 import "forge-std/console.sol";
 
-import {IAssessor} from "src/modules/assessor/IAssessor.sol";
-import {IPosition} from "src/terminal/IPosition.sol";
+import {Assessor} from "../Assessor.sol";
+import {IPosition} from "src/interfaces/IPosition.sol";
 import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
 import {Asset} from "src/LibUtil.sol";
 import {C} from "src/C.sol";
@@ -15,7 +15,7 @@ import {C} from "src/C.sol";
  * Cost is in loan asset.
  */
 
-contract StandardAssessor is IAssessor {
+contract StandardAssessor is Assessor {
     struct Parameters {
         uint256 originationFeeRatio;
         uint256 interestRatio;
@@ -25,15 +25,13 @@ contract StandardAssessor is IAssessor {
     /// @notice Return the cost of a loan, quantified in the Loan Asset.
     function getCost(Agreement calldata agreement) external view override returns (uint256 amount) {
         Parameters memory p = abi.decode(agreement.assessor.parameters, (Parameters));
-        uint256 positionValue =
-            IPosition(agreement.position.addr).getExitAmount(agreement.position.parameters); // duplicate decode here
+        uint256 positionValue = IPosition(agreement.position.addr).getExitAmount(agreement.position.parameters); // duplicate decode here
         uint256 originationFee = agreement.loanAmount * p.originationFeeRatio / C.RATIO_FACTOR;
         uint256 interest =
             agreement.loanAmount * (block.timestamp - agreement.deploymentTime) * p.interestRatio / C.RATIO_FACTOR;
         uint256 lenderValue = originationFee + interest + agreement.loanAmount;
         uint256 profitShare =
             positionValue > lenderValue ? (positionValue - lenderValue) * p.profitShareRatio / C.RATIO_FACTOR : 0;
-
 
         amount = originationFee + interest + profitShare;
         console.log("cost: %s", amount);

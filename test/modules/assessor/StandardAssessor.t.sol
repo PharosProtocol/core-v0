@@ -48,7 +48,7 @@ contract StandardAssessorTest is Test {
 
         Agreement memory agreement;
         agreement.loanAmount = loanAmount;
-        // agreement.terminal.parameters =
+        // agreement.factory.parameters =
         agreement.position.addr = address(position);
         agreement.deploymentTime = block.timestamp - timePassed;
         console.log("deploymentTime: %s", agreement.deploymentTime);

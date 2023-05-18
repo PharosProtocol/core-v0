@@ -11,7 +11,7 @@ import {Asset} from "src/LibUtil.sol";
 
 // Accounts are responsible for abstracting complex assets, which brings in a lot more complexity. A position
 // does not need to understand how to work with its collateral asset, thus it can be entirely arbitrary.
-// Should loan asset comprehension be encoded into the terminal though? Since most will be definition have to
+// Should loan asset comprehension be encoded into the factory though? Since most will be definition have to
 // be specifically compatible with the asset they are utilizing...
 
 // Do not use address type for assets because it limits what can be represented (i.e. ERC-721 tokenId is a uint256)
@@ -25,7 +25,7 @@ interface IAccount {
     /// @notice Transfer asset and increment account balance. Pulls asset from sender or uses msg.value.
     function load(Asset calldata asset, uint256 amount, bytes calldata parameters) external payable;
     /// @notice Transfer asset from address and increment account balance. Pulls asset from sender or uses msg.value.
-    function sideLoad(address from, Asset calldata asset, uint256 amount, bytes calldata parameters) external payable; // onlyRole(BOOKKEEPER_ROLE)
+    function sideLoad(address from, Asset calldata asset, uint256 amount, bytes calldata parameters) external payable;
     /// @notice Transfer asset out and decrement account balance. Pushes asset to sender.
     function unload(Asset calldata asset, uint256 amount, bytes calldata parameters) external;
     /// @notice Transfer loan or collateral asset from account to Position MPC. Pushes.
@@ -35,9 +35,9 @@ interface IAccount {
         uint256 amount,
         bool isLockedAsset,
         bytes calldata parameters
-    ) external; // onlyRole(BOOKKEEPER_ROLE)
-    function lockCollateral(Asset calldata asset, uint256 amount, bytes calldata parameters) external; // onlyRole(BOOKKEEPER_ROLE)
-    function unlockCollateral(Asset calldata asset, uint256 amount, bytes calldata parameters) external; // onlyRole(BOOKKEEPER_ROLE)
+    ) external;
+    function lockCollateral(Asset calldata asset, uint256 amount, bytes calldata parameters) external;
+    function unlockCollateral(Asset calldata asset, uint256 amount, bytes calldata parameters) external;
 
     function getOwner(bytes calldata parameters) external view returns (address);
     function getBalance(Asset calldata asset, bytes calldata parameters) external view returns (uint256);

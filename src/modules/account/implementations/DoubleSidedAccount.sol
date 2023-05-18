@@ -2,13 +2,14 @@
 
 pragma solidity 0.8.19;
 
-import "forge-std/console.sol";
-
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "src/LibUtil.sol";
-import {C} from "src/C.sol";
 
+import {C} from "src/C.sol";
+import {Asset, ERC20_STANDARD} from "src/LibUtil.sol";
 import {Account} from "../Account.sol";
+
+// NOTE could bypass need here (and other modules) for C.BOOKKEEPER_ROLE by verifying signed agreement and tracking
+//      which have already been processed.
 
 /**
  * Account for holding ETH and ERC20 assets, to use for either lending or borrowing through an Agreement.
@@ -50,8 +51,6 @@ contract DoubleSidedAccount is Account {
         require(IERC20(asset.addr).transferFrom(from, address(this), amount), "ERC20 transfer failed");
     }
 
-    // function throughPushWithCallback(address to, Asset calldata asset, uint256 amount) {}
-
     function _unload(Asset calldata asset, uint256 amount, bytes calldata parameters) internal override {
         Parameters memory params = abi.decode(parameters, (Parameters));
         require(msg.sender == params.owner, "unload: not owner");
@@ -59,8 +58,6 @@ contract DoubleSidedAccount is Account {
         require(IERC20(asset.addr).transfer(msg.sender, amount), "unload: ERC20 transfer failed");
     }
 
-    // NOTE could bypass need hre (and other modules) for C.BOOKKEEPER_ROLE by verifying signed agreement and tracking
-    //      which have already been processed.
     function _transferToPosition(
         address position,
         Asset calldata asset,
@@ -116,8 +113,6 @@ contract DoubleSidedAccount is Account {
         return accounts[accountId][keccak256(abi.encode(asset))];
     }
 
-    /// @dev if supporting ETH, will receive directly as msg.value and msg.sender may differ from from parameter.
-    /// @dev revert if all assets amount not transferred successfully.
     function _increaseBalance(Asset calldata asset, uint256 amount, Parameters memory params) private {
         accounts[_getId(params.owner, params.salt)][keccak256(abi.encode(asset))] += amount;
     }

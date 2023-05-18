@@ -6,10 +6,10 @@ import "forge-std/console.sol";
 
 import {IAccount} from "src/interfaces/IAccount.sol";
 import {C} from "src/C.sol";
-import {Position} from "src/terminal/Position.sol";
+import {Position} from "src/position/Position.sol";
 import {Asset, ETH_STANDARD, ERC20_STANDARD} from "src/LibUtil.sol";
 import {Module} from "src/modules/Module.sol";
-import {IAssessor} from "src/modules/assessor/IAssessor.sol";
+import {IAssessor} from "src/interfaces/IAssessor.sol";
 import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
 
 import "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
@@ -43,24 +43,24 @@ struct SwapCallbackData {
 // (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
 
 /*
- * This contract serves as a demonstration of how to implement a Modulus Terminal.
- * Terminals should be designed as Minimal Proxy Contracts with an arbitrary number of proxy contracts. Each MPC
- * represents one position that has been open through the Terminal. This allows for the capital of multiple positions
- * to remain isolated from each other even when deployed in the same terminal.
+ * This contract serves as a demonstration of how to implement a Modulus Factory.
+ * Factorys should be designed as Minimal Proxy Contracts with an arbitrary number of proxy contracts. Each MPC
+ * represents one position that has been open through the Factory. This allows for the capital of multiple positions
+ * to remain isolated from each other even when deployed in the same Factory.
  *
- * The Terminal must implement at minimum the set of methods shown in the Modulus Terminal Interface. Beyond that,
- * a terminal can offer an arbitrary set of additional methods that act as wrappers for the underlying protocol;
- * however, the Modulend marketplace cannot be updated to support all possible actions in all possible terminals. Users
+ * The Factory must implement at minimum the set of methods shown in the Modulus Factory Interface. Beyond that,
+ * a Factory can offer an arbitrary set of additional methods that act as wrappers for the underlying protocol;
+ * however, the Modulend marketplace cannot be updated to support all possible actions in all possible Factory. Users
  * will automatically have the ability to call functions listed in the interface as well as any public functions that do
  * not require parameters. These additional argumentless function calls can be used to wrap functionality of the
  * underlying protocol to enable simple updating and interaction with a position - we recommend they are named in a
  * self documenting fashion, so that users can be programatically informed of their purpose. Further,
- * arbitrarily complex functions can be implemented, but the terminal creator will be responsible for providing a UI
+ * arbitrarily complex functions can be implemented, but the Factory creator will be responsible for providing a UI
  * to handle these interactions.
  *
  * NOTE for sake of efficiency, should split into multi-hop and single pool paths.
  */
-contract UniV3HoldTerminal is Position, Module {
+contract UniV3HoldFactory is Position, Module {
     struct Parameters {
         bytes enterPath;
         bytes exitPath;
@@ -69,7 +69,7 @@ contract UniV3HoldTerminal is Position, Module {
     address public constant UNI_V3_FACTORY = address(0x1F98431c8aD98523631AE4a59f267346ea31F984);
     address public constant UNI_V3_ROUTER = address(0xE592427A0AEce92De3Edee1F18E0157C05861564);
 
-    // Terminal parameters shared for all positions.
+    // Factory parameters shared for all positions.
     // NOTE sharing params here increases simplicity but costs position customizability. how much of a burden is it to
     //      have very large parameters set in each order? that will probably dictate how we want to handle this.
     //      Also, setting them here prevents a position creator from setting them in a hostile fashion.

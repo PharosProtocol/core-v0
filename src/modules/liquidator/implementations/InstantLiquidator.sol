@@ -3,14 +3,13 @@
 pragma solidity 0.8.19;
 
 import {C} from "src/C.sol";
-import {Liquidator} from "src/modules/liquidator/ILiquidator.sol";
+import {Liquidator} from "../Liquidator.sol";
 import "src/LibUtil.sol";
 import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
-import {IPosition} from "src/Terminal/IPosition.sol";
-import {IAssessor} from "src/modules/assessor/IAssessor.sol";
+import {IPosition} from "src/interfaces/IPosition.sol";
+import {IAssessor} from "src/interfaces/IAssessor.sol";
 import {IAccount} from "src/interfaces/IAccount.sol";
-import {IOracle} from "src/modules/oracle/IOracle.sol";
-import {Module} from "src/modules/Module.sol";
+import {IOracle} from "src/interfaces/IOracle.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 struct Parameters {
@@ -25,7 +24,7 @@ struct Parameters {
  * Liquidator reward is a ratio of position value with absolute minimum and maximum value.
  */
 
-contract InstantLiquidator is Liquidator, Module {
+contract InstantLiquidator is Liquidator {
     event Liquidated(address position, uint256 lenderReturn, uint256 borrowerReturn);
 
     constructor() {

@@ -7,7 +7,7 @@ import {IAccessControl} from "lib/openzeppelin-contracts/contracts/access/IAcces
 import {Asset} from "src/LibUtil.sol";
 
 /*
- * Each Position represents one deployment of capital through a Terminal.
+ * Each Position represents one deployment of capital through a factory.
  * Position status is determined by address assignment to CONTROLLER_ROLE.
  */
 

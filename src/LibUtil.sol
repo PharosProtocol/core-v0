@@ -4,7 +4,7 @@ pragma solidity 0.8.19;
 
 import {IAccount} from "src/interfaces/IAccount.sol";
 import {IndexPair, ModuleReference} from "src/bookkeeper/LibBookkeeper.sol";
-import {IComparableParameters} from "src/modules/IComparableParameters.sol";
+import {IComparableParameters} from "src/interfaces/IComparableParameters.sol";
 
 // Significant security risk to represent eth this way? Could wrap it instead.
 // https://twitter.com/pashovkrum/status/1637722714772258817?s=20
