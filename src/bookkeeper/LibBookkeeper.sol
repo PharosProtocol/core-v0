@@ -78,17 +78,16 @@ struct Agreement {
     ModuleReference liquidator;
     ModuleReference loanOracle;
     ModuleReference collateralOracle;
-    ModuleReference position;
-    // Position deployment details, set by bookkeeper.
-    address positionAddr;
-    uint256 deploymentTime;
+    address terminal;
+    ModuleReference position; // addr set by bookkeeper.
+    uint256 deploymentTime; // set by bookkeeper
 }
 
 library LibBookkeeper {
     /// @notice Is the position defined by an agreement up for liquidation and not yet kicked
     /// @dev liquidation based on CR or duration limit
     function isLiquidatable(Agreement memory agreement) public view returns (bool) {
-        IPosition position = IPosition(agreement.positionAddr);
+        IPosition position = IPosition(agreement.position.addr);
         // if (positionValue == 0) return false;
 
         // If past expiration, liquidatable.

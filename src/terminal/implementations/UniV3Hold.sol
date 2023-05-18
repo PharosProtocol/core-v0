@@ -167,8 +167,8 @@ contract UniV3HoldTerminal is Position, Module {
         // require(heldAsset.standard == ERC20_STANDARD, "UniV3Hold: exit asset must be ETH or ERC20");
         (address heldAsset,,) = params.exitPath.decodeFirstPool();
 
-        amountHeld = 0;
         uint256 transferAmount = amountHeld;
+        amountHeld = 0;
 
         // Approve ERC20s.
         IERC20(heldAsset).approve(UNI_V3_ROUTER, transferAmount); // NOTE front running?
@@ -200,7 +200,11 @@ contract UniV3HoldTerminal is Position, Module {
                 // Lender is owed more than the position is worth.
                 // Lender gets all of the position and borrower pays the difference.
                 // NOTE could maybe save gas if account PushFrom implemented. Or some decoupling of transfer logic and incrementing.
-                loanAsset.transferFrom(msg.sender, address(this), lenderOwed - exitedAmount);
+                loanAsset.transferFrom(
+                    IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters),
+                    address(this),
+                    lenderOwed - exitedAmount
+                );
                 borrowerAmount = 0;
             }
         }

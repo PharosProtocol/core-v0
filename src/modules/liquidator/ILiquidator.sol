@@ -39,11 +39,11 @@ abstract contract Liquidator is ILiquidator, AccessControl {
 
     function liquidate(Agreement memory agreement) external {
         require(
-            IPosition(agreement.positionAddr).hasRole(C.CONTROLLER_ROLE, address(this)),
+            IPosition(agreement.position.addr).hasRole(C.CONTROLLER_ROLE, address(this)),
             "Liquidator: not currently liquidating this position"
         );
         _liquidate(agreement);
-        // IPosition(agreement.positionAddr).transferContract(agreement.liquidator.addr);
+        // IPosition(agreement.position.addr).transferContract(agreement.liquidator.addr);
     }
 
     function _liquidate(Agreement memory agreement) internal virtual;

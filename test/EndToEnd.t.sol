@@ -11,6 +11,7 @@ import "forge-std/Test.sol";
 import "forge-std/console.sol";
 
 import {IUniswapV3Pool} from "lib/v3-core/contracts/UniswapV3Pool.sol";
+import {IWETH9} from "src/interfaces/IWETH9.sol";
 
 import {DoubleSidedAccount} from "src/modules/account/implementations/DoubleSidedAccount.sol";
 import {IAssessor} from "src/modules/assessor/IAssessor.sol";
@@ -40,10 +41,11 @@ contract EndToEndTest is Test {
     // Mirrors OZ EIP712 impl.
     bytes32 SIG_DOMAIN_SEPARATOR;
 
-    address PEPE = 0x6982508145454Ce325dDbE47a25d4ec3d2311933; // cardinality too low and i don't want to pay (~$30 at gas cost of 30)
+    address PEPE = 0x6982508145454Ce325dDbE47a25d4ec3d2311933; // cardinality too low and i don't want to pay
     address SHIB = 0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE; // WETH:SHIB 0.3% pool 0x2F62f2B4c5fcd7570a709DeC05D68EA19c82A9ec
 
-    Asset ETH_ASSET = Asset({standard: ETH_STANDARD, addr: address(0), id: 0, data: ""});
+    // Asset ETH_ASSET = Asset({standard: ETH_STANDARD, addr: address(0), id: 0, data: ""});
+    Asset WETH_ASSET = Asset({standard: ERC20_STANDARD, addr: C.WETH, id: 0, data: ""});
     Asset USDC_ASSET = Asset({standard: ERC20_STANDARD, addr: C.USDC, id: 0, data: ""});
 
     uint256 LENDER_PRIVATE_KEY = 111;
@@ -80,13 +82,19 @@ contract EndToEndTest is Test {
             DoubleSidedAccount.Parameters({owner: borrower, salt: bytes32(0)});
 
         {
-            // Lender creates and funds account with ETH.
-            vm.deal(lender, 10e18);
+            // Lender creates and funds account with WETH.
+            vm.deal(lender, 11e18);
             vm.prank(lender);
-            accountModule.load{value: 10e18}(ETH_ASSET, 10e18, abi.encode(lenderAccountParams));
+            IWETH9(C.WETH).deposit{value: 10e18}();
+            vm.prank(lender);
+            IWETH9(C.WETH).approve(address(accountModule), 10e18);
+            vm.prank(lender);
+            accountModule.load(WETH_ASSET, 10e18, abi.encode(lenderAccountParams));
 
             // Borrower creates and funds account with USDC.
-            vm.deal(borrower, 1e18);
+            vm.deal(borrower, 2e18);
+            vm.prank(borrower);
+            IWETH9(C.WETH).deposit{value: 1e18}();
             deal(USDC_ASSET.addr, borrower, 5_000e6, true);
             vm.prank(borrower);
             IERC20(C.USDC).approve(address(accountModule), 5_000e6);
@@ -115,7 +123,7 @@ contract EndToEndTest is Test {
             uint256[] memory minLoanAmounts = new uint256[](1);
             minLoanAmounts[0] = 1e18;
             Asset[] memory loanAssets = new Asset[](1);
-            loanAssets[0] = ETH_ASSET;
+            loanAssets[0] = WETH_ASSET;
             Asset[] memory collAssets = new Asset[](1);
             collAssets[0] = USDC_ASSET;
             address[] memory takers = new address[](0);
@@ -245,9 +253,13 @@ contract EndToEndTest is Test {
         // uint256 cost = IAssessor(agreement.assessor.addr).getCost(agreement);
         // uint256 exitAmount = IPosition(agreement.position.addr).getExitAmount(agreement.loanAsset, agreement.position.parameters);
         // console.log("exitAmount: %s", exitAmount);
+
+        // Approve position to use funds to fulfil obligation to lender. Borrower loses money :(
         vm.prank(borrower);
-        // bookkeeper.exitPosition{value: cost}(agreementSignedBlueprint);
-        bookkeeper.exitPosition{value: 4e18 / 100}(agreementSignedBlueprint);
+        // IWETH9(C.WETH).approve(agreement.position.addr, 1e18 / 2);
+        IWETH9(C.WETH).approve(agreement.position.addr, 1e18 / 2);
+        vm.prank(borrower);
+        bookkeeper.exitPosition(agreementSignedBlueprint);
 
         console.log("done");
     }

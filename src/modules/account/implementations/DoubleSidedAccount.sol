@@ -41,7 +41,7 @@ contract DoubleSidedAccount is AccessControl, IAccount, Module {
     function load(Asset calldata asset, uint256 amount, bytes calldata parameters) external payable override {
         Parameters memory params = abi.decode(parameters, (Parameters));
         _increaseBalance(asset, amount, params);
-        Utils.receiveAsset(msg.sender, asset, amount); // ETH and ERC20 implemented
+        require(IERC20(asset.addr).transferFrom(msg.sender, address(this), amount), "ERC20 transfer failed");
     }
 
     /// @dev the bookkeeper is the only actor that is allowed to act as a delegate. Else approved funds are at risk.
@@ -53,7 +53,7 @@ contract DoubleSidedAccount is AccessControl, IAccount, Module {
     {
         Parameters memory params = abi.decode(parameters, (Parameters));
         _increaseBalance(asset, amount, params);
-        Utils.receiveAsset(from, asset, amount); // ETH and ERC20 implemented
+        require(IERC20(asset.addr).transferFrom(from, address(this), amount), "ERC20 transfer failed");
     }
 
     // NOTE should check compatibility in each function?
@@ -107,7 +107,7 @@ contract DoubleSidedAccount is AccessControl, IAccount, Module {
 
         bytes32 id = _getId(params.owner, params.salt);
         accounts[id][keccak256(abi.encode(asset))] -= amount;
-        Utils.sendAsset(position, asset, amount);
+        require(IERC20(asset.addr).transfer(position, amount), "capitalize: ERC20 transfer failed");
 
         emit PositionCapitalized(position, asset, amount, parameters);
     }

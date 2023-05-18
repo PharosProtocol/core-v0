@@ -104,7 +104,7 @@ contract Bookkeeper is Tractor {
         (bytes1 blueprintDataType, bytes memory blueprintData) = unpackDataField(agreementBlueprint.blueprint.data);
         require(blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "BKKIBDT");
         Agreement memory agreement = abi.decode(blueprintData, (Agreement));
-        IPosition position = IPosition(agreement.positionAddr);
+        IPosition position = IPosition(agreement.position.addr);
 
         // // Cannot liquidate if not owned by protocol (liquidating/liquidated/exited).
         // require(position.hasRole(C.CONTROLLER_ROLE, address(this)), "Position not owned by protocol");
@@ -114,25 +114,26 @@ contract Bookkeeper is Tractor {
         position.transferContract(agreement.liquidator.addr);
         // Kick the position to begin liquidation.
         // ILiquidator(agreement.liquidator.addr).takeKick(agreementBlueprint.blueprintHash);
-        emit LiquidationKicked(agreement.liquidator.addr, agreement.positionAddr);
+        emit LiquidationKicked(agreement.liquidator.addr, agreement.position.addr);
     }
 
     // NOTE this function succinctly represents a lot of the inefficiency of a module system design.
     function createFundEnterPosition(Agreement memory agreement) private {
-        // agreement.positionAddr = ITerminal(agreement.position.addr).createPosition();
-        (bool success,) = agreement.position.addr.call(abi.encodeWithSignature("createPosition()"));
+        // agreement.position.addr = ITerminal(agreement.position.addr).createPosition();
+        (bool success, bytes memory data) = agreement.position.addr.call(abi.encodeWithSignature("createPosition()"));
         require(success, "BKFCP");
+        agreement.position.addr = abi.decode(data, (address));
         IAccount(agreement.lenderAccount.addr).capitalize(
-            agreement.positionAddr, agreement.loanAsset, agreement.loanAmount, agreement.lenderAccount.parameters
+            agreement.position.addr, agreement.loanAsset, agreement.loanAmount, agreement.lenderAccount.parameters
         );
         // NOTE lots of gas savings if collateral can be kept in borrower account until absolutely necessary.
         IAccount(agreement.borrowerAccount.addr).capitalize(
-            agreement.positionAddr,
+            agreement.position.addr,
             agreement.collAsset,
             agreement.collateralAmount,
             agreement.borrowerAccount.parameters
         );
-        IPosition(agreement.positionAddr).deploy(
+        IPosition(agreement.position.addr).deploy(
             agreement.loanAsset, agreement.loanAmount, agreement.position.parameters
         );
     }
@@ -153,8 +154,7 @@ contract Bookkeeper is Tractor {
         );
 
         // All asset management must be done within this call, else bk would need to have asset-specific knowledge.
-        IPosition(agreement.positionAddr).exit(agreement, agreement.position.parameters);
-
+        IPosition(agreement.position.addr).exit(agreement, agreement.position.parameters);
     }
 
     // @notice Borrower directly pays lender and claim control over position MPC.
@@ -173,7 +173,7 @@ contract Bookkeeper is Tractor {
             "Bookkeeper: Only borrower can exit position without liquidation"
         );
 
-        IPosition(agreement.positionAddr).transferContract(agreement.liquidator.addr);
+        IPosition(agreement.position.addr).transferContract(agreement.liquidator.addr);
 
         uint256 owedAmount = IAssessor(agreement.assessor.addr).getCost(agreement);
 
@@ -203,6 +203,7 @@ contract Bookkeeper is Tractor {
         agreement.collAsset = order.collAssets[fill.collAssetIdx];
         agreement.collateralOracle = order.collateralOracles[fill.collateralOracleIdx];
         // NOTE confusion here (and everywhere) on position address vs terminal address. Naming fix?
+        agreement.terminal = order.terminals[fill.terminalIdx];
         agreement.position.addr = order.terminals[fill.terminalIdx];
 
         require(fill.loanAmount >= order.minLoanAmounts[fill.loanAssetIdx], "Bookkeeper: fill loan amount too small");

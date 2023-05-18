@@ -40,12 +40,12 @@ contract InstantLiquidator is Liquidator, Module {
     function _liquidate(Agreement memory agreement) internal override {
         // Parameters memory params = abi.decode(parameters, (Parameters));
 
-        // require(liquidating[agreement.positionAddr], "position not in liquidation phase");
+        // require(liquidating[agreement.position.addr], "position not in liquidation phase");
 
         uint256 lenderReturnExpected;
         uint256 borrowerReturnExpected;
         {
-            IPosition position = IPosition(agreement.positionAddr);
+            IPosition position = IPosition(agreement.position.addr);
             uint256 positionAmount = position.getExitAmount(agreement.position.parameters); // denoted in loan asset
 
             // Distribution of value. Priority: liquidator, lender, borrower.
@@ -73,7 +73,7 @@ contract InstantLiquidator is Liquidator, Module {
         // lenderBalanceBefore = lenderAccount.getAssetBalance(agreement.loanAsset);
         // borrowerBalanceBefore = borrowerAccount.getAssetBalance(agreement.collAsset); // this should be balance wi/o collateral, regardless of whether collateral literally leaves the account or not
         // // Callback to allow liquidator to do whatever it wants with the position as long as it returns the expected Returns.
-        // IPosition(agreement.positionAddr).setOwner(msg.sender);
+        // IPosition(agreement.position.addr).setOwner(msg.sender);
         // ILiquidator(msg.sender).returnAssets(agreement, lenderReturnExpected, borrowerReturnExpected);
         // require(
         //     lenderAccount.getAssetBalance(agreement.loanAsset) >= lenderBalanceBefore + lenderReturnExpected,
@@ -100,9 +100,9 @@ contract InstantLiquidator is Liquidator, Module {
                 agreement.collAsset, borrowerReturnExpected, agreement.borrowerAccount.parameters
             );
         }
-        IPosition(agreement.positionAddr).transferContract(msg.sender);
+        IPosition(agreement.position.addr).transferContract(msg.sender);
 
-        emit Liquidated(agreement.positionAddr, lenderReturnExpected, borrowerReturnExpected);
+        emit Liquidated(agreement.position.addr, lenderReturnExpected, borrowerReturnExpected);
     }
 
     /// @notice returns true if reward for parameters 0 always greater than or equal to parameters 1
