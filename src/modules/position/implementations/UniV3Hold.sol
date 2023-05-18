@@ -6,7 +6,7 @@ import "forge-std/console.sol";
 
 import {IAccount} from "src/interfaces/IAccount.sol";
 import {C} from "src/C.sol";
-import {Position} from "src/position/Position.sol";
+import {Position} from "src/modules/position/Position.sol";
 import {Asset, ETH_STANDARD, ERC20_STANDARD} from "src/LibUtil.sol";
 import {Module} from "src/modules/Module.sol";
 import {IAssessor} from "src/interfaces/IAssessor.sol";

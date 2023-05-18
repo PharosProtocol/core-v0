@@ -22,7 +22,7 @@ import {InstantLiquidator} from "src/modules/liquidator/implementations/InstantL
 import {UniswapV3Oracle} from "src/modules/oracle/implementations/UniswapV3Oracle.sol";
 import {StaticUsdcPriceOracle} from "src/modules/oracle/implementations/StaticValue.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
-import {UniV3HoldFactory} from "src/position/implementations/UniV3Hold.sol";
+import {UniV3HoldFactory} from "src/modules/position/implementations/UniV3Hold.sol";
 
 import {Bookkeeper} from "src/bookkeeper/Bookkeeper.sol";
 import {IndexPair, ModuleReference, BorrowerConfig, Order, Fill, Agreement} from "src/bookkeeper/LibBookkeeper.sol";

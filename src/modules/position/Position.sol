@@ -3,7 +3,7 @@
 pragma solidity 0.8.19;
 
 import {IPosition} from "src/interfaces/IPosition.sol";
-import {PositionFactory} from "src/position/PositionFactory.sol";
+import {PositionFactory} from "src/modules/position/PositionFactory.sol";
 import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
 import {IAccount} from "src/interfaces/IAccount.sol";
 import {AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
