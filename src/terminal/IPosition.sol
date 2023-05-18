@@ -23,6 +23,7 @@ interface IPosition is IAccessControl {
     /// @dev Do not set admin role to prevent liquidator from pushing the position back into the protocol.
     function transferContract(address controller) external; // onlyRole(CONTROLLER_ROLE)
     /// @notice Pass through function to allow the position to interact with other contracts after liquidation.
+    /// @dev Internal functions are not reachable. // NOTE right? bc allowing controller to be set *back* to bookkeeper will open exploits
     function passThrough(address payable destination, bytes calldata data)
         external
         payable

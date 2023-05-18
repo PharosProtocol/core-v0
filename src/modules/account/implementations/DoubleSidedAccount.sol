@@ -2,6 +2,8 @@
 
 pragma solidity 0.8.19;
 
+import "forge-std/console.sol";
+
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "src/LibUtil.sol";
 import {C} from "src/C.sol";
@@ -21,15 +23,17 @@ contract DoubleSidedAccount is AccessControl, IAccount, Module {
         bytes32 salt;
     }
 
-    event AssetLoaded(Asset indexed asset, uint256 amount, Parameters indexed parameters);
-    event AssetUnloaded(Asset indexed asset, uint256 amount, Parameters indexed parameters);
+    event AssetLoaded(Asset indexed asset, uint256 amount, bytes indexed parameters);
+    event AssetUnloaded(Asset indexed asset, uint256 amount, bytes indexed parameters);
     event PositionCapitalized(address indexed position, Asset indexed asset, uint256 amount, bytes indexed parameters);
+    event CollateralLocked(Asset indexed asset, uint256 amount, bytes indexed parameters);
+    event CollateralUnlocked(Asset indexed asset, uint256 amount, bytes indexed parameters);
 
     address immutable _this;
     mapping(bytes32 => mapping(bytes32 => uint256)) private accounts; // account id => asset hash => amount
 
     constructor(address bookkeeperAddr) {
-        _grantRole(C.BOOKKEEPER_ROLE, bookkeeperAddr);
+        _setupRole(C.BOOKKEEPER_ROLE, bookkeeperAddr);
         _this = address(this);
 
         COMPATIBLE_LOAN_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
@@ -58,17 +62,12 @@ contract DoubleSidedAccount is AccessControl, IAccount, Module {
 
     // NOTE should check compatibility in each function?
     function loadPush(Asset calldata asset, uint256 amount, bytes calldata parameters) external payable override {
+        console.log("loadPush...");
+        // NOTE NOTE delegatecall here means cannot access state to increment balance...
         require(address(this) != _this, "loadPush: must be delegatecall");
         Parameters memory params = abi.decode(parameters, (Parameters));
         _increaseBalance(asset, amount, params);
-        if (asset.standard == ETH_STANDARD) {
-            // NOTE yes yes someday the gas may become invalid. But simplest way to start.
-            payable(_this).transfer(amount);
-        } else if (asset.standard == ERC20_STANDARD) {
-            // IERC20 memory erc20 = IERC20(asset.addr);
-            // erc20.approve(amount);
-            IERC20(asset.addr).transfer(_this, amount);
-        }
+        require(IERC20(asset.addr).transfer(_this, amount), "sideLoad: ERC20 transfer failed");
     }
 
     // // Use callback. Allows for 3rdparty transferFroms without extra transfers.
@@ -88,17 +87,37 @@ contract DoubleSidedAccount is AccessControl, IAccount, Module {
     /// @dev revert if all assets amount not transferred successfully.
     function _increaseBalance(Asset calldata asset, uint256 amount, Parameters memory params) private {
         accounts[_getId(params.owner, params.salt)][keccak256(abi.encode(asset))] += amount;
-        emit AssetLoaded(asset, amount, params);
+        // emit AssetLoaded(asset, amount, params);
     }
 
     function _decreaseBalance(Asset calldata asset, uint256 amount, Parameters memory params) private {
         accounts[_getId(params.owner, params.salt)][keccak256(abi.encode(asset))] -= amount;
-        emit AssetUnloaded(asset, amount, params);
+        // emit AssetUnloaded(asset, amount, params);
     }
 
     // NOTE could bypass need hre (and other modules) for C.BOOKKEEPER_ROLE by verifying signed agreement and tracking
     //      which have already been processed.
-    function capitalize(address position, Asset calldata asset, uint256 amount, bytes calldata parameters)
+    function transferToPosition(
+        address position,
+        Asset calldata asset,
+        uint256 amount,
+        bool isLockedAsset,
+        bytes calldata parameters
+    ) external override onlyRole(C.BOOKKEEPER_ROLE) {
+        Parameters memory params = abi.decode(parameters, (Parameters));
+
+        bytes32 id = _getId(params.owner, params.salt);
+        if (!isLockedAsset) {
+            accounts[id][keccak256(abi.encode(asset))] -= amount;
+        }
+        require(IERC20(asset.addr).transfer(position, amount), "capitalize: ERC20 transfer failed");
+
+        // emit PositionCapitalized(position, asset, amount, params);
+    }
+
+    // Without wasting gas on ERC20 transfer, lock assets here. In normal case (healthy position close) no transfers
+    // of collateral are necessary.
+    function lockCollateral(Asset calldata asset, uint256 amount, bytes calldata parameters)
         external
         override
         onlyRole(C.BOOKKEEPER_ROLE)
@@ -107,9 +126,21 @@ contract DoubleSidedAccount is AccessControl, IAccount, Module {
 
         bytes32 id = _getId(params.owner, params.salt);
         accounts[id][keccak256(abi.encode(asset))] -= amount;
-        require(IERC20(asset.addr).transfer(position, amount), "capitalize: ERC20 transfer failed");
 
-        emit PositionCapitalized(position, asset, amount, parameters);
+        // emit CollateralLocked(asset, amount, params);
+    }
+
+    function unlockCollateral(Asset calldata asset, uint256 amount, bytes calldata parameters)
+        external
+        override
+        onlyRole(C.BOOKKEEPER_ROLE)
+    {
+        Parameters memory params = abi.decode(parameters, (Parameters));
+
+        bytes32 id = _getId(params.owner, params.salt);
+        accounts[id][keccak256(abi.encode(asset))] += amount;
+
+        // emit CollateralUnlocked(asset, amount, params);
     }
 
     function getOwner(bytes calldata parameters) external pure override returns (address) {

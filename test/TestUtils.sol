@@ -4,6 +4,9 @@ pragma solidity 0.8.19;
 
 import "forge-std/Test.sol";
 
+import {C} from "src/C.sol";
+import {IWETH9} from "src/interfaces/IWETH9.sol";
+
 contract TestUtils is Test {
     // modifier requireFork() {
     //     vm.activeFork();
@@ -14,9 +17,15 @@ contract TestUtils is Test {
     //     vm.startPrank(pranker);
     //     _;
     // }
+
+    function wethDeal(address addr, uint256 amount) internal {
+        vm.deal(addr, amount);
+        vm.prank(addr);
+        IWETH9(C.WETH).deposit{value: amount}();
+    }
 }
 
-contract HandlerUtils is Test {
+contract HandlerUtils is TestUtils {
     mapping(bytes32 => uint256) public calls;
     address[] public actors;
     address internal currentActor;

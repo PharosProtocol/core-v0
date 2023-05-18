@@ -15,7 +15,10 @@ import "src/LibUtil.sol";
 abstract contract Position is Terminal, IPosition {
     event ControlTransferred(address previousController, address newController);
 
-    constructor(address bookkeeperAddr) Terminal(bookkeeperAddr) {}
+    constructor(address bookkeeperAddr) Terminal(bookkeeperAddr) {
+        // _setupRole
+        // _setupRole
+    }
 
     function deploy(Asset calldata asset, uint256 amount, bytes calldata parameters)
         external
@@ -45,9 +48,11 @@ abstract contract Position is Terminal, IPosition {
 
     // AUDIT Hello auditors, pls gather around. This feels risky.
     function transferContract(address controller) external override proxyExecution onlyRole(C.CONTROLLER_ROLE) {
+        // ADMIN_ROLE is not transferred to prevent hostile actors from 'reactivating' a position by setting the
+        // controller back to the bookkeeper.
         // grantRole(LIQUIDATOR_ROLE, controller); // having a distinct liquidator role and controller role is a nicer abstraction, but has gas cost for no benefit.
         grantRole(C.CONTROLLER_ROLE, controller);
-        renounceRole(C.CONTROLLER_ROLE, address(this));
+        renounceRole(C.CONTROLLER_ROLE, msg.sender);
 
         // TODO fix this so that admin role is not granted to untrustable code (liquidator user or module). Currently
         // will get stuck as liquidator module will not be able to grant liquidator control.

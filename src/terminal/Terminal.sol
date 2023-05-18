@@ -26,7 +26,6 @@ import "lib/openzeppelin-contracts/contracts/proxy/utils/Initializable.sol";
  *    minimal set of features in the standard interface.
  */
 
-
 /*
  * The Terminal is used to spawn positions (clones) and call their intializers.
  */
@@ -55,18 +54,13 @@ abstract contract Terminal is AccessControl, Initializable {
         _disableInitializers(); // redundant with proxyExecution modifier?
         BOOKKEEPER_ADDRESS = bookkeeperAddr;
         TERMINAL_ADDRESS = address(this);
-        _grantRole(C.CONTROLLER_ROLE, BOOKKEEPER_ADDRESS); // Terminal role set
+        _setupRole(C.CONTROLLER_ROLE, BOOKKEEPER_ADDRESS); // Terminal role set
     }
 
     /*
      * Create position (clone) that will use this terminal.
      */
-    function createPosition()
-        external
-        implementationExecution
-        onlyRole(C.CONTROLLER_ROLE)
-        returns (address addr)
-    {
+    function createPosition() external implementationExecution onlyRole(C.CONTROLLER_ROLE) returns (address addr) {
         addr = Clones.clone(address(this));
         (bool success,) = addr.call(abi.encodeWithSignature("initialize()"));
         require(success, "createPosition: initialize fail");
@@ -80,7 +74,8 @@ abstract contract Terminal is AccessControl, Initializable {
      */
     function initialize() external initializer proxyExecution {
         require(msg.sender == TERMINAL_ADDRESS);
-        _grantRole(C.CONTROLLER_ROLE, BOOKKEEPER_ADDRESS); // Position role set
+        _setupRole(C.ADMIN_ROLE, BOOKKEEPER_ADDRESS); // Position role set
+        _setupRole(C.CONTROLLER_ROLE, BOOKKEEPER_ADDRESS); // Position role set
     }
 
     receive() external payable {}

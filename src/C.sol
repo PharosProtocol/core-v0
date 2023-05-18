@@ -26,6 +26,5 @@ library C {
 
     bytes32 internal constant BOOKKEEPER_ROLE = keccak256("BOOKKEEPER_ROLE");
     bytes32 internal constant CONTROLLER_ROLE = keccak256("CONTROLLER_ROLE");
-    bytes32 internal constant ADMIN_ROLE = keccak256("BOOKKEEPER_ROLE");
-
+    bytes32 internal constant ADMIN_ROLE = 0x00;
 }

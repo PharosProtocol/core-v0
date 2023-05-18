@@ -9,8 +9,7 @@ pragma solidity 0.8.19;
 
 import "forge-std/Test.sol";
 import {HandlerUtils} from "test/TestUtils.sol";
-
-// import {TestUtils} from "test/LibTestUtils.sol";
+import {TestUtils} from "test/TestUtils.sol";
 
 import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
@@ -18,7 +17,7 @@ import {C} from "src/C.sol";
 import {Asset, AssetStandard, ETH_STANDARD, ERC20_STANDARD} from "src/LibUtil.sol";
 import {DoubleSidedAccount} from "src/modules/account/implementations/DoubleSidedAccount.sol";
 
-contract AccountTest is Test {
+contract AccountTest is TestUtils {
     DoubleSidedAccount public accountModule;
     Asset[] ASSETS;
 
@@ -26,7 +25,11 @@ contract AccountTest is Test {
     event AssetAdded(address owner, bytes32 salt, Asset asset, uint256 amount);
     event AssetRemoved(address owner, bytes32 salt, Asset asset, uint256 amount);
 
-    constructor() {}
+    constructor() {
+        // ASSETS.push(Asset({standard: ETH_STANDARD, addr: address(0), id: 0, data: ""})); // Tests expect 0 index to be ETH
+        ASSETS.push(Asset({standard: ERC20_STANDARD, addr: C.WETH, id: 0, data: ""})); // Tests expect 0 index to be WETH
+        ASSETS.push(Asset({standard: ERC20_STANDARD, addr: C.USDC, id: 0, data: ""})); // Tests expect 1 index to be an ERC20
+    }
 
     // invoked before each test case is run
     function setUp() public {
@@ -44,7 +47,11 @@ contract AccountTest is Test {
             if (ASSETS[i].standard == ETH_STANDARD) {
                 vm.deal(msg.sender, 10e18);
             } else if (ASSETS[i].standard == ERC20_STANDARD) {
-                deal(ASSETS[i].addr, msg.sender, 10e18, true);
+                if (ASSETS[i].addr == C.WETH) {
+                    wethDeal(msg.sender, 10e18);
+                } else {
+                    deal(ASSETS[i].addr, msg.sender, 10e18, true);
+                }
             } else {
                 revert("unsupported asset, cannot deal");
             }
@@ -56,27 +63,28 @@ contract AccountTest is Test {
         bytes memory parameters = abi.encode(DoubleSidedAccount.Parameters({owner: msg.sender, salt: "salt"}));
         assertEq(accountModule.getOwner(parameters), msg.sender);
 
-        // Fail to add ETH because balance too low.
-        vm.expectRevert(); // EvmError: OutOfFund
-        accountModule.load{value: 11e18}(ASSETS[0], 11e18, parameters);
+        // Fail to add WETH because balance too low.
+        vm.expectRevert();
+        accountModule.load(ASSETS[0], 11e18, parameters);
 
         // Fail to add ERC20 because asset not approved.
         vm.expectRevert("ERC20: transfer amount exceeds allowance");
-        accountModule.load{value: 0}(ASSETS[1], 1e18, parameters);
+        accountModule.load(ASSETS[1], 1e18, parameters);
 
-        // Approve ERC20.
+        // Approve ERC20s.
+        IERC20(ASSETS[0].addr).approve(address(accountModule), 999e18);
         IERC20(ASSETS[1].addr).approve(address(accountModule), 999e18);
 
         // Fail to add ERC20 because balance too low.
         vm.expectRevert("ERC20: transfer amount exceeds balance");
-        accountModule.load{value: 0}(ASSETS[1], 11e18, parameters);
+        accountModule.load(ASSETS[1], 11e18, parameters);
 
-        // Add ETH.
-        accountModule.load{value: 1e18}(ASSETS[0], 1e18, parameters);
+        // Add WETH.
+        accountModule.load{value: 0}(ASSETS[0], 1e18, parameters);
         assertEq(accountModule.getBalance(ASSETS[0], parameters), 1e18);
-        accountModule.load{value: 3e18}(ASSETS[0], 3e18, parameters);
+        accountModule.load{value: 0}(ASSETS[0], 3e18, parameters);
         assertEq(accountModule.getBalance(ASSETS[0], parameters), 4e18);
-        accountModule.load{value: 1}(ASSETS[0], 1, parameters);
+        accountModule.load{value: 0}(ASSETS[0], 1, parameters);
         assertEq(accountModule.getBalance(ASSETS[0], parameters), 4000000000000000001);
         accountModule.load{value: 0}(ASSETS[0], 0, parameters); // NOTE should this be made to revert?
         assertEq(accountModule.getBalance(ASSETS[0], parameters), 4000000000000000001);
@@ -95,7 +103,7 @@ contract AccountTest is Test {
         assertEq(accountModule.getBalance(ASSETS[0], parameters), 4000000000000000001);
         // assertEq(accountModule.getBalance(ASSETS[1], parameters), 4000000000000000001);
 
-        // Remove ETH.
+        // Remove WETH.
         accountModule.unload(ASSETS[0], 1, parameters);
         assertEq(accountModule.getBalance(ASSETS[0], parameters), 4e18);
         accountModule.unload(ASSETS[0], 1e18, parameters);

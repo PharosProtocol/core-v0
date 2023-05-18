@@ -184,19 +184,19 @@ contract UniV3HoldTerminal is Position, Module {
         });
 
         // console.log(IERC20(params.exitPath
-        uint256 lenderOwed;
+        uint256 lenderOwed = agreement.loanAmount + IAssessor(agreement.assessor.addr).getCost(agreement);
+        console.log("lenderOwed: %s", lenderOwed);
         uint256 borrowerAmount;
         IERC20 loanAsset = IERC20(address(agreement.loanAsset.addr));
 
         {
+            // NOTE this is a bit weird, as get cost is imperfect and may not match current value to exitedAmount.
             uint256 exitedAmount = router.exactInput(swapParams); // msg.sender from router pov is clone (Position) address
-
-            // uint256 costAmount = IAssessor(agreement.assessor.addr).getCost(agreement)
-            lenderOwed = agreement.loanAmount + IAssessor(agreement.assessor.addr).getCost(agreement);
 
             if (lenderOwed < exitedAmount) {
                 borrowerAmount = exitedAmount - lenderOwed;
             } else {
+                borrowerAmount = 0;
                 // Lender is owed more than the position is worth.
                 // Lender gets all of the position and borrower pays the difference.
                 // NOTE could maybe save gas if account PushFrom implemented. Or some decoupling of transfer logic and incrementing.
@@ -205,7 +205,6 @@ contract UniV3HoldTerminal is Position, Module {
                     address(this),
                     lenderOwed - exitedAmount
                 );
-                borrowerAmount = 0;
             }
         }
 

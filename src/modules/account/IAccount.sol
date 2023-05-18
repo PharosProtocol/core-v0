@@ -34,8 +34,16 @@ interface IAccount {
     // function throughPush(address to, Asset calldata asset, uint256 amount) external payable;
     /// @notice Transfer asset out and decrement account balance. Pushes asset to sender.
     function unload(Asset calldata asset, uint256 amount, bytes calldata parameters) external;
-    /// @notice Transfer asset from account to Position MPC. Pushes.
-    function capitalize(address position, Asset calldata asset, uint256 amount, bytes calldata parameters) external; // onlyRole(BOOKKEEPER_ROLE)
+    /// @notice Transfer loan or collateral asset from account to Position MPC. Pushes.
+    function transferToPosition(
+        address position,
+        Asset calldata asset,
+        uint256 amount,
+        bool isLockedAsset,
+        bytes calldata parameters
+    ) external; // onlyRole(BOOKKEEPER_ROLE)
+    function lockCollateral(Asset calldata asset, uint256 amount, bytes calldata parameters) external; // onlyRole(BOOKKEEPER_ROLE)
+    function unlockCollateral(Asset calldata asset, uint256 amount, bytes calldata parameters) external; // onlyRole(BOOKKEEPER_ROLE)
 
     function getOwner(bytes calldata parameters) external view returns (address);
     function getBalance(Asset calldata asset, bytes calldata parameters) external view returns (uint256);

@@ -10,6 +10,8 @@ pragma solidity 0.8.19;
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
 
+import {TestUtils} from "test/TestUtils.sol";
+
 import {IUniswapV3Pool} from "lib/v3-core/contracts/UniswapV3Pool.sol";
 import {IWETH9} from "src/interfaces/IWETH9.sol";
 
@@ -29,7 +31,7 @@ import "src/C.sol";
 import "src/LibUtil.sol";
 import {Blueprint, SignedBlueprint, Tractor} from "lib/tractor/Tractor.sol";
 
-contract EndToEndTest is Test {
+contract EndToEndTest is TestUtils {
     Bookkeeper public bookkeeper;
     DoubleSidedAccount public accountModule;
     StandardAssessor public assessorModule;
@@ -83,9 +85,8 @@ contract EndToEndTest is Test {
 
         {
             // Lender creates and funds account with WETH.
-            vm.deal(lender, 11e18);
-            vm.prank(lender);
-            IWETH9(C.WETH).deposit{value: 10e18}();
+            vm.deal(lender, 1e18);
+            wethDeal(lender, 10e18);
             vm.prank(lender);
             IWETH9(C.WETH).approve(address(accountModule), 10e18);
             vm.prank(lender);
@@ -101,6 +102,9 @@ contract EndToEndTest is Test {
             vm.prank(borrower);
             accountModule.load(USDC_ASSET, 5_000e6, abi.encode(borrowerAccountParams));
         }
+
+        assertEq(accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 10e18);
+        assertEq(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000e6);
 
         Order memory offer;
         {
@@ -191,7 +195,7 @@ contract EndToEndTest is Test {
             Fill memory fill;
 
             BorrowerConfig memory borrowerConfig = BorrowerConfig({
-                initCollateralRatio: C.RATIO_FACTOR / 3,
+                initCollateralRatio: C.RATIO_FACTOR / 2,
                 positionParameters: abi.encode(
                     UniV3HoldTerminal.Parameters({
                         enterPath: abi.encodePacked(C.WETH, uint24(3000), SHIB),
@@ -217,6 +221,10 @@ contract EndToEndTest is Test {
             vm.prank(borrower);
             bookkeeper.fillOrder(fill, offerSignedBlueprint, borrowerAccount);
         }
+
+        assertEq(accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 8e18);
+        assertLt(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000e6);
+        assertGt(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 2_000e6);
 
         SignedBlueprint memory agreementSignedBlueprint;
         Agreement memory agreement;
@@ -260,6 +268,9 @@ contract EndToEndTest is Test {
         IWETH9(C.WETH).approve(agreement.position.addr, 1e18 / 2);
         vm.prank(borrower);
         bookkeeper.exitPosition(agreementSignedBlueprint);
+
+        assertGe(accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 10e18);
+        assertEq(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000e6);
 
         console.log("done");
     }
