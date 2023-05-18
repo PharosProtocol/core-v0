@@ -115,9 +115,7 @@ contract Bookkeeper is Tractor {
         );
         // NOTE lots of gas savings if collateral can be kept in borrower account until absolutely necessary.
         IAccount(agreement.borrowerAccount.addr).lockCollateral(
-            agreement.collAsset,
-            agreement.collateralAmount,
-            agreement.borrowerAccount.parameters
+            agreement.collAsset, agreement.collateralAmount, agreement.borrowerAccount.parameters
         );
         IPosition(agreement.position.addr).deploy(
             agreement.loanAsset, agreement.loanAmount, agreement.position.parameters
@@ -169,9 +167,7 @@ contract Bookkeeper is Tractor {
         position.exit(agreement, agreement.position.parameters);
 
         IAccount(agreement.borrowerAccount.addr).unlockCollateral(
-            agreement.collAsset,
-            agreement.collateralAmount,
-            agreement.borrowerAccount.parameters
+            agreement.collAsset, agreement.collateralAmount, agreement.borrowerAccount.parameters
         );
 
         // Marks position as closed from Bookkeeper pov.
@@ -201,15 +197,13 @@ contract Bookkeeper is Tractor {
         // Amount is not a compatible concept with all agreements, in those cases unpaid amount should be 0.
         if (owedAmount > 0) {
             // Requires sender to have already approved account contract to use necessary assets.
-            IAccount(payable(agreement.lenderAccount.addr)).sideLoad{
-                value: Utils.isEth(agreement.loanAsset) ? owedAmount : 0
-            }(msg.sender, agreement.loanAsset, owedAmount, agreement.lenderAccount.parameters);
+            IAccount(payable(agreement.lenderAccount.addr)).sideLoad{value: msg.value}(
+                msg.sender, agreement.loanAsset, owedAmount, agreement.lenderAccount.parameters
+            );
         }
 
         IAccount(agreement.borrowerAccount.addr).unlockCollateral(
-            agreement.collAsset,
-            agreement.collateralAmount,
-            agreement.borrowerAccount.parameters
+            agreement.collAsset, agreement.collateralAmount, agreement.borrowerAccount.parameters
         );
 
         IPosition(agreement.position.addr).transferContract(agreement.liquidator.addr);

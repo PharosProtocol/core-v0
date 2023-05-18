@@ -48,7 +48,8 @@ contract DoubleSidedAccount is AccessControl, IAccount, Module {
         require(IERC20(asset.addr).transferFrom(msg.sender, address(this), amount), "ERC20 transfer failed");
     }
 
-    /// @dev the bookkeeper is the only actor that is allowed to act as a delegate. Else approved funds are at risk.
+    /// @dev User must approve Account contract to spend before calling this.
+    /// @dev The bookkeeper is the only actor that is allowed to act as a delegate. Else approved funds are at risk.
     function sideLoad(address from, Asset calldata asset, uint256 amount, bytes calldata parameters)
         external
         payable
@@ -59,20 +60,6 @@ contract DoubleSidedAccount is AccessControl, IAccount, Module {
         _increaseBalance(asset, amount, params);
         require(IERC20(asset.addr).transferFrom(from, address(this), amount), "ERC20 transfer failed");
     }
-
-    // NOTE should check compatibility in each function?
-    function loadPush(Asset calldata asset, uint256 amount, bytes calldata parameters) external payable override {
-        console.log("loadPush...");
-        // NOTE NOTE delegatecall here means cannot access state to increment balance...
-        require(address(this) != _this, "loadPush: must be delegatecall");
-        Parameters memory params = abi.decode(parameters, (Parameters));
-        _increaseBalance(asset, amount, params);
-        require(IERC20(asset.addr).transfer(_this, amount), "sideLoad: ERC20 transfer failed");
-    }
-
-    // // Use callback. Allows for 3rdparty transferFroms without extra transfers.
-    // function loadPushFrom(address from, Asset calldata asset, uint256 amount, bytes calldata parameters) external payable override {
-    // }
 
     // function throughPushWithCallback(address to, Asset calldata asset, uint256 amount) {}
 

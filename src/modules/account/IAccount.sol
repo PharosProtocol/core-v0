@@ -26,12 +26,6 @@ interface IAccount {
     function load(Asset calldata asset, uint256 amount, bytes calldata parameters) external payable;
     /// @notice Transfer asset from address and increment account balance. Pulls asset from sender or uses msg.value.
     function sideLoad(address from, Asset calldata asset, uint256 amount, bytes calldata parameters) external payable; // onlyRole(BOOKKEEPER_ROLE)
-    /// @notice Push asset from msg.sender to account and increment account balance.
-    /// @dev must use as delegatecall.
-    function loadPush(Asset calldata asset, uint256 amount, bytes calldata parameters) external payable;
-    // /// @notice Push asset from msg.sender to to. Do not increment account balance.
-    // /// @dev must use as delegatecall.
-    // function throughPush(address to, Asset calldata asset, uint256 amount) external payable;
     /// @notice Transfer asset out and decrement account balance. Pushes asset to sender.
     function unload(Asset calldata asset, uint256 amount, bytes calldata parameters) external;
     /// @notice Transfer loan or collateral asset from account to Position MPC. Pushes.

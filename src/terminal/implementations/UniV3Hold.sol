@@ -209,17 +209,10 @@ contract UniV3HoldTerminal is Position, Module {
         }
 
         if (lenderOwed > 0) {
-            // Delegate calling to a third party contract is dangerous, but they only have access to the state of
-            // this position, which was created with explicit agreement by both parties to allow the account contract.
-            (bool success,) = agreement.lenderAccount.addr.delegatecall(
-                abi.encodeWithSignature(
-                    "loadPush((bytes3,address,uint256,bytes),uint256,bytes)",
-                    agreement.loanAsset,
-                    lenderOwed,
-                    agreement.lenderAccount.parameters
-                )
+            loanAsset.approve(agreement.lenderAccount.addr, lenderOwed);
+            IAccount(agreement.lenderAccount.addr).load(
+                agreement.loanAsset, lenderOwed, agreement.lenderAccount.parameters
             );
-            require(success, "failed to loadPush into lender account");
         }
 
         // Send borrower loan asset funds to their wallet, bc it is unknown if compatible with collateral account.
