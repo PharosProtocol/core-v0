@@ -200,10 +200,13 @@ contract UniV3HoldTerminal is Position, Module {
                 // Lender is owed more than the position is worth.
                 // Lender gets all of the position and borrower pays the difference.
                 // NOTE could maybe save gas if account PushFrom implemented. Or some decoupling of transfer logic and incrementing.
-                loanAsset.transferFrom(
-                    IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters),
-                    address(this),
-                    lenderOwed - exitedAmount
+                require(
+                    loanAsset.transferFrom(
+                        IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters),
+                        address(this),
+                        lenderOwed - exitedAmount
+                    ),
+                    "_exit: loanAsset transferFrom failed"
                 );
             }
         }

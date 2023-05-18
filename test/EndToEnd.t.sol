@@ -13,7 +13,7 @@ import "forge-std/console.sol";
 import {TestUtils} from "test/TestUtils.sol";
 
 import {IUniswapV3Pool} from "lib/v3-core/contracts/UniswapV3Pool.sol";
-import {IWETH9} from "src/interfaces/IWETH9.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {DoubleSidedAccount} from "src/modules/account/implementations/DoubleSidedAccount.sol";
 import {IAssessor} from "src/modules/assessor/IAssessor.sol";
@@ -88,14 +88,13 @@ contract EndToEndTest is TestUtils {
             vm.deal(lender, 1e18);
             wethDeal(lender, 10e18);
             vm.prank(lender);
-            IWETH9(C.WETH).approve(address(accountModule), 10e18);
+            IERC20(C.WETH).approve(address(accountModule), 10e18);
             vm.prank(lender);
             accountModule.load(WETH_ASSET, 10e18, abi.encode(lenderAccountParams));
 
             // Borrower creates and funds account with USDC.
-            vm.deal(borrower, 2e18);
-            vm.prank(borrower);
-            IWETH9(C.WETH).deposit{value: 1e18}();
+            vm.deal(borrower, 1e18);
+            wethDeal(borrower, 1e18);
             deal(USDC_ASSET.addr, borrower, 5_000e6, true);
             vm.prank(borrower);
             IERC20(C.USDC).approve(address(accountModule), 5_000e6);
@@ -264,8 +263,8 @@ contract EndToEndTest is TestUtils {
 
         // Approve position to use funds to fulfil obligation to lender. Borrower loses money :(
         vm.prank(borrower);
-        // IWETH9(C.WETH).approve(agreement.position.addr, 1e18 / 2);
-        IWETH9(C.WETH).approve(agreement.position.addr, 1e18 / 2);
+        // IERC20(C.WETH).approve(agreement.position.addr, 1e18 / 2);
+        IERC20(C.WETH).approve(agreement.position.addr, 1e18 / 2);
         vm.prank(borrower);
         bookkeeper.exitPosition(agreementSignedBlueprint);
 

@@ -67,7 +67,7 @@ contract DoubleSidedAccount is AccessControl, IAccount, Module {
         Parameters memory params = abi.decode(parameters, (Parameters));
         require(msg.sender == params.owner, "unload: not owner");
         _decreaseBalance(asset, amount, params);
-        Utils.sendAsset(msg.sender, asset, amount); // ETH and ERC20 implemented
+        require(IERC20(asset.addr).transfer(msg.sender, amount), "unload: ERC20 transfer failed");
     }
 
     /// @dev if supporting ETH, will receive directly as msg.value and msg.sender may differ from from parameter.

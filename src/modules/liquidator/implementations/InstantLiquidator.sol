@@ -11,6 +11,7 @@ import {IAssessor} from "src/modules/assessor/IAssessor.sol";
 import {IAccount} from "src/modules/account/IAccount.sol";
 import {IOracle} from "src/modules/oracle/IOracle.sol";
 import {Module} from "src/modules/Module.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 struct Parameters {
     uint256 valueRatio;
@@ -89,16 +90,18 @@ contract InstantLiquidator is Liquidator, Module {
          */
         // NOTE Inefficient asset passthrough here, but can be optimized later if we go this route.
         if (lenderReturnExpected > 0) {
-            Utils.receiveAsset(msg.sender, agreement.loanAsset, lenderReturnExpected);
-            lenderAccount.load{value: Utils.isEth(agreement.loanAsset) ? lenderReturnExpected : 0}(
-                agreement.loanAsset, lenderReturnExpected, agreement.lenderAccount.parameters
+            require(
+                IERC20(agreement.loanAsset.addr).transferFrom(msg.sender, address(this), lenderReturnExpected),
+                "ERC20 transfer failed"
             );
+            lenderAccount.load(agreement.loanAsset, lenderReturnExpected, agreement.lenderAccount.parameters);
         }
         if (borrowerReturnExpected > 0) {
-            Utils.receiveAsset(msg.sender, agreement.collAsset, borrowerReturnExpected);
-            borrowerAccount.load{value: Utils.isEth(agreement.collAsset) ? borrowerReturnExpected : 0}(
-                agreement.collAsset, borrowerReturnExpected, agreement.borrowerAccount.parameters
+            require(
+                IERC20(agreement.collAsset.addr).transferFrom(msg.sender, address(this), borrowerReturnExpected),
+                "ERC20 transfer failed"
             );
+            borrowerAccount.load(agreement.collAsset, borrowerReturnExpected, agreement.borrowerAccount.parameters);
         }
         IPosition(agreement.position.addr).transferContract(msg.sender);
 
