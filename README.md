@@ -1,7 +1,8 @@
 # Pharos
-Pharos is a permisionless lending protocol on Ethereum that allows lenders and borrowers to place fully customizable lending orders for any asset.
-Pharos uses a modular architecture to create lending markets. Lenders and borrowers create accounts and either fill existing orders or create ones. 
-An account can hold any ERC-20 and place multiple, fully customizable, orders. Pharos uses EIP-712 to create a gas efficient order book. 
-Accounts can also deploy assets into other protocols until an order is filled. 
-Once an order is filled, a loan can be either over or under-collateralized. Under-collateralized loans are custodied by Pharos and borrowers can only perform actions whitelisted by the lender. 
-In the example below, Borrower-A has an under-collateralized loan (leveraged) with Lender-A and can only use the loan in Uniswap. Borrower-A also has an over-collateralized loan with with Lender-B and has full control over the loaned assets.
+Pharos is *lending market factory* that enables users to trivially create any possible lending markets using any terms and any assets.
+
+The protocol is designed with a modular architecture that allows for permissionless expansion by third party developers and protocols. Users can deploy novel modules that enforce unique loan parameters. Deployed modules can be tweaked and used by all users. A loan agreement is composed of an arbitrary set of modules and loan parameters, which are utilized and enforced by the Pharos Bookkeeper contract. 
+
+Pharos uses EIP-712 to create a gas efficient order book. New orders are encoded and signed with a user's wallet. This signature proves signer is authentic without the need to publish and store the order on chain. Storage of signed orders is left to the UI implementation or the user themselves.
+
+Undercollateralized Loans can be deployed directly into other protocols. Loans are jointly custodied by the user, Pharos, and the deployment module. Borrowers can only perform actions whitelisted by the lender.

@@ -1,14 +1,10 @@
-# Modulus
-Modulus is an open source protocol that enables peer-to-peer lending of assets via independent and customizable loan terms. The protocol allows anyone to define a novel set of loan terms, which includes a list of approved uses of borrowed funds. Approved use cases range from simply holding a volatile asset to entering an advanced on-chain position. Lenders and borrowers who find an existing set of terms agreeable can opt to supply or borrow funds directly with Modulus facilitating the secure management of funds.
+# Example user experience to create markets
 
-Loan terms can be customized for risk tolerance by adjusting collateralization, liquidation mechanisms, approved uses of borrowed capital, and more. Each set of terms is unique and does not impact existing loans.
+## Replication of your favorite large protocol
+User navigates to Pharos UI, selects bluechip assets for collateral and borrow whitelists, selects Simple Hold terminal, limits CR to 150%, selects Instant Liquidator, selects interest terms that match existing protocol, etc. Connects this market definition to an account with assets and submits the order to Pharos orderbook.
 
-## Architecture Design
-https://www.figma.com/file/0rnDtlA49rKndhsagzxplD/MODULEND-Architecture?node-id=0%3A1&t=b1vk0xE08f6pKOCr-0
-
-
-## Example Markets
-
+## Novel market
+User navigates to Pharos UI, selects Doodles NFT collection as whitelisted collateral, asks to borrow Eth, sets liquidation to be forfeiture of NFT. Instead of conventional interest, they deploy a small contract (~50 lines Sol) that defines they will pay 10% of Doodle floor price value at loan closure.
 
 # Security 
 
