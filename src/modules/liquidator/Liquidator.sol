@@ -14,6 +14,10 @@ abstract contract Liquidator is ILiquidator, AccessControl, Module {
     // NOTE need a system to ensure the same "position" signed message cannot be double liquidated
     // mapping(bytes32 => bool) internal liquidating;
 
+    constructor(address bookkeeperAddr) {
+        _setupRole(C.CONTROLLER_ROLE, bookkeeperAddr); // Factory role set
+    }
+
     function liquidate(Agreement memory agreement) external {
         require(
             IPosition(agreement.position.addr).hasRole(C.CONTROLLER_ROLE, address(this)),

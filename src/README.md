@@ -8,7 +8,7 @@ User navigates to Pharos UI, selects Doodles NFT collection as whitelisted colla
 
 # Security 
 
-- TODO - **Existing Vulnerability** - contracts implementing receive functions could be malicious. Reentrancy ofc, which
+- TODO - **Existing Vulnerability??** - contracts implementing receive functions could be malicious. Reentrancy ofc, which
 has been considered a bit (need to verify use of CEI flow) but also griefing. a borrower could borrow via a smart 
 contract which reverts on fund receipt thus locking lender funds in the contracts. Might be alleviated by using verified
 account contracts?

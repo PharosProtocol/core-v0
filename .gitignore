@@ -1,6 +1,7 @@
 # Compiler files
 cache/
 out/
+test/__pycache__/
 
 # Dev files
 dev_doc.txt

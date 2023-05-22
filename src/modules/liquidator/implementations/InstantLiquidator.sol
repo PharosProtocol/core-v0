@@ -27,7 +27,7 @@ struct Parameters {
 contract InstantLiquidator is Liquidator {
     event Liquidated(address position, uint256 lenderReturn, uint256 borrowerReturn);
 
-    constructor() {
+    constructor(address bookkeeperAddr) Liquidator(bookkeeperAddr) {
         COMPATIBLE_LOAN_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
         COMPATIBLE_COLL_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
     }
