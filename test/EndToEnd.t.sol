@@ -15,7 +15,7 @@ import {TestUtils} from "test/TestUtils.sol";
 import {IUniswapV3Pool} from "lib/v3-core/contracts/UniswapV3Pool.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import {DoubleSidedAccount} from "src/modules/account/implementations/DoubleSidedAccount.sol";
+import {ERC20Account} from "src/modules/account/implementations/ERC20Account.sol";
 import {IAssessor} from "src/interfaces/IAssessor.sol";
 import {StandardAssessor} from "src/modules/assessor/implementations/StandardAssessor.sol";
 import {InstantLiquidator} from "src/modules/liquidator/implementations/InstantLiquidator.sol";
@@ -33,7 +33,7 @@ import {Blueprint, SignedBlueprint, Tractor} from "lib/tractor/Tractor.sol";
 
 contract EndToEndTest is TestUtils {
     Bookkeeper public bookkeeper;
-    DoubleSidedAccount public accountModule;
+    ERC20Account public accountModule;
     StandardAssessor public assessorModule;
     InstantLiquidator public liquidatorModule;
     UniswapV3Oracle public uniOracleModule;
@@ -65,9 +65,9 @@ contract EndToEndTest is TestUtils {
 
         // Deploy Bookkeeper and module contracts.
         bookkeeper = new Bookkeeper();
-        accountModule = new DoubleSidedAccount(address(bookkeeper));
+        accountModule = new ERC20Account(address(bookkeeper));
         assessorModule = new StandardAssessor();
-        liquidatorModule = new InstantLiquidator();
+        liquidatorModule = new InstantLiquidator(address(bookkeeper));
         uniOracleModule = new UniswapV3Oracle();
         staticUsdcPriceOracle = new StaticUsdcPriceOracle();
         factory = new UniV3HoldFactory(address(bookkeeper));
@@ -78,10 +78,9 @@ contract EndToEndTest is TestUtils {
         address lender = vm.addr(LENDER_PRIVATE_KEY);
         address borrower = vm.addr(BORROWER_PRIVATE_KEY);
 
-        DoubleSidedAccount.Parameters memory lenderAccountParams =
-            DoubleSidedAccount.Parameters({owner: lender, salt: bytes32(0)});
-        DoubleSidedAccount.Parameters memory borrowerAccountParams =
-            DoubleSidedAccount.Parameters({owner: borrower, salt: bytes32(0)});
+        ERC20Account.Parameters memory lenderAccountParams = ERC20Account.Parameters({owner: lender, salt: bytes32(0)});
+        ERC20Account.Parameters memory borrowerAccountParams =
+            ERC20Account.Parameters({owner: borrower, salt: bytes32(0)});
 
         {
             // Lender creates and funds account with WETH.

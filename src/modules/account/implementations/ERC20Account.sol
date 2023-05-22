@@ -15,7 +15,7 @@ import {Account} from "../Account.sol";
  * Account for holding ETH and ERC20 assets, to use for either lending or borrowing through an Agreement.
  * ~ Not compatible with other asset types ~
  */
-contract DoubleSidedAccount is Account {
+contract ERC20Account is Account {
     struct Parameters {
         address owner;
         // An owner-unique id for this account.
