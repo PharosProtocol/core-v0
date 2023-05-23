@@ -36,7 +36,7 @@ abstract contract PositionFactory is AccessControl, Initializable {
 
     // Metadata metadata;
 
-    event PositionCreated(address indexed position);
+    event PositionCreated(address position);
 
     modifier implementationExecution() {
         require(address(this) == FACTORY_ADDRESS);

@@ -11,13 +11,13 @@ import {IAccount} from "src/interfaces/IAccount.sol";
 import {Module} from "src/modules/Module.sol";
 
 abstract contract Account is IAccount, AccessControl, Module {
-    event Loaded(Asset indexed asset, uint256 amount, bytes indexed parameters);
-    event Unloaded(Asset indexed asset, uint256 amount, bytes indexed parameters);
+    event Loaded(Asset asset, uint256 amount, bytes parameters);
+    event Unloaded(Asset asset, uint256 amount, bytes parameters);
     event TransferredToPosition(
-        address indexed position, Asset indexed asset, uint256 amount, bool isLockedAsset, bytes indexed parameters
+        address position, Asset asset, uint256 amount, bool isLockedAsset, bytes parameters
     );
-    event Locked(Asset indexed asset, uint256 amount, bytes indexed parameters);
-    event Unlocked(Asset indexed asset, uint256 amount, bytes indexed parameters);
+    event Locked(Asset asset, uint256 amount, bytes parameters);
+    event Unlocked(Asset asset, uint256 amount, bytes parameters);
 
     function load(Asset calldata asset, uint256 amount, bytes calldata parameters) external payable override {
         _load(asset, amount, parameters);

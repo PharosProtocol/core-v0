@@ -41,7 +41,7 @@ contract Bookkeeper is Tractor {
     string constant PROTOCOL_NAME = "pharos";
     string constant PROTOCOL_VERSION = "1.0.0";
 
-    event OrderFilled(SignedBlueprint agreement, bytes32 indexed blueprintHash, address indexed taker);
+    event OrderFilled(SignedBlueprint agreement, bytes32 blueprintHash, address taker);
     event LiquidationKicked(address liquidator, address position);
 
     constructor() Tractor(PROTOCOL_NAME, PROTOCOL_VERSION) {}
