@@ -56,3 +56,12 @@ Invariant tests consist of semi-random inputs and random function calls. Invaria
 - https://github.com/dabit3/foundry-workshop
 
 - https://eth-brownie.readthedocs.io/
+- https://github.com/curvefi/brownie-tutorial/
+    - Noted that ERC20 token package does not seem to work with anvil (or at all?). This is likely due to the fact that it attempts transfers from existing whale wallets. Anvil does not allow txn from these wallets without the keys to sign them. Might be able to use brownie bypass for accounts if i knew the addresses.
+
+
+`anvil --fork-url https://eth-mainnet.g.alchemy.com/v2/XXXXXXXXXXXXXXXXX --fork-block-number 17186176`
+`brownie test --network anvil`
+`brownie run utils --network anvil --interactive`
+
+

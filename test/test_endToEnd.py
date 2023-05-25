@@ -28,7 +28,7 @@ def fees(accounts):
 
 @pytest.fixture(scope="module", autouse=True)
 def deploy(accounts):
-    utils.deploy()
+    Utilsdeploy()
 
 
 @pytest.fixture(autouse=True)

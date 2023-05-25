@@ -15,29 +15,20 @@ contract StaticUsdcPriceOracle is Oracle {
         uint256 value; // decimals = 6
     }
 
-    /// @dev no illegal parameters possible within the type constraints.
-    function verifyParameters(Asset calldata, bytes calldata) external pure override {
-        return;
-    }
-
     /// @dev ignore amount parameter
-    function getValue(Asset calldata, uint256 amount, bytes calldata parameters)
-        external
-        pure
-        returns (uint256)
-    {
+    function getValue(Asset calldata, uint256 amount, bytes calldata parameters) external pure returns (uint256) {
         Parameters memory params = abi.decode(parameters, (Parameters));
         // require(asset.addr == params.valueAsset);
         return amount * params.value; // rounding?
     }
 
-    function getAmount(Asset calldata, uint256 value, bytes calldata parameters)
-        external
-        pure
-        returns (uint256)
-    {
+    function getAmount(Asset calldata, uint256 value, bytes calldata parameters) external pure returns (uint256) {
         Parameters memory params = abi.decode(parameters, (Parameters));
         // require(asset.addr == params.valueAsset, "StaticPriceOracle: asset mismatch");
         return value / params.value; // rounding?
+    }
+
+    function isCompatible(Asset calldata, bytes calldata) external pure override returns (bool) {
+        return true;
     }
 }

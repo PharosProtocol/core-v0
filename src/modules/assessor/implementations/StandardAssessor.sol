@@ -7,7 +7,7 @@ import "forge-std/console.sol";
 import {Assessor} from "../Assessor.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
 import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
-import {Asset} from "src/LibUtil.sol";
+import "src/LibUtil.sol";
 import {C} from "src/C.sol";
 
 /*
@@ -53,5 +53,17 @@ contract StandardAssessor is Assessor {
             p0.originationFeeRatio <= p1.originationFeeRatio && p0.interestRatio <= p1.interestRatio
                 && p0.profitShareRatio <= p1.profitShareRatio
         );
+    }
+
+    // Although the assessor is not moving assets around, this assessment only makes sense with divisible assets.
+    // Collateral asset is irrelevant.
+    function isCompatible(Asset calldata loanAsset, Asset calldata collAsset, bytes calldata)
+        external
+        pure
+        override
+        returns (bool)
+    {
+        if (loanAsset.standard != ERC20_STANDARD || collAsset.standard != ERC20_STANDARD) return false;
+        return true;
     }
 }

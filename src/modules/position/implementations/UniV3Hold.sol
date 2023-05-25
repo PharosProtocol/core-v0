@@ -7,7 +7,6 @@ import "forge-std/console.sol";
 import {IAccount} from "src/interfaces/IAccount.sol";
 import {C} from "src/C.sol";
 import {Position} from "src/modules/position/Position.sol";
-import {Asset, ETH_STANDARD, ERC20_STANDARD} from "src/LibUtil.sol";
 import {Module} from "src/modules/Module.sol";
 import {IAssessor} from "src/interfaces/IAssessor.sol";
 import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
@@ -31,6 +30,7 @@ import {IUniswapV3Factory} from "lib/v3-core/contracts/interfaces/IUniswapV3Fact
 import {CallbackValidation} from "lib/v3-periphery/contracts/libraries/CallbackValidation.sol";
 
 import {LibUniswapV3} from "src/util/LibUniswapV3.sol";
+import "src/LibUtil.sol";
 
 // import {SwapCallbackData} from "lib/v3-periphery/contracts/SwapRouter.sol";
 struct SwapCallbackData {
@@ -60,7 +60,7 @@ struct SwapCallbackData {
  *
  * NOTE for sake of efficiency, should split into multi-hop and single pool paths.
  */
-contract UniV3HoldFactory is Position, Module {
+contract UniV3HoldFactory is Position {
     struct Parameters {
         bytes enterPath;
         bytes exitPath;
@@ -86,8 +86,18 @@ contract UniV3HoldFactory is Position, Module {
     constructor(address protocolAddr) Position(protocolAddr) 
     // Component(compatibleLoanAssets, compatibleCollAssets)
     {
-        COMPATIBLE_LOAN_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
-        COMPATIBLE_COLL_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
+        // COMPATIBLE_LOAN_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
+        // COMPATIBLE_COLL_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
+    }
+
+    function isCompatible(Asset calldata asset, bytes calldata parameters) external pure override returns (bool) {
+        Parameters memory params = abi.decode(parameters, (Parameters));
+        if (asset.standard != ERC20_STANDARD) return false;
+        // if (params.enterPath.numPools() > 1) return false;
+        // if (params.exitPath.numPools() > 1) return false;
+        if (asset.addr != params.enterPath.toAddress(0)) return false;
+        if (asset.addr != params.exitPath.toAddress(params.exitPath.length - 20)) return false;
+        return true;
     }
 
     /**
@@ -115,7 +125,7 @@ contract UniV3HoldFactory is Position, Module {
             revert("USTCBZAMS");
         }
 
-        require(IERC20(tokenIn).transfer(address(msg.sender), amountToPay), "USTCBTF");
+        Utils.safeErc20Transfer(tokenIn, address(msg.sender), amountToPay);
     }
 
     /// @dev assumes assets are already in Position.
@@ -173,15 +183,19 @@ contract UniV3HoldFactory is Position, Module {
         // Approve ERC20s.
         IERC20(heldAsset).approve(UNI_V3_ROUTER, transferAmount); // NOTE front running?
 
+        uint256 exitedAmount;
         // TODO: can add recipient in certain scenarios to save an ERC20 transfer.
-        ISwapRouter router = ISwapRouter(UNI_V3_ROUTER);
-        ISwapRouter.ExactInputParams memory swapParams = ISwapRouter.ExactInputParams({
-            path: params.exitPath,
-            recipient: address(this), // position address
-            deadline: block.timestamp + DEADLINE_OFFSET,
-            amountIn: transferAmount,
-            amountOutMinimum: amountOutMin(params)
-        });
+        {
+            ISwapRouter router = ISwapRouter(UNI_V3_ROUTER);
+            ISwapRouter.ExactInputParams memory swapParams = ISwapRouter.ExactInputParams({
+                path: params.exitPath,
+                recipient: address(this), // position address
+                deadline: block.timestamp + DEADLINE_OFFSET,
+                amountIn: transferAmount,
+                amountOutMinimum: amountOutMin(params)
+            });
+            exitedAmount = router.exactInput(swapParams); // msg.sender from router pov is clone (Position) address
+        }
 
         // console.log(IERC20(params.exitPath
         uint256 lenderOwed = agreement.loanAmount + IAssessor(agreement.assessor.addr).getCost(agreement);
@@ -191,7 +205,6 @@ contract UniV3HoldFactory is Position, Module {
 
         {
             // NOTE this is a bit weird, as get cost is imperfect and may not match current value to exitedAmount.
-            uint256 exitedAmount = router.exactInput(swapParams); // msg.sender from router pov is clone (Position) address
 
             if (lenderOwed < exitedAmount) {
                 borrowerAmount = exitedAmount - lenderOwed;
@@ -200,13 +213,11 @@ contract UniV3HoldFactory is Position, Module {
                 // Lender is owed more than the position is worth.
                 // Lender gets all of the position and borrower pays the difference.
                 // NOTE could maybe save gas if account PushFrom implemented. Or some decoupling of transfer logic and incrementing.
-                require(
-                    loanAsset.transferFrom(
-                        IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters),
-                        address(this),
-                        lenderOwed - exitedAmount
-                    ),
-                    "_exit: loanAsset transferFrom failed"
+                Utils.safeErc20TransferFrom(
+                    agreement.loanAsset.addr,
+                    IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters),
+                    address(this),
+                    lenderOwed - exitedAmount
                 );
             }
         }
@@ -222,12 +233,10 @@ contract UniV3HoldFactory is Position, Module {
         // Could require compatibility between loan asset and borrow account, but would cause unneeded compatibility
         // restrictions.
         if (borrowerAmount > 0) {
-            require(
-                loanAsset.transfer(
-                    IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters),
-                    borrowerAmount
-                ),
-                "failed to transfer to borrower"
+            Utils.safeErc20Transfer(
+                agreement.loanAsset.addr,
+                IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters),
+                borrowerAmount
             );
         }
 

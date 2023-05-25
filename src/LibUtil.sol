@@ -2,6 +2,8 @@
 
 pragma solidity 0.8.19;
 
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 import {IAccount} from "src/interfaces/IAccount.sol";
 import {IndexPair, ModuleReference} from "src/bookkeeper/LibBookkeeper.sol";
 import {IComparableParameters} from "src/interfaces/IComparableParameters.sol";
@@ -117,5 +119,20 @@ library Utils {
             size := extcodesize(addr)
         }
         return (size > 0);
+    }
+
+    /// @notice Transfers tokens from msg.sender to a recipient.
+    /// @dev Return value is optional.
+    function safeErc20Transfer(address token, address to, uint256 value) public {
+        (bool success, bytes memory data) = token.call(abi.encodeWithSelector(IERC20.transfer.selector, to, value));
+        require(success && (data.length == 0 || abi.decode(data, (bool))), "safeErc20Transfer failed");
+    }
+
+    /// @notice Transfers tokens from the targeted address to the given destination.
+    /// @dev Return value is optional.
+    function safeErc20TransferFrom(address token, address from, address to, uint256 value) public {
+        (bool success, bytes memory data) =
+            token.call(abi.encodeWithSelector(IERC20.transferFrom.selector, from, to, value));
+        require(success && (data.length == 0 || abi.decode(data, (bool))), "safeErc20TransferFrom failed");
     }
 }

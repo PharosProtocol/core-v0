@@ -9,10 +9,11 @@ import {IAccount} from "src/interfaces/IAccount.sol";
 import {AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
 import {IAccessControl} from "lib/openzeppelin-contracts/contracts/access/IAccessControl.sol";
 import {IAssessor} from "src/interfaces/IAssessor.sol";
+import {Module} from "src/modules/Module.sol";
 import {C} from "src/C.sol";
 import "src/LibUtil.sol";
 
-abstract contract Position is IPosition, PositionFactory {
+abstract contract Position is IPosition, PositionFactory, Module {
     event ControlTransferred(address previousController, address newController);
 
     constructor(address bookkeeperAddr) PositionFactory(bookkeeperAddr) {
@@ -43,6 +44,7 @@ abstract contract Position is IPosition, PositionFactory {
     /// @notice Close position and distribute assets. Give borrower MPC control.
     /// @dev All asset management must be done within this call, else bk would need to have asset-specific knowledge.
     function _exit(Agreement calldata agreement, bytes calldata parameters) internal virtual;
+
 
     // function _transferLoanAsset(address payable to, Asset memory asset, uint256 amount) internal virtual;
 

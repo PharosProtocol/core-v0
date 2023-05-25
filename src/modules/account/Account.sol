@@ -17,6 +17,10 @@ abstract contract Account is IAccount, AccessControl, Module {
     event Locked(Asset asset, uint256 amount, bytes parameters);
     event Unlocked(Asset asset, uint256 amount, bytes parameters);
 
+    constructor(address bookkeeperAddr) {
+        _setupRole(C.BOOKKEEPER_ROLE, bookkeeperAddr);
+    }
+
     function load(Asset calldata asset, uint256 amount, bytes calldata parameters) external payable override {
         _load(asset, amount, parameters);
         emit Loaded(asset, amount, parameters);

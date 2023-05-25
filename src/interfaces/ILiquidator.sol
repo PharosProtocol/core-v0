@@ -7,6 +7,7 @@ import {C} from "src/C.sol";
 import {IComparableParameters} from "src/interfaces/IComparableParameters.sol";
 import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
+import {Asset} from "src/LibUtil.sol";
 
 /**
  * Liquidators are used to dismantle a kicked Position and return capital to Lender and Borrower. Liquidators will be
@@ -18,8 +19,6 @@ import {IPosition} from "src/interfaces/IPosition.sol";
  */
 
 interface ILiquidator is IComparableParameters {
-    /// @notice called at agreement creation time.
-    function verifyCompatibility(Agreement memory agreement) external view;
     // NOTE it isn't really necessary to standardize the liquidation interface. It could entirely bypass modulus and
     //      implement an arbitrarily complex interface with calls being made directly to the liquidator contract. Would
     //      need to verify signatures, but otherwise not much more complex. Probably will not implement a liquidation
@@ -31,4 +30,9 @@ interface ILiquidator is IComparableParameters {
     //      auction, will not have a clear set reward.
     /// @dev may return a number that is larger than the total collateral amount
     // function getRewardValue(Agreement calldata agreement) external view returns (uint256);
+
+    function isCompatible(Asset calldata loanAsset, Asset calldata collAsset, bytes calldata parameters)
+        external
+        view
+        returns (bool);
 }

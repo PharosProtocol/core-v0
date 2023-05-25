@@ -27,15 +27,15 @@ struct SwapCallbackData {
  * to support in v1.
  */
 
-contract HoldFactory is Position, Module {
+contract HoldFactory is Position {
     // struct Parameters {}
 
     // Position state
     uint256 private amountHeld;
 
     constructor(address protocolAddr) Position(protocolAddr) {
-        COMPATIBLE_LOAN_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
-        COMPATIBLE_COLL_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
+        // COMPATIBLE_LOAN_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
+        // COMPATIBLE_COLL_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
     }
 
     /// @notice Do nothing.
@@ -53,5 +53,10 @@ contract HoldFactory is Position, Module {
 
     function getExitAmount(bytes calldata) external view override returns (uint256) {
         return amountHeld;
+    }
+
+    function isCompatible(Asset calldata asset, bytes calldata) external pure override returns (bool) {
+        if (asset.standard != ERC20_STANDARD) return false;
+        return true;
     }
 }

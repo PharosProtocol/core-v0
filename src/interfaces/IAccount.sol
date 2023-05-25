@@ -39,6 +39,14 @@ interface IAccount {
     function lockCollateral(Asset calldata asset, uint256 amount, bytes calldata parameters) external;
     function unlockCollateral(Asset calldata asset, uint256 amount, bytes calldata parameters) external;
 
+    // NOTE is is possible to (securely) require the owner addr to be the first parameter so that owner can
+    // be determined without external calls? To save gas.
     function getOwner(bytes calldata parameters) external view returns (address);
+
+    function isCompatible(Asset calldata loanAsset, Asset calldata collAsset, bytes calldata parameters)
+        external
+        view
+        returns (bool);
+
     function getBalance(Asset calldata asset, bytes calldata parameters) external view returns (uint256);
 }

@@ -10,7 +10,6 @@ import {IPosition} from "src/interfaces/IPosition.sol";
 import {IAssessor} from "src/interfaces/IAssessor.sol";
 import {IAccount} from "src/interfaces/IAccount.sol";
 import {IOracle} from "src/interfaces/IOracle.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 struct Parameters {
     uint256 valueRatio;
@@ -28,8 +27,8 @@ contract InstantLiquidator is Liquidator {
     event Liquidated(address position, uint256 lenderReturn, uint256 borrowerReturn);
 
     constructor(address bookkeeperAddr) Liquidator(bookkeeperAddr) {
-        COMPATIBLE_LOAN_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
-        COMPATIBLE_COLL_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
+        // COMPATIBLE_LOAN_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
+        // COMPATIBLE_COLL_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
     }
 
     function verifyCompatibility(Agreement memory agreement) external pure {
@@ -89,17 +88,11 @@ contract InstantLiquidator is Liquidator {
          */
         // NOTE Inefficient asset passthrough here, but can be optimized later if we go this route.
         if (lenderReturnExpected > 0) {
-            require(
-                IERC20(agreement.loanAsset.addr).transferFrom(msg.sender, address(this), lenderReturnExpected),
-                "ERC20 transfer failed"
-            );
+            Utils.safeErc20TransferFrom(agreement.loanAsset.addr, msg.sender, address(this), lenderReturnExpected);
             lenderAccount.load(agreement.loanAsset, lenderReturnExpected, agreement.lenderAccount.parameters);
         }
         if (borrowerReturnExpected > 0) {
-            require(
-                IERC20(agreement.collAsset.addr).transferFrom(msg.sender, address(this), borrowerReturnExpected),
-                "ERC20 transfer failed"
-            );
+            Utils.safeErc20TransferFrom(agreement.collAsset.addr, msg.sender, address(this), borrowerReturnExpected);
             borrowerAccount.load(agreement.collAsset, borrowerReturnExpected, agreement.borrowerAccount.parameters);
         }
         IPosition(agreement.position.addr).transferContract(msg.sender);
@@ -124,6 +117,16 @@ contract InstantLiquidator is Liquidator {
             p0.valueRatio <= p1.valueRatio && p0.minRewardValue <= p1.minRewardValue
                 && p0.maxRewardValue <= p1.maxRewardValue
         );
+    }
+
+    function isCompatible(Asset calldata loanAsset, Asset calldata collAsset, bytes calldata)
+        external
+        pure
+        override
+        returns (bool)
+    {
+        if (loanAsset.standard != ERC20_STANDARD || collAsset.standard != ERC20_STANDARD) return false;
+        return true;
     }
 
     /// @dev may return a number that is larger than the total collateral amount

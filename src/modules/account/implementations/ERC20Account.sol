@@ -8,6 +8,7 @@ import {C} from "src/C.sol";
 import {Asset, ERC20_STANDARD} from "src/LibUtil.sol";
 import {Account} from "../Account.sol";
 import {IWETH9} from "src/interfaces/IWETH9.sol";
+import "src/LibUtil.sol";
 
 // NOTE could bypass need here (and other modules) for C.BOOKKEEPER_ROLE by verifying signed agreement and tracking
 //      which have already been processed.
@@ -23,15 +24,11 @@ contract ERC20Account is Account {
         bytes32 salt;
     }
 
-    address immutable _this;
     mapping(bytes32 => mapping(bytes32 => uint256)) private accounts; // account id => asset hash => amount
 
-    constructor(address bookkeeperAddr) {
-        _setupRole(C.BOOKKEEPER_ROLE, bookkeeperAddr);
-        _this = address(this);
-
-        COMPATIBLE_LOAN_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
-        COMPATIBLE_COLL_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
+    constructor(address bookkeeperAddr) Account(bookkeeperAddr) {
+        // COMPATIBLE_LOAN_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
+        // COMPATIBLE_COLL_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
     }
 
     function _load(Asset calldata asset, uint256 amount, bytes calldata parameters) internal override {
@@ -42,7 +39,7 @@ contract ERC20Account is Account {
             assert(msg.value == amount);
             IWETH9(C.WETH).deposit{value: msg.value}();
         } else {
-            require(IERC20(asset.addr).transferFrom(msg.sender, address(this), amount), "ERC20 transfer failed");
+            Utils.safeErc20TransferFrom(asset.addr, msg.sender, address(this), amount);
         }
     }
 
@@ -55,14 +52,14 @@ contract ERC20Account is Account {
     {
         Parameters memory params = abi.decode(parameters, (Parameters));
         _increaseBalance(asset, amount, params);
-        require(IERC20(asset.addr).transferFrom(from, address(this), amount), "ERC20 transfer failed");
+        Utils.safeErc20TransferFrom(asset.addr, from, address(this), amount);
     }
 
     function _unload(Asset calldata asset, uint256 amount, bytes calldata parameters) internal override {
         Parameters memory params = abi.decode(parameters, (Parameters));
         require(msg.sender == params.owner, "unload: not owner");
         _decreaseBalance(asset, amount, params);
-        require(IERC20(asset.addr).transfer(msg.sender, amount), "unload: ERC20 transfer failed");
+        Utils.safeErc20Transfer(asset.addr, msg.sender, amount);
     }
 
     function _transferToPosition(
@@ -78,7 +75,7 @@ contract ERC20Account is Account {
         if (!isLockedAsset) {
             accounts[id][keccak256(abi.encode(asset))] -= amount;
         }
-        require(IERC20(asset.addr).transfer(position, amount), "capitalize: ERC20 transfer failed");
+        Utils.safeErc20Transfer(asset.addr, position, amount);
     }
 
     // Without wasting gas on ERC20 transfer, lock assets here. In normal case (healthy position close) no transfers
@@ -107,6 +104,16 @@ contract ERC20Account is Account {
 
     function getOwner(bytes calldata parameters) external pure override returns (address) {
         return abi.decode(parameters, (Parameters)).owner;
+    }
+
+    function isCompatible(Asset calldata loanAsset, Asset calldata collAsset, bytes calldata)
+        external
+        pure
+        override
+        returns (bool)
+    {
+        if (loanAsset.standard != ERC20_STANDARD || collAsset.standard != ERC20_STANDARD) return false;
+        return true;
     }
 
     function getBalance(Asset calldata asset, bytes calldata parameters)

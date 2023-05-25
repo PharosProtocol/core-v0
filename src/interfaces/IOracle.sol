@@ -13,12 +13,17 @@ import {Asset} from "src/LibUtil.sol";
  */
 
 interface IOracle {
-    /// @notice require parameters to be valid and non-hostile.
-    function verifyParameters(Asset calldata asset, bytes calldata parameters) external view;
     /// @notice returns the USD value of an asset.
     /// @dev reverts if asset not compatible with parameters.
-    function getValue(Asset calldata asset, uint256 amount, bytes calldata parameters) external view returns (uint256);
+    function getValue(Asset calldata asset, uint256 amount, bytes calldata parameters)
+        external
+        view
+        returns (uint256);
     /// @notice returns the amount of asset equivalent to the given USD value.
     /// @dev reverts if asset not compatible with parameters.
-    function getAmount(Asset calldata asset, uint256 value, bytes calldata parameters) external view returns (uint256);
+    function getAmount(Asset calldata asset, uint256 value, bytes calldata parameters)
+        external
+        view
+        returns (uint256);
+    function isCompatible(Asset calldata asset, bytes calldata parameters) external view returns (bool);
 }

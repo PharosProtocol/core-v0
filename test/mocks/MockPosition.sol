@@ -25,5 +25,9 @@ contract MockPosition is Position {
         return;
     }
 
+    function isCompatible(Asset calldata, bytes calldata) external pure override returns (bool) {
+        return true;
+    }
+
     // function _transferLoanAsset(address payable to, Asset memory asset, uint256 amount) internal override {}
 }
