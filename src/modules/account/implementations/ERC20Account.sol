@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {C} from "src/C.sol";
 import {Asset, ERC20_STANDARD} from "src/LibUtil.sol";
 import {Account} from "../Account.sol";
+import {IWETH9} from "src/interfaces/IWETH9.sol";
 
 // NOTE could bypass need here (and other modules) for C.BOOKKEEPER_ROLE by verifying signed agreement and tracking
 //      which have already been processed.
@@ -36,7 +37,13 @@ contract ERC20Account is Account {
     function _load(Asset calldata asset, uint256 amount, bytes calldata parameters) internal override {
         Parameters memory params = abi.decode(parameters, (Parameters));
         _increaseBalance(asset, amount, params);
-        require(IERC20(asset.addr).transferFrom(msg.sender, address(this), amount), "ERC20 transfer failed");
+
+        if (msg.value > 0 && asset.addr == C.WETH) {
+            assert(msg.value == amount);
+            IWETH9(C.WETH).deposit{value: msg.value}();
+        } else {
+            require(IERC20(asset.addr).transferFrom(msg.sender, address(this), amount), "ERC20 transfer failed");
+        }
     }
 
     /// @dev User must approve Account contract to spend before calling this.

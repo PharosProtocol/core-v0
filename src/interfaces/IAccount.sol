@@ -24,7 +24,7 @@ import {Asset} from "src/LibUtil.sol";
 interface IAccount {
     /// @notice Transfer asset and increment account balance. Pulls asset from sender or uses msg.value.
     function load(Asset calldata asset, uint256 amount, bytes calldata parameters) external payable;
-    /// @notice Transfer asset from address and increment account balance. Pulls asset from sender or uses msg.value.
+    /// @notice Transfer asset and increment account balance. Pulls asset from sender or uses msg.value.
     function sideLoad(address from, Asset calldata asset, uint256 amount, bytes calldata parameters) external payable;
     /// @notice Transfer asset out and decrement account balance. Pushes asset to sender.
     function unload(Asset calldata asset, uint256 amount, bytes calldata parameters) external;

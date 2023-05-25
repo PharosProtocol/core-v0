@@ -13,9 +13,7 @@ import {Module} from "src/modules/Module.sol";
 abstract contract Account is IAccount, AccessControl, Module {
     event Loaded(Asset asset, uint256 amount, bytes parameters);
     event Unloaded(Asset asset, uint256 amount, bytes parameters);
-    event TransferredToPosition(
-        address position, Asset asset, uint256 amount, bool isLockedAsset, bytes parameters
-    );
+    event TransferredToPosition(address position, Asset asset, uint256 amount, bool isLockedAsset, bytes parameters);
     event Locked(Asset asset, uint256 amount, bytes parameters);
     event Unlocked(Asset asset, uint256 amount, bytes parameters);
 
