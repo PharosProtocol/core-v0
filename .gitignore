@@ -2,9 +2,13 @@
 cache/
 out/
 test/__pycache__/
+bin/
+build/
+lib/.DS_Store
 
 # Dev files
 dev_doc.txt
+.vscode/
 
 # Ignores development broadcast logs
 !/broadcast
