@@ -18,7 +18,7 @@ struct ModuleReference {
     address addr;
     bytes parameters;
 }
-
+    
 /// @notice terms shared between Offers and Requests.
 struct Order {
     uint256[] minLoanAmounts; // idx parity with loanAssets

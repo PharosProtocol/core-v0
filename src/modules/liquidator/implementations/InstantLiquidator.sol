@@ -19,17 +19,14 @@ struct Parameters {
 
 /*
  * Liquidate a position by giving all assets to liquidator and verifying that end balances for lender and borrower are
- * as expected. Priority: liquidator, lender, borrower. Only useable with ERC20s due to need for divisibility.
+ * as expected. Priority order: liquidator, lender, borrower. Only useable with ERC20s due to need for divisibility.
  * Liquidator reward is a ratio of position value with absolute minimum and maximum value.
  */
 
 contract InstantLiquidator is Liquidator {
     event Liquidated(address position, uint256 lenderReturn, uint256 borrowerReturn);
 
-    constructor(address bookkeeperAddr) Liquidator(bookkeeperAddr) {
-        // COMPATIBLE_LOAN_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
-        // COMPATIBLE_COLL_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
-    }
+    constructor(address bookkeeperAddr) Liquidator(bookkeeperAddr) {}
 
     function verifyCompatibility(Agreement memory agreement) external pure {
         require(agreement.loanAsset.standard == ERC20_STANDARD, "loan asset must be ERC20"); // can also do eth?

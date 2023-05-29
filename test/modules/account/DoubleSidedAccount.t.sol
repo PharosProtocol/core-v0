@@ -68,7 +68,7 @@ contract AccountTest is TestUtils {
         accountModule.load(ASSETS[0], 11e18, parameters);
 
         // Fail to add ERC20 because asset not approved.
-        vm.expectRevert("ERC20: transfer amount exceeds allowance");
+        vm.expectRevert("safeErc20TransferFrom failed");
         accountModule.load(ASSETS[1], 1e18, parameters);
 
         // Approve ERC20s.
@@ -76,7 +76,7 @@ contract AccountTest is TestUtils {
         IERC20(ASSETS[1].addr).approve(address(accountModule), 999e18);
 
         // Fail to add ERC20 because balance too low.
-        vm.expectRevert("ERC20: transfer amount exceeds balance");
+        vm.expectRevert("safeErc20TransferFrom failed");
         accountModule.load(ASSETS[1], 11e18, parameters);
 
         // Add WETH.

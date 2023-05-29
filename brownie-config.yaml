@@ -3,7 +3,7 @@ project_structure:
     contracts: src
     interfaces: interfaces
     reports: reports
-    scripts: scripts
+    scripts: test/script
     tests: test
 
 networks:

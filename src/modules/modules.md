@@ -11,7 +11,7 @@ There are 4 layers to consider when understanding a Module. From highest level t
 2. Module Type - Defined by the *solidity implementation* of a module
 3. Module Instance - Defined by the *parameter bytes*, which are immutable across the lifetime of the instance
 4. Module State - Set and altered by Type *functions*
-
+    
 Each Module Category may have many Types implemented and each Type may have many Instances which will in turn manage their
 own state.
 Each Type must adhere to the protocol-defined interface. Implementation specific data can be passed through an arbitrary 

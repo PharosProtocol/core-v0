@@ -10,6 +10,6 @@
 //  */
 
 // interface IHandler {
-//     // function pushAssetToAccount(address accountAddr, bytes accountParameters, Asset asset, uint256 amount) external;
+//     // function pushAssetToAccount(address   accountAddr, bytes accountParameters, Asset asset, uint256 amount) external;
 //     function pushAssetToAddress(address addr, Asset asset, uint256 amount) external;
 // }
