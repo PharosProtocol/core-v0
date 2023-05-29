@@ -37,24 +37,6 @@ contract StandardAssessor is Assessor {
         console.log("cost: %s", amount);
     }
 
-    function isGTE(bytes calldata parameters0, bytes calldata parameters1) external pure returns (bool) {
-        Parameters memory p0 = abi.decode(parameters0, (Parameters));
-        Parameters memory p1 = abi.decode(parameters1, (Parameters));
-        return (
-            p0.originationFeeRatio >= p1.originationFeeRatio && p0.interestRatio >= p1.interestRatio
-                && p0.profitShareRatio >= p1.profitShareRatio
-        );
-    }
-
-    function isLTE(bytes calldata parameters0, bytes calldata parameters1) external pure returns (bool) {
-        Parameters memory p0 = abi.decode(parameters0, (Parameters));
-        Parameters memory p1 = abi.decode(parameters1, (Parameters));
-        return (
-            p0.originationFeeRatio <= p1.originationFeeRatio && p0.interestRatio <= p1.interestRatio
-                && p0.profitShareRatio <= p1.profitShareRatio
-        );
-    }
-
     // Although the assessor is not moving assets around, this assessment only makes sense with divisible assets.
     // Collateral asset is irrelevant.
     function isCompatible(Asset calldata loanAsset, Asset calldata collAsset, bytes calldata)

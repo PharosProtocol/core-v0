@@ -6,7 +6,6 @@ import {AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessC
 import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
 import {C} from "src/C.sol";
 import {ILiquidator} from "src/interfaces/ILiquidator.sol";
-import {IComparableParameters} from "src/interfaces/IComparableParameters.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
 import {Module} from "src/modules/Module.sol";
 

@@ -4,7 +4,6 @@ pragma solidity 0.8.19;
 
 import {AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
 import {C} from "src/C.sol";
-import {IComparableParameters} from "src/interfaces/IComparableParameters.sol";
 import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
 import {Asset} from "src/LibUtil.sol";
@@ -18,7 +17,7 @@ import {Asset} from "src/LibUtil.sol";
  * Implementations may also offer additional non-essential functionality beyond the standard interface.
  */
 
-interface ILiquidator is IComparableParameters {
+interface ILiquidator {
     // NOTE it isn't really necessary to standardize the liquidation interface. It could entirely bypass modulus and
     //      implement an arbitrarily complex interface with calls being made directly to the liquidator contract. Would
     //      need to verify signatures, but otherwise not much more complex. Probably will not implement a liquidation

@@ -2,7 +2,6 @@
 
 pragma solidity 0.8.19;
 
-import {IComparableParameters} from "src/interfaces/IComparableParameters.sol";
 import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
 import {Asset} from "src/LibUtil.sol";
 
@@ -13,7 +12,7 @@ import {Asset} from "src/LibUtil.sol";
  * factory exit implementations as well.
  */
 
-interface IAssessor is IComparableParameters {
+interface IAssessor {
     /// @notice Returns the cost of a loan (not including principle), denoted in loan asset.
     function getCost(Agreement calldata agreement) external view returns (uint256 amount);
     function isCompatible(Asset calldata loanAsset, Asset calldata collAsset, bytes calldata parameters)

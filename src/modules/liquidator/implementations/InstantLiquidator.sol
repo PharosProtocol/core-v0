@@ -97,25 +97,6 @@ contract InstantLiquidator is Liquidator {
         emit Liquidated(agreement.position.addr, lenderReturnExpected, borrowerReturnExpected);
     }
 
-    /// @notice returns true if reward for parameters 0 always greater than or equal to parameters 1
-    function isGTE(bytes calldata parameters0, bytes calldata parameters1) external pure returns (bool) {
-        Parameters memory p0 = abi.decode(parameters0, (Parameters));
-        Parameters memory p1 = abi.decode(parameters1, (Parameters));
-        return (
-            p0.valueRatio >= p1.valueRatio && p0.minRewardValue >= p1.minRewardValue
-                && p0.maxRewardValue >= p1.maxRewardValue
-        );
-    }
-
-    function isLTE(bytes calldata parameters0, bytes calldata parameters1) external pure returns (bool) {
-        Parameters memory p0 = abi.decode(parameters0, (Parameters));
-        Parameters memory p1 = abi.decode(parameters1, (Parameters));
-        return (
-            p0.valueRatio <= p1.valueRatio && p0.minRewardValue <= p1.minRewardValue
-                && p0.maxRewardValue <= p1.maxRewardValue
-        );
-    }
-
     function isCompatible(Asset calldata loanAsset, Asset calldata collAsset, bytes calldata)
         external
         pure
