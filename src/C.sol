@@ -22,8 +22,8 @@ library C {
     // address internal constant WETH = address(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
     // address internal constant USDC = address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
 
-    address internal constant USDC = address(0xd35CCeEAD182dcee0F148EbaC9447DA2c4D449c4);
-    address internal constant WETH = address(0x0Bb7509324cE409F7bbC4b701f932eAca9736AB7);
+    address internal constant USDC = address(0x32dBd8db20Bfe5506104119EdCC89bc3D8C5c3Ee);
+    address internal constant WETH = address(0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6);
 
     // address internal constant WETH = address("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2");
     // address internal constant USDC = address("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48");
