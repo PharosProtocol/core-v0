@@ -32,7 +32,6 @@ struct Asset {
 }
 
 library Utils {
-
     // NOTE is there an efficiency loss when calldata is passed in here as memory?
     function isEth(Asset memory asset) public pure returns (bool) {
         return asset.standard == ETH_STANDARD;

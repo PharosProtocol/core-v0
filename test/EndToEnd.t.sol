@@ -176,8 +176,17 @@ contract EndToEndTest is TestUtils {
             startTime: 0,
             endTime: type(uint256).max
         });
-        // console.log("offer data at encoding:");
+
+        // (bytes1 blueprintDataType, bytes memory blueprintData) = bookkeeper.unpackDataField(offerBlueprint.data);
+        // require(uint8(blueprintDataType) == uint8(Bookkeeper.BlueprintDataType.ORDER), "BKDTMM");
+        // console.log("offer encoded:");
         // console.logBytes(abi.encode(offer));
+        // console.log("offerBlueprint.data:");
+        // console.logBytes(offerBlueprint.data);
+        // Order memory order = abi.decode(blueprintData, (Order));
+
+        console.log("order data at encoding:");
+        console.logBytes(abi.encode(offer));
         // console.log("blueprint data at encoding:");
         // console.logBytes(offerBlueprint.data);
         bytes32 offerBlueprintHash = bookkeeper.getTypedDataHash(keccak256(abi.encode(offerBlueprint)));

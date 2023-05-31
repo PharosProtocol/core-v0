@@ -34,6 +34,7 @@ import {IAssessor} from "src/interfaces/IAssessor.sol";
  */
 contract Bookkeeper is Tractor {
     enum BlueprintDataType {
+        NULL,
         ORDER,
         AGREEMENT
     }
@@ -56,8 +57,10 @@ contract Bookkeeper is Tractor {
         // decode order blueprint data and ensure blueprint metadata is valid pairing with embedded data
         (bytes1 blueprintDataType, bytes memory blueprintData) = unpackDataField(orderBlueprint.blueprint.data);
         require(uint8(blueprintDataType) == uint8(BlueprintDataType.ORDER), "BKDTMM");
+        console.log("order data at decoding:");
+        console.logBytes(blueprintData);
         // console.log("blueprint data at decoding:");
-        // console.logBytes(blueprintData);
+        // console.logBytes(orderBlueprint.blueprint.data);
         Order memory order = abi.decode(blueprintData, (Order));
         require(
             orderBlueprint.blueprint.publisher == IAccount(order.account.addr).getOwner(order.account.parameters),

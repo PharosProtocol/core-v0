@@ -50,6 +50,9 @@ contract ERC20Account is Account {
         Utils.safeErc20Transfer(asset.addr, msg.sender, amount);
     }
 
+    // NOTE this asset knowledge could be removed entirely from Accounts. This function logic would live in positions,
+    //      which inherently need ti understand the asset(s), and could be called by the bookkeeper using delegatecall.
+    //      Thus account can allow it to remove assets using arbitrary passthrough function.
     function _transferToPosition(
         address position,
         Asset calldata asset,
