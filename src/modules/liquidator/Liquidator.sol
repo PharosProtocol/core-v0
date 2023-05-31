@@ -13,18 +13,17 @@ abstract contract Liquidator is ILiquidator, AccessControl, Module {
     // NOTE need a system to ensure the same "position" signed message cannot be double liquidated
     // mapping(bytes32 => bool) internal liquidating;
 
+    event KickReceived(address indexed position, Agreement agreement);
+    event Liquidated(address indexed position, address indexed liquidator);
+
     constructor(address bookkeeperAddr) {
-        _setupRole(C.CONTROLLER_ROLE, bookkeeperAddr); // Factory role set
+        _setupRole(C.BOOKKEEPER_ROLE, bookkeeperAddr);
     }
 
-    function liquidate(Agreement memory agreement) external {
-        require(
-            IPosition(agreement.position.addr).hasRole(C.CONTROLLER_ROLE, address(this)),
-            "Liquidator: not currently liquidating this position"
-        );
-        _liquidate(agreement);
-        // IPosition(agreement.position.addr).transferContract(agreement.liquidator.addr);
+    function receiveKick(Agreement calldata agreement) external onlyRole(C.BOOKKEEPER_ROLE) {
+        _receiveKick(agreement);
+        emit KickReceived(agreement.position.addr, agreement);
     }
 
-    function _liquidate(Agreement memory agreement) internal virtual;
+    function _receiveKick(Agreement calldata agreement) internal virtual;
 }
