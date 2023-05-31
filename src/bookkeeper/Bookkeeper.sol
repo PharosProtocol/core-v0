@@ -59,7 +59,10 @@ contract Bookkeeper is Tractor {
         // console.log("blueprint data at decoding:");
         // console.logBytes(blueprintData);
         Order memory order = abi.decode(blueprintData, (Order));
-        require(orderBlueprint.blueprint.publisher == Utils.getAccountOwner(order.account), "BKPOMM");
+        require(
+            orderBlueprint.blueprint.publisher == IAccount(order.account.addr).getOwner(order.account.parameters),
+            "BKPOMM"
+        );
         if (order.takers.length > 0) {
             require(order.takers[fill.takerIdx] == msg.sender, "Bookkeeper: Invalid taker");
         }
@@ -163,7 +166,7 @@ contract Bookkeeper is Tractor {
         // All asset management must be done within this call, else bk would need to have asset-specific knowledge.
         IPosition position = IPosition(agreement.position.addr);
 
-        position.exit(agreement, agreement.position.parameters);
+        position.exit(msg.sender, agreement, agreement.position.parameters);
 
         IAccount(agreement.borrowerAccount.addr).unlockCollateral(
             agreement.collAsset, agreement.collateralAmount, agreement.borrowerAccount.parameters

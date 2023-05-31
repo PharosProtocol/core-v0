@@ -32,9 +32,6 @@ struct Asset {
 }
 
 library Utils {
-    function getAccountOwner(ModuleReference memory module) internal view returns (address) {
-        return IAccount(module.addr).getOwner(module.parameters);
-    }
 
     // NOTE is there an efficiency loss when calldata is passed in here as memory?
     function isEth(Asset memory asset) public pure returns (bool) {

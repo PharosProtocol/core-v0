@@ -18,7 +18,7 @@ interface IPosition is IAccessControl {
     function getExitAmount(bytes calldata parameters) external view returns (uint256);
     /// @notice Borrower close of position
     /// @notice Distribute assets to appropriate Accounts/wallets. Give control to borrower.
-    function exit(Agreement memory agreement, bytes calldata parameters) external;
+    function exit(address sender, Agreement memory agreement, bytes calldata parameters) external;
     /// @notice Transfer the position to a new controller. Used for liquidations.
     /// @dev Do not set admin role to prevent liquidator from pushing the position back into the protocol.
     function transferContract(address controller) external;

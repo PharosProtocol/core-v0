@@ -45,7 +45,7 @@ contract HoldFactory is Position {
     }
 
     /// @notice Do nothing.
-    function _exit(Agreement calldata agreement, bytes calldata parameters) internal override {
+    function _exit(address sender, Agreement calldata agreement, bytes calldata parameters) internal override {
         // Parameters memory params = abi.decode(parameters, (Parameters));
     }
 

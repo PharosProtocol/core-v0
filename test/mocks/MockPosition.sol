@@ -21,7 +21,7 @@ contract MockPosition is Position {
         return;
     }
 
-    function _exit(Agreement calldata, bytes calldata) internal pure override {
+    function _exit(address, Agreement calldata, bytes calldata) internal pure override {
         return;
     }
 

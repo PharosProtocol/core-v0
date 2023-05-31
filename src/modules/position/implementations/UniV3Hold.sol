@@ -134,14 +134,8 @@ contract UniV3HoldFactory is Position {
         // verifyAssetAllowed(asset); // NOTE should check that asset is match to path.
         ISwapRouter router = ISwapRouter(UNI_V3_ROUTER);
 
-        // // NOTE is wrapping built into uni v3 at lib/v3-periphery/contracts/base/PeripheryPayments.sol ?
-        // if (asset.standard == ETH_STANDARD) {
-        //     IWETH9(C.WETH).deposit{value: amount}();
-        //     IERC20(C.WETH).approve(UNI_V3_ROUTER, amount); // NOTE front running?
-        // } else {
         require(asset.standard == ERC20_STANDARD, "UniV3Hold: asset must be ERC20");
         IERC20(asset.addr).approve(UNI_V3_ROUTER, amount); // NOTE front running?
-        // }
 
         // NOTE can use ExactInput instead to support single hop trades w/o worry for path.
         // ISwapRouter.ExactInputSingleParams memory swapParams = ISwapRouter.ExactInputSingleParams({
@@ -172,7 +166,7 @@ contract UniV3HoldFactory is Position {
     //       amount. then if they give themselves a bad deal they are the only one who loses. Alt Answer: Allow
     //       liquidator to pass through any function via callback, so long as they return enough assets to Modulend
     //       lender / borrower in end.
-    function _exit(Agreement calldata agreement, bytes calldata parameters) internal override {
+    function _exit(address sender, Agreement calldata agreement, bytes calldata parameters) internal override {
         Parameters memory params = abi.decode(parameters, (Parameters));
         // require(heldAsset.standard == ERC20_STANDARD, "UniV3Hold: exit asset must be ETH or ERC20");
         (address heldAsset,,) = params.exitPath.decodeFirstPool();
@@ -211,14 +205,9 @@ contract UniV3HoldFactory is Position {
             } else {
                 borrowerAmount = 0;
                 // Lender is owed more than the position is worth.
-                // Lender gets all of the position and borrower pays the difference.
+                // Lender gets all of the position and exiter (borrower) pays the difference.
                 // NOTE could maybe save gas if account PushFrom implemented. Or some decoupling of transfer logic and incrementing.
-                Utils.safeErc20TransferFrom(
-                    agreement.loanAsset.addr,
-                    IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters),
-                    address(this),
-                    lenderOwed - exitedAmount
-                );
+                Utils.safeErc20TransferFrom(agreement.loanAsset.addr, sender, address(this), lenderOwed - exitedAmount);
             }
         }
 
@@ -229,21 +218,15 @@ contract UniV3HoldFactory is Position {
             );
         }
 
-        // Send borrower loan asset funds to their wallet, bc it is unknown if compatible with collateral account.
-        // Could require compatibility between loan asset and borrow account, but would cause unneeded compatibility
-        // restrictions.
+        // Send borrower loan asset funds to their account. Requires compatibility btwn loan asset and borrow account.
         if (borrowerAmount > 0) {
-            Utils.safeErc20Transfer(
-                agreement.loanAsset.addr,
-                IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters),
-                borrowerAmount
+            loanAsset.approve(agreement.borrowerAccount.addr, borrowerAmount);
+            IAccount(agreement.borrowerAccount.addr).load(
+                agreement.loanAsset, borrowerAmount, agreement.borrowerAccount.parameters
             );
         }
 
-        // // Convert WETH to ETH.
-        // if (exitAsset.standard == ETH_STANDARD) {
-        //     IWETH9(C.WETH).withdraw(exitAmount);
-        // }
+        // Collateral is still in borrower account and is unlocked by the bookkeeper.
     }
 
     // // Only used for transferring loan asset direct to user.

@@ -32,18 +32,18 @@ abstract contract Position is IPosition, PositionFactory, Module {
 
     function _deploy(Asset calldata asset, uint256 amount, bytes calldata parameters) internal virtual;
 
-    function exit(Agreement calldata agreement, bytes calldata parameters)
+    function exit(address sender, Agreement calldata agreement, bytes calldata parameters)
         external
         override
         proxyExecution
         onlyRole(C.ADMIN_ROLE)
     {
-        _exit(agreement, parameters);
+        _exit(sender, agreement, parameters);
     }
 
     /// @notice Close position and distribute assets. Give borrower MPC control.
     /// @dev All asset management must be done within this call, else bk would need to have asset-specific knowledge.
-    function _exit(Agreement calldata agreement, bytes calldata parameters) internal virtual;
+    function _exit(address sender, Agreement calldata agreement, bytes calldata parameters) internal virtual;
 
     // function _transferLoanAsset(address payable to, Asset memory asset, uint256 amount) internal virtual;
 

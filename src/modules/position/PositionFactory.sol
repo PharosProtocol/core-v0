@@ -78,6 +78,4 @@ abstract contract PositionFactory is AccessControl, Initializable {
     }
 
     receive() external payable {}
-
-    // function _exit(bytes memory parameters) internal virtual returns (uint256 exitAmount) internal virtual;
 }
