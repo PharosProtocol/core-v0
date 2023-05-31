@@ -21,11 +21,25 @@ import {Asset} from "src/LibUtil.sol";
 // compatibility between all module calls and the orders.
 // This catch22 probably applies to all modules interfaces...
 
+// There is a lot of complexity at position closure (happy or liquidation) bc there are 2 assets moving and both may
+// not be compatible with both accounts. This results in assets being sent to account owners, which actually breaks
+// the abstraction of Accounts replacing addresses. Previously did not want to require both accounts to be compatible
+// with both assets, bc it significantly tightens compatibility matrix when using niche assets and fractures supply.
+// Realizing now that using owner wallet will not be possible when Account represents a pool.
+//
+// Logic will actually be a lot simpler if we can remove Load methods and instead do direct sends based on asset type.
+// Balances can be verified directly. Assume each account is exactly 1 user and abstraction always holds. Do not allow
+// borrower accounts to be used if they cannot handle the borrowed asset (lender accounts do not need to be compatible
+// with collateral? or do they if they are using a liquidator that passes collateral to lender?). Ok tight compatibility
+// may be long term challenging but will make design much easier. May embrace it.
+// Actually, if using direct sends do accounts need any sense of compatibility? Can argue it is account manager's
+// responsibility to be able to withdraw any assets they find at the address.
+//
+// ^^ in follow up to this implemented the optional initCheck() method for Modules.
+
 interface IAccount {
     /// @notice Transfer asset and increment account balance. Pulls asset from sender or uses msg.value.
     function load(Asset calldata asset, uint256 amount, bytes calldata parameters) external payable;
-    /// @notice Transfer asset and increment account balance. Pulls asset from sender or uses msg.value.
-    function sideLoad(address from, Asset calldata asset, uint256 amount, bytes calldata parameters) external payable;
     /// @notice Transfer asset out and decrement account balance. Pushes asset to sender.
     function unload(Asset calldata asset, uint256 amount, bytes calldata parameters) external;
     /// @notice Transfer loan or collateral asset from account to Position MPC. Pushes.
@@ -43,10 +57,10 @@ interface IAccount {
     // be determined without external calls? To save gas.
     function getOwner(bytes calldata parameters) external view returns (address);
 
-    function isCompatible(Asset calldata loanAsset, Asset calldata collAsset, bytes calldata parameters)
+    function getBalance(Asset calldata asset, bytes calldata parameters) external view returns (uint256);
+
+    function canHandleAsset(Asset calldata asset, bytes calldata parameters)
         external
         view
         returns (bool);
-
-    function getBalance(Asset calldata asset, bytes calldata parameters) external view returns (uint256);
 }

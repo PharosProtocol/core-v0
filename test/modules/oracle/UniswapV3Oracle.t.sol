@@ -13,7 +13,7 @@ import {HandlerUtils} from "test/TestUtils.sol";
 import {Module} from "src/modules/Module.sol";
 
 import "lib/v3-periphery/contracts/libraries/PoolAddress.sol";
-import "lib/v3-core/contracts/UniswapV3Pool.sol";
+// import "lib/v3-core/contracts/UniswapV3Pool.sol";
 import {FullMath} from "lib/v3-core/contracts/libraries/FullMath.sol";
 
 // import {TestUtils} from "test/LibTestUtils.sol";

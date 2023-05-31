@@ -65,7 +65,7 @@ contract UniswapV3Oracle is Oracle {
     /// NOTE ^^ alternatively pass in arguments to below functions which are verified at runtime, like asset. this
     ///         guards against using a factory maliciously and removes need to ensure compatibility between
     ///         agreement fields and encoded bytes of module parameters.
-    function isCompatible(Asset calldata asset, bytes calldata parameters) external pure override returns (bool) {
+    function canHandleAsset(Asset calldata asset, bytes calldata parameters) external pure override returns (bool) {
         Parameters memory params = abi.decode(parameters, (Parameters));
 
         address assetAddr;

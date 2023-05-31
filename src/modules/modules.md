@@ -31,7 +31,6 @@ a Module of that Category. ? you can guarantee parity between different componen
 
 #### List of all transfer scenarios
 - *Load*: User -> Account, pulls
-- *SideLoad*: User -> Account, pulls used by bookkeepeer to pay borrower->lender in exit
 - *Unload*: Account -> User, pushes
 - *Capitalize*: Account -> Position, pushes
 - *Exit*: Position -> Accounts, pushes

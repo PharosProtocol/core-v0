@@ -8,7 +8,7 @@ import {Asset} from "src/LibUtil.sol";
 
 /*
  * Each Position represents one deployment of capital through a factory.
- * Position status is determined by address assignment to CONTROLLER_ROLE.
+ * Position status is determined by address assignment to ADMIN_ROLE.
  */
 
 interface IPosition is IAccessControl {
@@ -18,17 +18,17 @@ interface IPosition is IAccessControl {
     function getExitAmount(bytes calldata parameters) external view returns (uint256);
     /// @notice Borrower close of position
     /// @notice Distribute assets to appropriate Accounts/wallets. Give control to borrower.
-    function exit(Agreement memory agreement, bytes calldata parameters) external; // onlyRole(CONTROLLER_ROLE)
+    function exit(Agreement memory agreement, bytes calldata parameters) external;
     /// @notice Transfer the position to a new controller. Used for liquidations.
     /// @dev Do not set admin role to prevent liquidator from pushing the position back into the protocol.
-    function transferContract(address controller) external; // onlyRole(CONTROLLER_ROLE)
+    function transferContract(address controller) external;
 
-    function isCompatible(Asset calldata loanAsset, bytes calldata parameters) external pure returns (bool);
+    function canHandleAsset(Asset calldata asset, bytes calldata parameters) external pure returns (bool);
     /// @notice Pass through function to allow the position to interact with other contracts after liquidation.
     /// @dev Internal functions are not reachable. // NOTE right? bc allowing controller to be set *back* to bookkeeper will open exploits
     function passThrough(address payable destination, bytes calldata data)
         external
         payable
-        returns (bool, bytes memory); // onlyRole(CONTROLLER_ROLE)
-        // function removeEth(address payable recipient) external // ONLY_ROLE(BOOKKEEPER_ROLE)
+        returns (bool, bytes memory);
+    // function removeEth(address payable recipient) external // ONLY_ROLE(BOOKKEEPER_ROLE)
 }

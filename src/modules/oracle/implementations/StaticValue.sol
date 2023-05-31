@@ -28,7 +28,7 @@ contract StaticUsdcPriceOracle is Oracle {
         return value / params.value; // rounding?
     }
 
-    function isCompatible(Asset calldata, bytes calldata) external pure override returns (bool) {
+    function canHandleAsset(Asset calldata, bytes calldata) external pure override returns (bool) {
         return true;
     }
 }

@@ -25,7 +25,7 @@ abstract contract Position is IPosition, PositionFactory, Module {
         external
         override
         proxyExecution
-        onlyRole(C.CONTROLLER_ROLE)
+        onlyRole(C.ADMIN_ROLE)
     {
         _deploy(asset, amount, parameters);
     }
@@ -36,7 +36,7 @@ abstract contract Position is IPosition, PositionFactory, Module {
         external
         override
         proxyExecution
-        onlyRole(C.CONTROLLER_ROLE)
+        onlyRole(C.ADMIN_ROLE)
     {
         _exit(agreement, parameters);
     }
@@ -45,16 +45,15 @@ abstract contract Position is IPosition, PositionFactory, Module {
     /// @dev All asset management must be done within this call, else bk would need to have asset-specific knowledge.
     function _exit(Agreement calldata agreement, bytes calldata parameters) internal virtual;
 
-
     // function _transferLoanAsset(address payable to, Asset memory asset, uint256 amount) internal virtual;
 
     // AUDIT Hello auditors, pls gather around. This feels risky.
-    function transferContract(address controller) external override proxyExecution onlyRole(C.CONTROLLER_ROLE) {
+    function transferContract(address controller) external override proxyExecution onlyRole(C.ADMIN_ROLE) {
         // ADMIN_ROLE is not transferred to prevent hostile actors from 'reactivating' a position by setting the
         // controller back to the bookkeeper.
         // grantRole(LIQUIDATOR_ROLE, controller); // having a distinct liquidator role and controller role is a nicer abstraction, but has gas cost for no benefit.
-        grantRole(C.CONTROLLER_ROLE, controller);
-        renounceRole(C.CONTROLLER_ROLE, msg.sender);
+        grantRole(C.ADMIN_ROLE, controller);
+        renounceRole(C.ADMIN_ROLE, msg.sender);
 
         // TODO fix this so that admin role is not granted to untrustable code (liquidator user or module). Currently
         // will get stuck as liquidator module will not be able to grant liquidator control.
@@ -70,7 +69,7 @@ abstract contract Position is IPosition, PositionFactory, Module {
         external
         payable
         proxyExecution
-        onlyRole(C.CONTROLLER_ROLE)
+        onlyRole(C.ADMIN_ROLE)
         returns (bool, bytes memory)
     {
         return destination.call{value: msg.value}(data);

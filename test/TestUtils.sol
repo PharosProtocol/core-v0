@@ -5,7 +5,7 @@ pragma solidity 0.8.19;
 import "forge-std/Test.sol";
 
 import {C} from "src/C.sol";
-import {IWETH9} from "src/interfaces/IWETH9.sol";
+import {IWETH9} from "src/interfaces/external/IWETH9.sol";
 
 contract TestUtils is Test {
     // modifier requireFork() {

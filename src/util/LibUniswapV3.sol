@@ -5,7 +5,7 @@ pragma solidity 0.8.19;
 import "lib/forge-std/src/console.sol";
 
 import {C} from "src/C.sol";
-import {IUniswapV3Pool} from "lib/v3-core/contracts/UniswapV3Pool.sol";
+import {IUniswapV3Pool} from "lib/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import {PoolAddress} from "lib/v3-periphery/contracts/libraries/PoolAddress.sol";
 import {OracleLibrary} from "lib/v3-periphery/contracts/libraries/OracleLibrary.sol";
 import {Path} from "lib/v3-periphery/contracts/libraries/path.sol";

@@ -25,5 +25,5 @@ interface IOracle {
         external
         view
         returns (uint256);
-    function isCompatible(Asset calldata asset, bytes calldata parameters) external view returns (bool);
+    function canHandleAsset(Asset calldata asset, bytes calldata parameters) external view returns (bool);
 }

@@ -12,7 +12,7 @@ import "forge-std/console.sol";
 
 import {TestUtils} from "test/TestUtils.sol";
 
-import {IUniswapV3Pool} from "lib/v3-core/contracts/UniswapV3Pool.sol";
+// import {IUniswapV3Pool} from "lib/v3-core/contracts/UniswapV3Pool.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {ERC20Account} from "src/modules/account/implementations/ERC20Account.sol";

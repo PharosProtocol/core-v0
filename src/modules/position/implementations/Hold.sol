@@ -55,7 +55,7 @@ contract HoldFactory is Position {
         return amountHeld;
     }
 
-    function isCompatible(Asset calldata asset, bytes calldata) external pure override returns (bool) {
+    function canHandleAsset(Asset calldata asset, bytes calldata) external pure override returns (bool) {
         if (asset.standard != ERC20_STANDARD) return false;
         return true;
     }

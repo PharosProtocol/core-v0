@@ -13,10 +13,10 @@ import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
 
 import "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
-import "src/interfaces/IWETH9.sol";
+import "src/interfaces/external/IWETH9.sol";
 import {ISwapRouter} from "lib/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 import "lib/v3-periphery/contracts/libraries/PoolAddress.sol";
-import "lib/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+// import "lib/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "lib/v3-core/contracts/libraries/TickMath.sol";
 import "lib/v3-core/contracts/libraries/FixedPoint96.sol";
 import "lib/v3-core/contracts/libraries/FullMath.sol";
@@ -90,7 +90,7 @@ contract UniV3HoldFactory is Position {
         // COMPATIBLE_COLL_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
     }
 
-    function isCompatible(Asset calldata asset, bytes calldata parameters) external pure override returns (bool) {
+    function canHandleAsset(Asset calldata asset, bytes calldata parameters) external pure override returns (bool) {
         Parameters memory params = abi.decode(parameters, (Parameters));
         if (asset.standard != ERC20_STANDARD) return false;
         // if (params.enterPath.numPools() > 1) return false;

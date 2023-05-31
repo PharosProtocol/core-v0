@@ -39,13 +39,8 @@ contract StandardAssessor is Assessor {
 
     // Although the assessor is not moving assets around, this assessment only makes sense with divisible assets.
     // Collateral asset is irrelevant.
-    function isCompatible(Asset calldata loanAsset, Asset calldata collAsset, bytes calldata)
-        external
-        pure
-        override
-        returns (bool)
-    {
-        if (loanAsset.standard != ERC20_STANDARD || collAsset.standard != ERC20_STANDARD) return false;
-        return true;
+    function canHandleAsset(Asset calldata asset, bytes calldata) external pure override returns (bool) {
+        if (asset.standard == ERC20_STANDARD) return true;
+        return false;
     }
 }
