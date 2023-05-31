@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {C} from "src/C.sol";
 import {Asset, ERC20_STANDARD} from "src/LibUtil.sol";
 import {Account} from "../Account.sol";
-import {IWETH9} from "src/interfaces/IWETH9.sol";
+import {IWETH9} from "src/interfaces/external/IWETH9.sol";
 import "src/LibUtil.sol";
 
 // NOTE could bypass need here (and other modules) for C.BOOKKEEPER_ROLE by verifying signed agreement and tracking
@@ -41,18 +41,6 @@ contract ERC20Account is Account {
         } else {
             Utils.safeErc20TransferFrom(asset.addr, msg.sender, address(this), amount);
         }
-    }
-
-    /// @dev User must approve Account contract to spend before calling this.
-    /// @dev The bookkeeper is the only actor that is allowed to act as a delegate. Else approved funds are at risk.
-    function _sideLoad(address from, Asset calldata asset, uint256 amount, bytes calldata parameters)
-        internal
-        override
-        onlyRole(C.BOOKKEEPER_ROLE)
-    {
-        Parameters memory params = abi.decode(parameters, (Parameters));
-        _increaseBalance(asset, amount, params);
-        Utils.safeErc20TransferFrom(asset.addr, from, address(this), amount);
     }
 
     function _unload(Asset calldata asset, uint256 amount, bytes calldata parameters) internal override {
@@ -106,14 +94,9 @@ contract ERC20Account is Account {
         return abi.decode(parameters, (Parameters)).owner;
     }
 
-    function isCompatible(Asset calldata loanAsset, Asset calldata collAsset, bytes calldata)
-        external
-        pure
-        override
-        returns (bool)
-    {
-        if (loanAsset.standard != ERC20_STANDARD || collAsset.standard != ERC20_STANDARD) return false;
-        return true;
+    function canHandleAsset(Asset calldata asset, bytes calldata) external pure override returns (bool) {
+        if (asset.standard == ERC20_STANDARD) return true;
+        return false;
     }
 
     function getBalance(Asset calldata asset, bytes calldata parameters)

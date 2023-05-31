@@ -173,49 +173,11 @@ contract Bookkeeper is Tractor {
         position.transferContract(msg.sender);
     }
 
-    // NOTE CEI?
-    // @notice Borrower directly pays lender and claim control over position MPC.
-    function detachPosition(SignedBlueprint calldata agreementBlueprint)
-        external
-        payable
-        verifySignature(agreementBlueprint)
-    {
-        (bytes1 blueprintDataType, bytes memory blueprintData) = unpackDataField(agreementBlueprint.blueprint.data);
-        require(
-            blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "Bookkeeper: Invalid blueprint data type"
-        );
-        Agreement memory agreement = abi.decode(blueprintData, (Agreement));
-        require(
-            msg.sender == IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters),
-            "Bookkeeper: Only borrower can exit position without liquidation"
-        );
-
-        uint256 owedAmount = IAssessor(agreement.assessor.addr).getCost(agreement);
-
-        // Borrower must pay difference directly if there is not enough value to pay Lender.
-        // Amount is not a compatible concept with all agreements, in those cases unpaid amount should be 0.
-        if (owedAmount > 0) {
-            // Requires sender to have already approved account contract to use necessary assets.
-            IAccount(payable(agreement.lenderAccount.addr)).sideLoad{value: msg.value}(
-                msg.sender, agreement.loanAsset, owedAmount, agreement.lenderAccount.parameters
-            );
-        }
-
-        IAccount(agreement.borrowerAccount.addr).unlockCollateral(
-            agreement.collAsset, agreement.collateralAmount, agreement.borrowerAccount.parameters
-        );
-
-        IPosition(agreement.position.addr).transferContract(agreement.liquidator.addr);
-    }
-
     function kick(SignedBlueprint calldata agreementBlueprint) external verifySignature(agreementBlueprint) {
-        (bytes1 blueprintDataType, bytes memory blueprintData) = unpackDataField(agreementBlueprint.blueprint.data);
-        require(blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "BKKIBDT");
+        (, bytes memory blueprintData) = unpackDataField(agreementBlueprint.blueprint.data);
+        // require(blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "BKKIBDT"); // decoding will fail
         Agreement memory agreement = abi.decode(blueprintData, (Agreement));
         IPosition position = IPosition(agreement.position.addr);
-
-        // // Cannot liquidate if not owned by protocol (liquidating/liquidated/exited).
-        // require(position.hasRole(C.CONTROLLER_ROLE, address(this)), "Position not owned by protocol");
 
         require(LibBookkeeper.isLiquidatable(agreement), "Bookkeeper: Position is not liquidatable");
 
@@ -226,7 +188,7 @@ contract Bookkeeper is Tractor {
         // Transfer ownership of the position to the liquidator, which includes collateral.
         position.transferContract(agreement.liquidator.addr);
         // Kick the position to begin liquidation.
-        // ILiquidator(agreement.liquidator.addr).takeKick(agreementBlueprint.blueprintHash);
+        ILiquidator(agreement.liquidator.addr).receiveKick(agreement);
         emit LiquidationKicked(agreement.liquidator.addr, agreement.position.addr);
     }
 

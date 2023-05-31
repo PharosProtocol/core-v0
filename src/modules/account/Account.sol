@@ -26,15 +26,6 @@ abstract contract Account is IAccount, AccessControl, Module {
         emit Loaded(asset, amount, parameters);
     }
 
-    function sideLoad(address from, Asset calldata asset, uint256 amount, bytes calldata parameters)
-        external
-        payable
-        override
-        onlyRole(C.BOOKKEEPER_ROLE)
-    {
-        return _sideLoad(from, asset, amount, parameters);
-    }
-
     function unload(Asset calldata asset, uint256 amount, bytes calldata parameters) external override {
         _unload(asset, amount, parameters);
         emit Unloaded(asset, amount, parameters);
@@ -70,9 +61,6 @@ abstract contract Account is IAccount, AccessControl, Module {
     }
 
     function _load(Asset calldata asset, uint256 amount, bytes calldata parameters) internal virtual;
-    function _sideLoad(address from, Asset calldata asset, uint256 amount, bytes calldata parameters)
-        internal
-        virtual;
     function _unload(Asset calldata asset, uint256 amount, bytes calldata parameters) internal virtual;
     function _transferToPosition(
         address position,
