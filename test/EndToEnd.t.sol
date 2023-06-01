@@ -52,6 +52,7 @@ contract EndToEndTest is TestUtils {
 
     uint256 LENDER_PRIVATE_KEY = 111;
     uint256 BORROWER_PRIVATE_KEY = 222;
+    uint256 LIQUIDATOR_PRIVATE_KEY = 333;
 
     // Copy of event definitions.
     event AssetAdded(address owner, bytes32 salt, Asset asset, uint256 amount);
@@ -74,7 +75,7 @@ contract EndToEndTest is TestUtils {
     }
 
     // Using USDC as collateral, borrow ETH and trade it into a leveraged long PEPE position.
-    function testUnit_Agree() public {
+    function test_FillClose() public {
         address lender = vm.addr(LENDER_PRIVATE_KEY);
         address borrower = vm.addr(BORROWER_PRIVATE_KEY);
 
@@ -114,8 +115,8 @@ contract EndToEndTest is TestUtils {
         (SignedBlueprint memory agreementSignedBlueprint, Agreement memory agreement) = retrieveAgreementFromLogs();
 
         // Move time and block forward arbitrarily.
-        vm.warp(block.timestamp + 100 * 12);
-        vm.roll(block.number + 100);
+        vm.warp(block.timestamp + 5 days);
+        vm.roll(block.number + (5 days / 12));
 
         // Borrower exits position. Send cost in eth because on local fork no value of assets occurs but cost increases.
         // uint256 cost = IAssessor(agreement.assessor.addr).getCost(agreement);
@@ -131,6 +132,73 @@ contract EndToEndTest is TestUtils {
 
         assertGe(accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 10e18);
         assertEq(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000e6);
+
+        console.log("done");
+    }
+
+    // Using USDC as collateral, borrow ETH and trade it into a leveraged long position. Liquidate.
+    function test_FillLiquidate() public {
+        address lender = vm.addr(LENDER_PRIVATE_KEY);
+        address borrower = vm.addr(BORROWER_PRIVATE_KEY);
+        address liquidator = vm.addr(LIQUIDATOR_PRIVATE_KEY);
+
+        ERC20Account.Parameters memory lenderAccountParams = ERC20Account.Parameters({owner: lender, salt: bytes32(0)});
+        ERC20Account.Parameters memory borrowerAccountParams =
+            ERC20Account.Parameters({owner: borrower, salt: bytes32(0)});
+
+        fundAccount(lenderAccountParams);
+        fundAccount(borrowerAccountParams);
+
+        assertEq(accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 10e18);
+        assertEq(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000e6);
+
+        Order memory order = createOrder(lenderAccountParams);
+        Blueprint memory orderBlueprint = Blueprint({
+            publisher: lender,
+            data: bookkeeper.packDataField(bytes1(uint8(Bookkeeper.BlueprintDataType.ORDER)), abi.encode(order)),
+            maxNonce: type(uint256).max,
+            startTime: 0,
+            endTime: type(uint256).max
+        });
+
+        console.log("blueprint data at encoding:");
+        console.logBytes(orderBlueprint.data);
+        SignedBlueprint memory orderSignedBlueprint = createSignedBlueprint(orderBlueprint, LENDER_PRIVATE_KEY);
+
+        Fill memory fill = createFill();
+        ModuleReference memory borrowerAccount =
+            ModuleReference({addr: address(accountModule), parameters: abi.encode(borrowerAccountParams)});
+        vm.prank(borrower);
+        bookkeeper.fillOrder(fill, orderSignedBlueprint, borrowerAccount);
+
+        assertEq(accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 8e18);
+        assertLt(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000e6);
+        assertGt(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 2_000e6);
+
+        (SignedBlueprint memory agreementSignedBlueprint, Agreement memory agreement) = retrieveAgreementFromLogs();
+
+        // Move time and block forward arbitrarily.
+        vm.roll(block.number + (8 days / 12));
+        vm.warp(block.timestamp + 8 days);
+
+        // Borrower exits position. Send cost in eth because on local fork no value of assets occurs but cost increases.
+        // uint256 cost = IAssessor(agreement.assessor.addr).getCost(agreement);
+        // uint256 exitAmount = IPosition(agreement.position.addr).getCloseAmount(agreement.loanAsset, agreement.position.parameters);
+        // console.log("exitAmount: %s", exitAmount);
+
+        // Approve position to use funds to fulfil obligation to lender. Borrower loses money :(
+        vm.deal(liquidator, 2e18);
+        wethDeal(liquidator, 12e18);
+        vm.prank(liquidator);
+        // IERC20(C.WETH).approve(address(liquidatorModule), 1e18 / 2);
+        // NOTE that the liquidator has to approve the position to spend their assets. meaning liquidators likely will not be willing to liquidate unverified positions.
+        IERC20(C.WETH).approve(address(agreement.position.addr), 33361424965364218); // exact amount determined from prev runs
+        vm.prank(liquidator);
+        bookkeeper.kick(agreementSignedBlueprint);
+
+        assertGe(accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 10e18);
+        assertLt(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000e6);
+        assertGt(IERC20(USDC_ASSET.addr).balanceOf(liquidator), 0);
 
         console.log("done");
     }
@@ -157,13 +225,13 @@ contract EndToEndTest is TestUtils {
             parameters: abi.encode(
                 StandardAssessor.Parameters({
                     originationFeeRatio: C.RATIO_FACTOR / 100,
-                    interestRatio: C.RATIO_FACTOR / 1000000,
+                    interestRatio: C.RATIO_FACTOR / 1000000000,
                     profitShareRatio: C.RATIO_FACTOR / 20
                 })
                 )
         });
         ModuleReference memory liquidator =
-            ModuleReference({addr: address(liquidatorModule), parameters: abi.encode(0)});
+            ModuleReference({addr: address(liquidatorModule), parameters: abi.encode(C.RATIO_FACTOR / 2)});
         // Solidity array syntax is so bad D:
         uint256[] memory minLoanAmounts = new uint256[](1);
         minLoanAmounts[0] = 1e18;

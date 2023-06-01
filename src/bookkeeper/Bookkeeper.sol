@@ -186,8 +186,12 @@ contract Bookkeeper is Tractor {
 
         require(LibBookkeeper.isLiquidatable(agreement), "Bookkeeper: Position is not liquidatable");
 
-        IAccount(agreement.lenderAccount.addr).transferToPosition(
-            agreement.position.addr, agreement.loanAsset, agreement.loanAmount, true, agreement.lenderAccount.parameters
+        IAccount(agreement.borrowerAccount.addr).transferToPosition(
+            agreement.position.addr,
+            agreement.collAsset,
+            agreement.collAmount,
+            true,
+            agreement.borrowerAccount.parameters
         );
 
         // Transfer ownership of the position to the liquidator, which includes collateral.
@@ -195,7 +199,7 @@ contract Bookkeeper is Tractor {
         emit LiquidationKicked(agreement.liquidator.addr, agreement.position.addr);
 
         // Allow liquidator to react to kick.
-        ILiquidator(agreement.liquidator.addr).receiveKick(agreement);
+        ILiquidator(agreement.liquidator.addr).receiveKick(msg.sender, agreement);
     }
 
     function signAgreement(Agreement memory agreement) private returns (SignedBlueprint memory signedBlueprint) {

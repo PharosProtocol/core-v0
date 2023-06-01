@@ -25,44 +25,31 @@ contract InstantPositionPay is Liquidator {
     constructor(address bookkeeperAddr) Liquidator(bookkeeperAddr) {}
 
     /// @notice Do nothing.
-    function _receiveKick(Agreement calldata agreement) internal override {
-        _liquidate(agreement);
+    function _receiveKick(address kicker, Agreement calldata agreement) internal override {
+        _liquidate(kicker, agreement);
     }
 
     /// @notice Liquidator prepays assets less reward and keeps position for later handling (no callback).
-    function _liquidate(Agreement calldata agreement) private {
+    function _liquidate(address sender, Agreement calldata agreement) private {
         Parameters memory params = abi.decode(agreement.liquidator.parameters, (Parameters));
 
         // require(liquidating[agreement.position.addr], "position not in liquidation phase");
 
         IPosition position = IPosition(agreement.position.addr);
-        uint256 positionAmount = position.close(msg.sender, agreement, false, agreement.position.parameters); // denoted in loan asset
+        uint256 positionAmount = position.close(sender, agreement, false, agreement.position.parameters); // denoted in loan asset
 
         // Split loan asset in position between lender and borrower. Lender gets priority.
         uint256 lenderAmount =
             agreement.loanAmount + IAssessor(agreement.assessor.addr).getCost(agreement, positionAmount);
         if (lenderAmount > 0) {
-            (bool success,) = IPosition(agreement.position.addr).passThrough(
-                payable(agreement.lenderAccount.addr),
-                abi.encodeWithSelector(
-                    IAccount.load.selector, agreement.loanAsset, lenderAmount, agreement.lenderAccount.parameters
-                ),
-                false
-            );
+            bool success = loadFromPosition(position, agreement.lenderAccount, agreement.loanAsset, lenderAmount);
             require(success, "Failed to send loan asset to lender account");
         }
 
         // Might be profitable for borrower or not.
         if (positionAmount > lenderAmount) {
-            (bool success,) = IPosition(agreement.position.addr).passThrough(
-                payable(agreement.borrowerAccount.addr),
-                abi.encodeWithSelector(
-                    IAccount.load.selector,
-                    agreement.loanAsset,
-                    positionAmount - lenderAmount,
-                    agreement.borrowerAccount.parameters
-                ),
-                false
+            bool success = loadFromPosition(
+                position, agreement.borrowerAccount, agreement.loanAsset, positionAmount - lenderAmount
             );
             require(success, "Failed to send loan asset to borrower account");
         }
@@ -70,15 +57,8 @@ contract InstantPositionPay is Liquidator {
         // Split collateral between liquidator and borrower. Liquidator gets priority.
         uint256 rewardCollAmount = agreement.collAmount * params.rewardCollAmountRatio / C.RATIO_FACTOR;
         if (rewardCollAmount < agreement.collAmount) {
-            (bool success,) = IPosition(agreement.position.addr).passThrough(
-                payable(agreement.borrowerAccount.addr),
-                abi.encodeWithSelector(
-                    IAccount.load.selector,
-                    agreement.collAsset,
-                    agreement.collAmount - rewardCollAmount,
-                    agreement.borrowerAccount.parameters
-                ),
-                false
+            bool success = loadFromPosition(
+                position, agreement.borrowerAccount, agreement.collAsset, agreement.collAmount - rewardCollAmount
             );
             require(success, "Failed to send collateral asset to borrower account");
         }
@@ -88,16 +68,31 @@ contract InstantPositionPay is Liquidator {
             (bool success,) = IPosition(agreement.position.addr).passThrough(
                 payable(address(Utils)),
                 abi.encodeWithSelector(
-                    Utils.safeErc20Transfer.selector, agreement.collAsset.addr, msg.sender, rewardCollAmount
+                    Utils.safeErc20Transfer.selector, agreement.collAsset.addr, sender, rewardCollAmount
                 ),
                 true
             );
             require(success, "Failed to send collateral asset to liquidator");
         }
 
-        position.transferContract(msg.sender);
+        position.transferContract(sender);
 
-        emit Liquidated(agreement.position.addr, msg.sender);
+        emit Liquidated(agreement.position.addr, sender);
+    }
+
+    function loadFromPosition(IPosition position, ModuleReference memory account, Asset memory asset, uint256 amount)
+        private
+        returns (bool success)
+    {
+        (success,) = position.passThrough(
+            payable(asset.addr), abi.encodeWithSelector(IERC20.approve.selector, account.addr, amount), false
+        );
+        require(success, "Failed to approve ERC20 spend");
+        (success,) = position.passThrough(
+            payable(account.addr),
+            abi.encodeWithSelector(IAccount.load.selector, asset, amount, account.parameters),
+            false
+        );
     }
 
     function canHandleAssets(Asset calldata loanAsset, Asset calldata collAsset, bytes calldata)
@@ -106,7 +101,7 @@ contract InstantPositionPay is Liquidator {
         override
         returns (bool)
     {
-        if (loanAsset.standard == ERC20_STANDARD && collAsset.standard != ERC20_STANDARD) return true;
+        if (loanAsset.standard == ERC20_STANDARD && collAsset.standard == ERC20_STANDARD) return true;
         return false;
     }
 }

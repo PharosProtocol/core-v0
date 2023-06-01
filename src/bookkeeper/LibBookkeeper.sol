@@ -91,7 +91,7 @@ library LibBookkeeper {
         // if (positionValue == 0) return false;
 
         // If past expiration, liquidatable.
-        if (agreement.deploymentTime + agreement.maxDuration > block.timestamp) return true;
+        if (block.timestamp > agreement.deploymentTime + agreement.maxDuration) return true;
 
         // NOTE this looks expensive. could have the caller pass in the expected position value and exit if not enough
         //      assets at exit time

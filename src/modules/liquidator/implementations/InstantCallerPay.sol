@@ -12,9 +12,9 @@ import {IAccount} from "src/interfaces/IAccount.sol";
 import {IOracle} from "src/interfaces/IOracle.sol";
 
 /*
- * Liquidate a position by giving all assets to liquidator and verifying that end balances for lender and borrower are
- * as expected. Priority order: liquidator, lender, borrower. Only useable with ERC20s due to need for divisibility.
- * Liquidator reward is a ratio of loan value, and maximum is 100% of collateral assets.
+ * Liquidate a position at kick time by pulling assets from caller and distributing to lender and borrower. Liquidator
+ * then gets to keep position with collateral assets and position intact. This liquidator is expected to be useful
+ * when a liquidator values a position or collateral above the market value, and is willing to pay a gas premium for it.
  */
 
 contract InstantLiquidator is Liquidator {
@@ -25,7 +25,7 @@ contract InstantLiquidator is Liquidator {
     constructor(address bookkeeperAddr) Liquidator(bookkeeperAddr) {}
 
     /// @notice Do nothing.
-    function _receiveKick(Agreement calldata agreement) internal override {}
+    function _receiveKick(address kicker, Agreement calldata agreement) internal override {}
 
     /// @notice Liquidator prepays assets less reward and keeps position for later handling (no callback).
     function liquidate(Agreement calldata agreement) external {
@@ -43,7 +43,8 @@ contract InstantLiquidator is Liquidator {
             Utils.safeErc20TransferFrom(agreement.loanAsset.addr, msg.sender, address(this), positionAmount);
 
             // Split loan asset in position between lender and borrower. Lender gets priority.
-            uint256 lenderAmount = agreement.loanAmount + IAssessor(agreement.assessor.addr).getCost(agreement, positionAmount);
+            uint256 lenderAmount =
+                agreement.loanAmount + IAssessor(agreement.assessor.addr).getCost(agreement, positionAmount);
             IAccount(agreement.lenderAccount.addr).load(
                 agreement.loanAsset, lenderAmount, agreement.lenderAccount.parameters
             );
@@ -102,7 +103,7 @@ contract InstantLiquidator is Liquidator {
         override
         returns (bool)
     {
-        if (loanAsset.standard == ERC20_STANDARD && collAsset.standard != ERC20_STANDARD) return true;
+        if (loanAsset.standard == ERC20_STANDARD && collAsset.standard == ERC20_STANDARD) return true;
         return false;
     }
 }

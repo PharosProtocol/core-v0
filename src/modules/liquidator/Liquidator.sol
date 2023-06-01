@@ -13,17 +13,17 @@ abstract contract Liquidator is ILiquidator, AccessControl, Module {
     // NOTE need a system to ensure the same "position" signed message cannot be double liquidated
     // mapping(bytes32 => bool) internal liquidating;
 
-    event KickReceived(address indexed position, Agreement agreement);
+    event KickReceived(address indexed position, Agreement agreement, address kicker);
     event Liquidated(address indexed position, address indexed liquidator);
 
     constructor(address bookkeeperAddr) {
         _setupRole(C.BOOKKEEPER_ROLE, bookkeeperAddr);
     }
 
-    function receiveKick(Agreement calldata agreement) external onlyRole(C.BOOKKEEPER_ROLE) {
-        _receiveKick(agreement);
-        emit KickReceived(agreement.position.addr, agreement);
+    function receiveKick(address kicker, Agreement calldata agreement) external onlyRole(C.BOOKKEEPER_ROLE) {
+        _receiveKick(kicker, agreement);
+        emit KickReceived(agreement.position.addr, agreement, kicker);
     }
 
-    function _receiveKick(Agreement calldata agreement) internal virtual;
+    function _receiveKick(address kicker, Agreement calldata agreement) internal virtual;
 }
