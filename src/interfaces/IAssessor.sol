@@ -14,9 +14,6 @@ import {Asset} from "src/LibUtil.sol";
 
 interface IAssessor {
     /// @notice Returns the cost of a loan (not including principle), denoted in loan asset.
-    function getCost(Agreement calldata agreement) external view returns (uint256 amount);
-    function canHandleAsset(Asset calldata asset, bytes calldata parameters)
-        external
-        view
-        returns (bool);
+    function getCost(Agreement calldata agreement, uint256 currentAmount) external view returns (uint256 amount);
+    function canHandleAsset(Asset calldata asset, bytes calldata parameters) external view returns (bool);
 }

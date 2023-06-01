@@ -23,15 +23,14 @@ contract StandardAssessor is Assessor {
     }
 
     /// @notice Return the cost of a loan, quantified in the Loan Asset.
-    function getCost(Agreement calldata agreement) external view override returns (uint256 amount) {
-        Parameters memory p = abi.decode(agreement.assessor.parameters, (Parameters));
-        uint256 positionValue = IPosition(agreement.position.addr).getExitAmount(agreement.position.parameters); // duplicate decode here
-        uint256 originationFee = agreement.loanAmount * p.originationFeeRatio / C.RATIO_FACTOR;
+    function getCost(Agreement calldata agreement, uint256 currentAmount) external view override returns (uint256 amount) {
+        Parameters memory params = abi.decode(agreement.assessor.parameters, (Parameters));
+        uint256 originationFee = agreement.loanAmount * params.originationFeeRatio / C.RATIO_FACTOR;
         uint256 interest =
-            agreement.loanAmount * (block.timestamp - agreement.deploymentTime) * p.interestRatio / C.RATIO_FACTOR;
-        uint256 lenderValue = originationFee + interest + agreement.loanAmount;
+            agreement.loanAmount * (block.timestamp - agreement.deploymentTime) * params.interestRatio / C.RATIO_FACTOR;
+        uint256 lenderAmount = originationFee + interest + agreement.loanAmount;
         uint256 profitShare =
-            positionValue > lenderValue ? (positionValue - lenderValue) * p.profitShareRatio / C.RATIO_FACTOR : 0;
+            currentAmount > lenderAmount ? (currentAmount - lenderAmount) * params.profitShareRatio / C.RATIO_FACTOR : 0;
 
         amount = originationFee + interest + profitShare;
         console.log("cost: %s", amount);

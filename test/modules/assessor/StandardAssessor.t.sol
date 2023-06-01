@@ -59,7 +59,7 @@ contract StandardAssessorTest is Test {
             profitShareRatio: profitShareRatio
         });
         agreement.assessor = ModuleReference({addr: address(assessorModule), parameters: abi.encode(parameters)});
-        return assessorModule.getCost(agreement);
+        return assessorModule.getCost(agreement, position.getCloseAmount(agreement.position.parameters));
     }
 
     /// @notice manual defined test cases of getCost. Checks for correctness.
