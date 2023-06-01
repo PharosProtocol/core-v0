@@ -88,14 +88,14 @@ contract Bookkeeper is Tractor {
             collateralValue = loanValue * order.borrowerConfig.initCollateralRatio / C.RATIO_FACTOR;
             agreement.position.parameters = order.borrowerConfig.positionParameters;
         }
-        agreement.collateralAmount = IOracle(agreement.collateralOracle.addr).getAmount(
+        agreement.collAmount = IOracle(agreement.collateralOracle.addr).getAmount(
             agreement.collAsset, collateralValue, agreement.collateralOracle.parameters
         );
         // Set Position data that cannot be computed off chain by caller.
         agreement.deploymentTime = block.timestamp;
 
         // console.log("loanAmount: %s", agreement.loanAmount);
-        // console.log("collateralAmount: %s", agreement.collateralAmount);
+        // console.log("collAmount: %s", agreement.collAmount);
 
         createFundEnterPosition(agreement);
 
@@ -120,7 +120,7 @@ contract Bookkeeper is Tractor {
         );
         // NOTE lots of gas savings if collateral can be kept in borrower account until absolutely necessary.
         IAccount(agreement.borrowerAccount.addr).lockCollateral(
-            agreement.collAsset, agreement.collateralAmount, agreement.borrowerAccount.parameters
+            agreement.collAsset, agreement.collAmount, agreement.borrowerAccount.parameters
         );
         IPosition(agreement.position.addr).deploy(
             agreement.loanAsset, agreement.loanAmount, agreement.position.parameters
@@ -168,11 +168,10 @@ contract Bookkeeper is Tractor {
 
         // All asset management must be done within this call, else bk would need to have asset-specific knowledge.
         IPosition position = IPosition(agreement.position.addr);
-
-        position.exit(msg.sender, agreement, agreement.position.parameters);
+        position.close(msg.sender, agreement, true, agreement.position.parameters);
 
         IAccount(agreement.borrowerAccount.addr).unlockCollateral(
-            agreement.collAsset, agreement.collateralAmount, agreement.borrowerAccount.parameters
+            agreement.collAsset, agreement.collAmount, agreement.borrowerAccount.parameters
         );
 
         // Marks position as closed from Bookkeeper pov.

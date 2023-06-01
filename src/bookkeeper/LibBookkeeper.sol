@@ -18,7 +18,7 @@ struct ModuleReference {
     address addr;
     bytes parameters;
 }
-    
+
 /// @notice terms shared between Offers and Requests.
 struct Order {
     uint256[] minLoanAmounts; // idx parity with loanAssets
@@ -67,7 +67,7 @@ struct Fill {
 struct Agreement {
     // uint256 bookkeeperVersion;
     uint256 loanAmount;
-    uint256 collateralAmount;
+    uint256 collAmount;
     Asset loanAsset;
     Asset collAsset;
     uint256 minCollateralRatio; // Position value / collateral value
@@ -96,8 +96,8 @@ library LibBookkeeper {
         // NOTE this looks expensive. could have the caller pass in the expected position value and exit if not enough
         //      assets at exit time
         // (position value - cost) / collateral value
-        uint256 exitAmount = position.getExitAmount(agreement.position.parameters);
-        uint256 cost = IAssessor(agreement.assessor.addr).getCost(agreement);
+        uint256 exitAmount = position.getCloseAmount(agreement.position.parameters);
+        uint256 cost = IAssessor(agreement.assessor.addr).getCost(agreement, exitAmount);
         if (cost > exitAmount) {
             return true;
         }
@@ -107,7 +107,7 @@ library LibBookkeeper {
                 agreement.loanAsset, adjustedPositionAmount, agreement.loanOracle.parameters
             )
             / IOracle(agreement.collateralOracle.addr).getValue(
-                agreement.loanAsset, agreement.collateralAmount, agreement.collateralOracle.parameters
+                agreement.loanAsset, agreement.collAmount, agreement.collateralOracle.parameters
             );
 
         if (collateralRatio < agreement.minCollateralRatio) {

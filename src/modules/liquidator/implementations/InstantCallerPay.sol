@@ -37,13 +37,13 @@ contract InstantLiquidator is Liquidator {
         uint256 borrowerReturnExpected;
         {
             IPosition position = IPosition(agreement.position.addr);
-            uint256 positionAmount = position.getExitAmount(agreement.position.parameters); // denoted in loan asset
+            uint256 positionAmount = position.getCloseAmount(agreement.position.parameters); // denoted in loan asset
 
             // NOTE Inefficient asset passthrough here, but can be optimized later if we go this route.
             Utils.safeErc20TransferFrom(agreement.loanAsset.addr, msg.sender, address(this), positionAmount);
 
             // Split loan asset in position between lender and borrower. Lender gets priority.
-            uint256 lenderAmount = agreement.loanAmount + IAssessor(agreement.assessor.addr).getCost(agreement);
+            uint256 lenderAmount = agreement.loanAmount + IAssessor(agreement.assessor.addr).getCost(agreement, positionAmount);
             IAccount(agreement.lenderAccount.addr).load(
                 agreement.loanAsset, lenderAmount, agreement.lenderAccount.parameters
             );
@@ -64,8 +64,8 @@ contract InstantLiquidator is Liquidator {
             //      liquidator is admin. Save a bit of gas.
             // Split collateral between liquidator and borrower. Liquidator gets priority.
             uint256 rewardCollAmount = getRewardCollAmount(agreement);
-            if (rewardCollAmount < agreement.collateralAmount) {
-                uint256 borrowerCollAmount = agreement.collateralAmount - rewardCollAmount;
+            if (rewardCollAmount < agreement.collAmount) {
+                uint256 borrowerCollAmount = agreement.collAmount - rewardCollAmount;
                 Utils.safeErc20TransferFrom(agreement.collAsset.addr, msg.sender, address(this), borrowerCollAmount);
                 IAccount(agreement.borrowerAccount.addr).load(
                     agreement.collAsset, borrowerCollAmount, agreement.borrowerAccount.parameters

@@ -14,19 +14,22 @@ import {Asset} from "src/LibUtil.sol";
 interface IPosition is IAccessControl {
     /// @notice Deploy capital into the defined position.
     function deploy(Asset calldata asset, uint256 amount, bytes calldata parameters) external;
-    /// @notice Get current exitable value of the position, denoted in loan asset.
-    function getExitAmount(bytes calldata parameters) external view returns (uint256);
-    /// @notice Borrower close of position
+    /// @notice Admin close position and optionally distribute assets back to agreement accounts.
     /// @notice Distribute assets to appropriate Accounts/wallets. Give control to borrower.
-    function exit(address sender, Agreement memory agreement, bytes calldata parameters) external;
+    /// @dev Guarantees enough asset to pay lender bc it will be taken from sender.
+    function close(address sender, Agreement memory agreement, bool distribute, bytes calldata parameters)
+        external
+        returns (uint256);
     /// @notice Transfer the position to a new controller. Used for liquidations.
     /// @dev Do not set admin role to prevent liquidator from pushing the position back into the protocol.
     function transferContract(address controller) external;
+    /// @notice Get current exitable value of the position, denoted in loan asset.
+    function getCloseAmount(bytes calldata parameters) external view returns (uint256);
 
     function canHandleAsset(Asset calldata asset, bytes calldata parameters) external pure returns (bool);
     /// @notice Pass through function to allow the position to interact with other contracts after liquidation.
     /// @dev Internal functions are not reachable. // NOTE right? bc allowing controller to be set *back* to bookkeeper will open exploits
-    function passThrough(address payable destination, bytes calldata data)
+    function passThrough(address payable destination, bytes calldata data, bool delegateCall)
         external
         payable
         returns (bool, bytes memory);
