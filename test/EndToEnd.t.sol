@@ -18,7 +18,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC20Account} from "src/modules/account/implementations/ERC20Account.sol";
 import {IAssessor} from "src/interfaces/IAssessor.sol";
 import {StandardAssessor} from "src/modules/assessor/implementations/StandardAssessor.sol";
-import {InstantPositionPay} from "src/modules/liquidator/implementations/InstantPositionPay.sol";
+import {InstantTakeCollateral} from "src/modules/liquidator/implementations/InstantTakeCollateral.sol";
 import {UniswapV3Oracle} from "src/modules/oracle/implementations/UniswapV3Oracle.sol";
 import {StaticUsdcPriceOracle} from "src/modules/oracle/implementations/StaticValue.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
@@ -35,7 +35,7 @@ contract EndToEndTest is TestUtils {
     Bookkeeper public bookkeeper;
     ERC20Account public accountModule;
     StandardAssessor public assessorModule;
-    InstantPositionPay public liquidatorModule;
+    InstantTakeCollateral public liquidatorModule;
     UniswapV3Oracle public uniOracleModule;
     StaticUsdcPriceOracle public staticUsdcPriceOracle;
     UniV3HoldFactory public factory;
@@ -68,7 +68,7 @@ contract EndToEndTest is TestUtils {
         bookkeeper = new Bookkeeper();
         accountModule = new ERC20Account(address(bookkeeper));
         assessorModule = new StandardAssessor();
-        liquidatorModule = new InstantPositionPay(address(bookkeeper));
+        liquidatorModule = new InstantTakeCollateral(address(bookkeeper));
         uniOracleModule = new UniswapV3Oracle();
         staticUsdcPriceOracle = new StaticUsdcPriceOracle();
         factory = new UniV3HoldFactory(address(bookkeeper));
@@ -230,8 +230,7 @@ contract EndToEndTest is TestUtils {
                 })
                 )
         });
-        ModuleReference memory liquidator =
-            ModuleReference({addr: address(liquidatorModule), parameters: abi.encode(C.RATIO_FACTOR / 2)});
+        ModuleReference memory liquidator = ModuleReference({addr: address(liquidatorModule), parameters: ""});
         // Solidity array syntax is so bad D:
         uint256[] memory minLoanAmounts = new uint256[](1);
         minLoanAmounts[0] = 1e18;

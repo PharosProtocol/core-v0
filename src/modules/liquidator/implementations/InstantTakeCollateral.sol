@@ -17,10 +17,8 @@ import {IOracle} from "src/interfaces/IOracle.sol";
  * Liquidator reward is a ratio of collateral amount, and maximum is 100% of collateral assets.
  */
 
-contract InstantPositionPay is Liquidator {
-    struct Parameters {
-        uint256 rewardCollAmountRatio;
-    }
+contract InstantTakeCollateral is Liquidator {
+    // struct Parameters {}
 
     constructor(address bookkeeperAddr) Liquidator(bookkeeperAddr) {}
 
@@ -31,8 +29,6 @@ contract InstantPositionPay is Liquidator {
 
     /// @notice Liquidator prepays assets less reward and keeps position for later handling (no callback).
     function _liquidate(address sender, Agreement calldata agreement) private {
-        Parameters memory params = abi.decode(agreement.liquidator.parameters, (Parameters));
-
         // require(liquidating[agreement.position.addr], "position not in liquidation phase");
 
         IPosition position = IPosition(agreement.position.addr);
@@ -54,21 +50,13 @@ contract InstantPositionPay is Liquidator {
             require(success, "Failed to send loan asset to borrower account");
         }
 
-        // Split collateral between liquidator and borrower. Liquidator gets priority.
-        uint256 rewardCollAmount = agreement.collAmount * params.rewardCollAmountRatio / C.RATIO_FACTOR;
-        if (rewardCollAmount < agreement.collAmount) {
-            bool success = loadFromPosition(
-                position, agreement.borrowerAccount, agreement.collAsset, agreement.collAmount - rewardCollAmount
-            );
-            require(success, "Failed to send collateral asset to borrower account");
-        }
-        // All remaining collateral asset goes to liquidator.
-        if (rewardCollAmount > 0) {
+        // Liquidator gets all collateral as reward.
+        if (agreement.collAmount > 0) {
             // d4e3bdb6: safeErc20Transfer(address,address,uint256)
             (bool success,) = IPosition(agreement.position.addr).passThrough(
                 payable(address(Utils)),
                 abi.encodeWithSelector(
-                    Utils.safeErc20Transfer.selector, agreement.collAsset.addr, sender, rewardCollAmount
+                    Utils.safeErc20Transfer.selector, agreement.collAsset.addr, sender, agreement.collAmount
                 ),
                 true
             );
