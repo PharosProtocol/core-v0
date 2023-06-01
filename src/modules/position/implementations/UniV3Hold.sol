@@ -166,7 +166,11 @@ contract UniV3HoldFactory is Position {
     //       amount. then if they give themselves a bad deal they are the only one who loses. Alt Answer: Allow
     //       liquidator to pass through any function via callback, so long as they return enough assets to Modulend
     //       lender / borrower in end.
-    function _exit(address sender, Agreement calldata agreement, bytes calldata parameters) internal override {
+    function _close(address sender, Agreement calldata agreement, bool distribute, bytes calldata parameters)
+        internal
+        override
+        returns (uint256 closedAmount)
+    {
         Parameters memory params = abi.decode(parameters, (Parameters));
         // require(heldAsset.standard == ERC20_STANDARD, "UniV3Hold: exit asset must be ETH or ERC20");
         (address heldAsset,,) = params.exitPath.decodeFirstPool();
@@ -176,8 +180,7 @@ contract UniV3HoldFactory is Position {
 
         // Approve ERC20s.
         IERC20(heldAsset).approve(UNI_V3_ROUTER, transferAmount); // NOTE front running?
-
-        uint256 exitedAmount;
+        
         // TODO: can add recipient in certain scenarios to save an ERC20 transfer.
         {
             ISwapRouter router = ISwapRouter(UNI_V3_ROUTER);
@@ -188,63 +191,49 @@ contract UniV3HoldFactory is Position {
                 amountIn: transferAmount,
                 amountOutMinimum: amountOutMin(params)
             });
-            exitedAmount = router.exactInput(swapParams); // msg.sender from router pov is clone (Position) address
+            closedAmount = router.exactInput(swapParams); // msg.sender from router pov is clone (Position) address
         }
 
         // console.log(IERC20(params.exitPath
-        uint256 lenderOwed = agreement.loanAmount + IAssessor(agreement.assessor.addr).getCost(agreement);
+        uint256 lenderOwed = agreement.loanAmount + IAssessor(agreement.assessor.addr).getCost(agreement, closedAmount);
         console.log("lenderOwed: %s", lenderOwed);
         uint256 borrowerAmount;
         IERC20 loanAsset = IERC20(address(agreement.loanAsset.addr));
 
         {
-            // NOTE this is a bit weird, as get cost is imperfect and may not match current value to exitedAmount.
-
-            if (lenderOwed < exitedAmount) {
-                borrowerAmount = exitedAmount - lenderOwed;
+            if (lenderOwed < closedAmount) {
+                borrowerAmount = closedAmount - lenderOwed;
             } else {
-                borrowerAmount = 0;
+                // borrowerAmount = 0;
                 // Lender is owed more than the position is worth.
-                // Lender gets all of the position and exiter (borrower) pays the difference.
-                // NOTE could maybe save gas if account PushFrom implemented. Or some decoupling of transfer logic and incrementing.
-                Utils.safeErc20TransferFrom(agreement.loanAsset.addr, sender, address(this), lenderOwed - exitedAmount);
+                // Lender gets all of the position and sender pays the difference.
+                Utils.safeErc20TransferFrom(agreement.loanAsset.addr, sender, address(this), lenderOwed - closedAmount);
             }
         }
 
-        if (lenderOwed > 0) {
-            loanAsset.approve(agreement.lenderAccount.addr, lenderOwed);
-            IAccount(agreement.lenderAccount.addr).load(
-                agreement.loanAsset, lenderOwed, agreement.lenderAccount.parameters
-            );
-        }
+        if (distribute) {
+            if (lenderOwed > 0) {
+                loanAsset.approve(agreement.lenderAccount.addr, lenderOwed);
+                IAccount(agreement.lenderAccount.addr).load(
+                    agreement.loanAsset, lenderOwed, agreement.lenderAccount.parameters
+                );
+            }
 
-        // Send borrower loan asset funds to their account. Requires compatibility btwn loan asset and borrow account.
-        if (borrowerAmount > 0) {
-            loanAsset.approve(agreement.borrowerAccount.addr, borrowerAmount);
-            IAccount(agreement.borrowerAccount.addr).load(
-                agreement.loanAsset, borrowerAmount, agreement.borrowerAccount.parameters
-            );
+            // Send borrower loan asset funds to their account. Requires compatibility btwn loan asset and borrow account.
+            if (borrowerAmount > 0) {
+                loanAsset.approve(agreement.borrowerAccount.addr, borrowerAmount);
+                IAccount(agreement.borrowerAccount.addr).load(
+                    agreement.loanAsset, borrowerAmount, agreement.borrowerAccount.parameters
+                );
+            }
+            // Collateral is still in borrower account and is unlocked by the bookkeeper.
         }
-
-        // Collateral is still in borrower account and is unlocked by the bookkeeper.
     }
-
-    // // Only used for transferring loan asset direct to user.
-    // function _transferLoanAsset(address payable to, Asset memory asset, uint256 amount) internal override {
-    //     if (asset.standard == ETH_STANDARD) {
-    //         // NOTE change to call and protec
-    //         to.transfer(amount);
-    //     } else if (asset.standard == ERC20_STANDARD) {
-    //         IERC20(asset.addr).transfer(to, amount);
-    //     } else {
-    //         revert("Incompatible asset");
-    //     }
-    // }
 
     // Public Helpers.
 
     // TODO fix this to be useable on chain efficiently
-    function getExitAmount(bytes calldata parameters) external view override returns (uint256) {
+    function getCloseAmount(bytes calldata parameters) external view override returns (uint256) {
         Parameters memory params = abi.decode(parameters, (Parameters));
         // (,address finalAssetAddr,) = params.exitPath.decodeFirstPool();
         // require(asset.addr == finalAssetAddr); // by this point it is too late to be checking honestly.

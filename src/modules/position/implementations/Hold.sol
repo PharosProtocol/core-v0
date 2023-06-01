@@ -40,18 +40,24 @@ contract HoldFactory is Position {
 
     /// @notice Do nothing.
     /// @dev assumes assets have already been transferred to Position.
-    function _deploy(Asset calldata asset, uint256 amount, bytes calldata parameters) internal override {
+    function _deploy(Asset calldata, uint256, bytes calldata) internal override {
         // Parameters memory params = abi.decode(parameters, (Parameters));
     }
 
     /// @notice Do nothing.
-    function _exit(address sender, Agreement calldata agreement, bytes calldata parameters) internal override {
+    function _close(address, Agreement calldata, bool, bytes calldata)
+        internal
+        pure
+        override
+        returns (uint256 closedAmount)
+    {
         // Parameters memory params = abi.decode(parameters, (Parameters));
+        return 0;
     }
 
     // Public Helpers.
 
-    function getExitAmount(bytes calldata) external view override returns (uint256) {
+    function getCloseAmount(bytes calldata) external view override returns (uint256) {
         return amountHeld;
     }
 

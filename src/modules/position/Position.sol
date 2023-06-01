@@ -32,18 +32,22 @@ abstract contract Position is IPosition, PositionFactory, Module {
 
     function _deploy(Asset calldata asset, uint256 amount, bytes calldata parameters) internal virtual;
 
-    function exit(address sender, Agreement calldata agreement, bytes calldata parameters)
+    function close(address sender, Agreement calldata agreement, bool distribute, bytes calldata parameters)
         external
         override
         proxyExecution
         onlyRole(C.ADMIN_ROLE)
+        returns (uint256)
     {
-        _exit(sender, agreement, parameters);
+        return _close(sender, agreement, distribute, parameters);
     }
 
     /// @notice Close position and distribute assets. Give borrower MPC control.
     /// @dev All asset management must be done within this call, else bk would need to have asset-specific knowledge.
-    function _exit(address sender, Agreement calldata agreement, bytes calldata parameters) internal virtual;
+    function _close(address sender, Agreement calldata agreement, bool distribute, bytes calldata parameters)
+        internal
+        virtual
+        returns (uint256);
 
     // function _transferLoanAsset(address payable to, Asset memory asset, uint256 amount) internal virtual;
 
@@ -65,13 +69,17 @@ abstract contract Position is IPosition, PositionFactory, Module {
         emit ControlTransferred(msg.sender, controller);
     }
 
-    function passThrough(address payable destination, bytes calldata data)
+    function passThrough(address payable destination, bytes calldata data, bool delegateCall)
         external
         payable
         proxyExecution
         onlyRole(C.ADMIN_ROLE)
         returns (bool, bytes memory)
     {
-        return destination.call{value: msg.value}(data);
+        if (!delegateCall) {
+            return destination.call{value: msg.value}(data);
+        } else {
+            return destination.delegatecall(data);
+        }
     }
 }

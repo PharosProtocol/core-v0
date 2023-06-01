@@ -193,9 +193,10 @@ contract Bookkeeper is Tractor {
 
         // Transfer ownership of the position to the liquidator, which includes collateral.
         position.transferContract(agreement.liquidator.addr);
-        // Kick the position to begin liquidation.
-        ILiquidator(agreement.liquidator.addr).receiveKick(agreement);
         emit LiquidationKicked(agreement.liquidator.addr, agreement.position.addr);
+
+        // Allow liquidator to react to kick.
+        ILiquidator(agreement.liquidator.addr).receiveKick(agreement);
     }
 
     function signAgreement(Agreement memory agreement) private returns (SignedBlueprint memory signedBlueprint) {

@@ -18,7 +18,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC20Account} from "src/modules/account/implementations/ERC20Account.sol";
 import {IAssessor} from "src/interfaces/IAssessor.sol";
 import {StandardAssessor} from "src/modules/assessor/implementations/StandardAssessor.sol";
-import {InstantLiquidator} from "src/modules/liquidator/implementations/InstantLiquidator.sol";
+import {InstantPositionPay} from "src/modules/liquidator/implementations/InstantPositionPay.sol";
 import {UniswapV3Oracle} from "src/modules/oracle/implementations/UniswapV3Oracle.sol";
 import {StaticUsdcPriceOracle} from "src/modules/oracle/implementations/StaticValue.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
@@ -35,7 +35,7 @@ contract EndToEndTest is TestUtils {
     Bookkeeper public bookkeeper;
     ERC20Account public accountModule;
     StandardAssessor public assessorModule;
-    InstantLiquidator public liquidatorModule;
+    InstantPositionPay public liquidatorModule;
     UniswapV3Oracle public uniOracleModule;
     StaticUsdcPriceOracle public staticUsdcPriceOracle;
     UniV3HoldFactory public factory;
@@ -67,7 +67,7 @@ contract EndToEndTest is TestUtils {
         bookkeeper = new Bookkeeper();
         accountModule = new ERC20Account(address(bookkeeper));
         assessorModule = new StandardAssessor();
-        liquidatorModule = new InstantLiquidator(address(bookkeeper));
+        liquidatorModule = new InstantPositionPay(address(bookkeeper));
         uniOracleModule = new UniswapV3Oracle();
         staticUsdcPriceOracle = new StaticUsdcPriceOracle();
         factory = new UniV3HoldFactory(address(bookkeeper));
@@ -266,7 +266,7 @@ contract EndToEndTest is TestUtils {
 
         // Borrower exits position. Send cost in eth because on local fork no value of assets occurs but cost increases.
         // uint256 cost = IAssessor(agreement.assessor.addr).getCost(agreement);
-        // uint256 exitAmount = IPosition(agreement.position.addr).getExitAmount(agreement.loanAsset, agreement.position.parameters);
+        // uint256 exitAmount = IPosition(agreement.position.addr).getCloseAmount(agreement.loanAsset, agreement.position.parameters);
         // console.log("exitAmount: %s", exitAmount);
 
         // Approve position to use funds to fulfil obligation to lender. Borrower loses money :(
