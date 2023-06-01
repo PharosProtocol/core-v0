@@ -82,183 +82,36 @@ contract EndToEndTest is TestUtils {
         ERC20Account.Parameters memory borrowerAccountParams =
             ERC20Account.Parameters({owner: borrower, salt: bytes32(0)});
 
-        {
-            // Lender creates and funds account with WETH.
-            vm.deal(lender, 1e18);
-            wethDeal(lender, 10e18);
-            vm.prank(lender);
-            IERC20(C.WETH).approve(address(accountModule), 10e18);
-            vm.prank(lender);
-            accountModule.load(WETH_ASSET, 10e18, abi.encode(lenderAccountParams));
-
-            // Borrower creates and funds account with USDC.
-            vm.deal(borrower, 1e18);
-            wethDeal(borrower, 1e18);
-            deal(USDC_ASSET.addr, borrower, 5_000e6, true);
-            vm.prank(borrower);
-            IERC20(C.USDC).approve(address(accountModule), 5_000e6);
-            vm.prank(borrower);
-            accountModule.load(USDC_ASSET, 5_000e6, abi.encode(borrowerAccountParams));
-        }
+        fundAccount(lenderAccountParams);
+        fundAccount(borrowerAccountParams);
 
         assertEq(accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 10e18);
         assertEq(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000e6);
 
-        Order memory offer;
-        {
-            // Set individual structs here for cleanliness and solidity ease.
-            ModuleReference memory account =
-                ModuleReference({addr: address(accountModule), parameters: abi.encode(lenderAccountParams)});
-            ModuleReference memory assessor = ModuleReference({
-                addr: address(assessorModule),
-                parameters: abi.encode(
-                    StandardAssessor.Parameters({
-                        originationFeeRatio: C.RATIO_FACTOR / 100,
-                        interestRatio: C.RATIO_FACTOR / 1000000,
-                        profitShareRatio: C.RATIO_FACTOR / 20
-                    })
-                    )
-            });
-            ModuleReference memory liquidator =
-                ModuleReference({addr: address(liquidatorModule), parameters: abi.encode(0)});
-            // Solidity array syntax is so bad D:
-            uint256[] memory minLoanAmounts = new uint256[](1);
-            minLoanAmounts[0] = 1e18;
-            Asset[] memory loanAssets = new Asset[](1);
-            loanAssets[0] = WETH_ASSET;
-            Asset[] memory collAssets = new Asset[](1);
-            collAssets[0] = USDC_ASSET;
-            address[] memory takers = new address[](0);
-            ModuleReference[] memory loanOracles = new ModuleReference[](1);
-            loanOracles[0] = ModuleReference({
-                addr: address(uniOracleModule),
-                parameters: abi.encode(
-                    UniswapV3Oracle.Parameters({
-                        pathFromUsd: abi.encodePacked(C.USDC, uint24(500), C.WETH),
-                        pathToUsd: abi.encodePacked(C.WETH, uint24(500), C.USDC),
-                        stepSlippageRatio: C.RATIO_FACTOR / 1000,
-                        twapTime: 300
-                    })
-                    )
-            });
-            ModuleReference[] memory collateralOracles = new ModuleReference[](1);
-            collateralOracles[0] = ModuleReference({
-                addr: address(staticUsdcPriceOracle),
-                parameters: abi.encode(StaticUsdcPriceOracle.Parameters({value: 1000000}))
-            });
-            address[] memory factories = new address[](1);
-            factories[0] = address(factory);
-
-            // Lender creates an offer.
-            offer = Order({
-                minLoanAmounts: minLoanAmounts,
-                loanAssets: loanAssets,
-                collAssets: collAssets,
-                takers: takers,
-                maxDuration: 7 days,
-                minCollateralRatio: C.RATIO_FACTOR / 5,
-                account: account,
-                assessor: assessor,
-                liquidator: liquidator,
-                /* Allowlisted variables */
-                loanOracles: loanOracles,
-                collateralOracles: collateralOracles,
-                // Lender would need to list parameters for all possible holdable tokens from all possible lent tokens. Instead just allow a whole factory.
-                factories: factories,
-                isOffer: true,
-                borrowerConfig: BorrowerConfig(0, "")
-            });
-        }
-        Blueprint memory offerBlueprint = Blueprint({
+        Order memory order = createOrder(lenderAccountParams);
+        Blueprint memory orderBlueprint = Blueprint({
             publisher: lender,
-            data: bookkeeper.packDataField(bytes1(uint8(Bookkeeper.BlueprintDataType.ORDER)), abi.encode(offer)),
+            data: bookkeeper.packDataField(bytes1(uint8(Bookkeeper.BlueprintDataType.ORDER)), abi.encode(order)),
             maxNonce: type(uint256).max,
             startTime: 0,
             endTime: type(uint256).max
         });
 
-        // (bytes1 blueprintDataType, bytes memory blueprintData) = bookkeeper.unpackDataField(offerBlueprint.data);
-        // require(uint8(blueprintDataType) == uint8(Bookkeeper.BlueprintDataType.ORDER), "BKDTMM");
-        // console.log("offer encoded:");
-        // console.logBytes(abi.encode(offer));
-        // console.log("offerBlueprint.data:");
-        // console.logBytes(offerBlueprint.data);
-        // Order memory order = abi.decode(blueprintData, (Order));
+        console.log("blueprint data at encoding:");
+        console.logBytes(orderBlueprint.data);
+        SignedBlueprint memory orderSignedBlueprint = createSignedBlueprint(orderBlueprint, LENDER_PRIVATE_KEY);
 
-        console.log("order data at encoding:");
-        console.logBytes(abi.encode(offer));
-        // console.log("blueprint data at encoding:");
-        // console.logBytes(offerBlueprint.data);
-        bytes32 offerBlueprintHash = bookkeeper.getTypedDataHash(keccak256(abi.encode(offerBlueprint)));
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(LENDER_PRIVATE_KEY, offerBlueprintHash);
-        SignedBlueprint memory offerSignedBlueprint = SignedBlueprint({
-            blueprint: offerBlueprint,
-            blueprintHash: offerBlueprintHash,
-            signature: abi.encodePacked(r, s, v)
-        });
-
-        {
-            // Borrower fills offer.
-            Fill memory fill;
-
-            BorrowerConfig memory borrowerConfig = BorrowerConfig({
-                initCollateralRatio: C.RATIO_FACTOR / 2,
-                positionParameters: abi.encode(
-                    UniV3HoldFactory.Parameters({
-                        enterPath: abi.encodePacked(C.WETH, uint24(3000), SHIB),
-                        exitPath: abi.encodePacked(SHIB, uint24(3000), C.WETH)
-                    })
-                    )
-            });
-
-            fill = Fill({
-                loanAmount: 2e18, // must be valid with init CR and available collateral value
-                takerIdx: 0,
-                loanAssetIdx: 0,
-                collAssetIdx: 0,
-                loanOracleIdx: 0,
-                collateralOracleIdx: 0,
-                factoryIdx: 0,
-                isOfferFill: true,
-                borrowerConfig: borrowerConfig
-            });
-
-            ModuleReference memory borrowerAccount =
-                ModuleReference({addr: address(accountModule), parameters: abi.encode(borrowerAccountParams)});
-            vm.prank(borrower);
-            bookkeeper.fillOrder(fill, offerSignedBlueprint, borrowerAccount);
-        }
+        Fill memory fill = createFill();
+        ModuleReference memory borrowerAccount =
+            ModuleReference({addr: address(accountModule), parameters: abi.encode(borrowerAccountParams)});
+        vm.prank(borrower);
+        bookkeeper.fillOrder(fill, orderSignedBlueprint, borrowerAccount);
 
         assertEq(accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 8e18);
         assertLt(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000e6);
         assertGt(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 2_000e6);
 
-        SignedBlueprint memory agreementSignedBlueprint;
-        Agreement memory agreement;
-
-        // console.log("gas left: %s", gasleft());
-        // IUniswapV3Pool(0x11950d141EcB863F01007AdD7D1A342041227b58).increaseObservationCardinalityNext(25);
-        // console.log("gas left: %s", gasleft());
-
-        {
-            // At this point the position is live. Things are happening and money is being made, hopefully. The agreement
-            // was defined in the Bookkeeper contract and emitted as an event.
-            Vm.Log[] memory entries = vm.getRecordedLogs();
-            // = abi.decode(entries[entries.length - 1].data, (SignedBlueprint));
-
-            // Extract signed agreement from logs.
-            for (uint256 i; i < entries.length; i++) {
-                // hardcoded event sig for OrderFilled (from brownie console)
-                if (entries[i].topics[0] == 0x21a6001862375a91bbf0eff278ae1eaee77323f67273ed674a16f9607888696f) {
-                    // console.log("entry data:");
-                    // console.logBytes(entries[i].data);
-                    agreementSignedBlueprint = abi.decode(entries[i].data, (SignedBlueprint)); // signed blueprint is only thing in data
-                }
-            }
-            require(agreementSignedBlueprint.blueprintHash != 0x0, "failed to find agreement in logs");
-            (, bytes memory data) = bookkeeper.unpackDataField(agreementSignedBlueprint.blueprint.data);
-            agreement = abi.decode(data, (Agreement));
-        }
+        (SignedBlueprint memory agreementSignedBlueprint, Agreement memory agreement) = retrieveAgreementFromLogs();
 
         // Move time and block forward arbitrarily.
         vm.warp(block.timestamp + 100 * 12);
@@ -280,5 +133,142 @@ contract EndToEndTest is TestUtils {
         assertEq(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000e6);
 
         console.log("done");
+    }
+
+    function fundAccount(ERC20Account.Parameters memory accountParams) private {
+        vm.deal(accountParams.owner, 2e18);
+        wethDeal(accountParams.owner, 12e18);
+        deal(USDC_ASSET.addr, accountParams.owner, 5_000e6, true);
+
+        vm.startPrank(accountParams.owner);
+        IERC20(C.WETH).approve(address(accountModule), 10e18);
+        accountModule.load(WETH_ASSET, 10e18, abi.encode(accountParams));
+        IERC20(C.USDC).approve(address(accountModule), 5_000e6);
+        accountModule.load(USDC_ASSET, 5_000e6, abi.encode(accountParams));
+        vm.stopPrank();
+    }
+
+    function createOrder(ERC20Account.Parameters memory accountParams) private view returns (Order memory) {
+        // Set individual structs here for cleanliness and solidity ease.
+        ModuleReference memory account =
+            ModuleReference({addr: address(accountModule), parameters: abi.encode(accountParams)});
+        ModuleReference memory assessor = ModuleReference({
+            addr: address(assessorModule),
+            parameters: abi.encode(
+                StandardAssessor.Parameters({
+                    originationFeeRatio: C.RATIO_FACTOR / 100,
+                    interestRatio: C.RATIO_FACTOR / 1000000,
+                    profitShareRatio: C.RATIO_FACTOR / 20
+                })
+                )
+        });
+        ModuleReference memory liquidator =
+            ModuleReference({addr: address(liquidatorModule), parameters: abi.encode(0)});
+        // Solidity array syntax is so bad D:
+        uint256[] memory minLoanAmounts = new uint256[](1);
+        minLoanAmounts[0] = 1e18;
+        Asset[] memory loanAssets = new Asset[](1);
+        loanAssets[0] = WETH_ASSET;
+        Asset[] memory collAssets = new Asset[](1);
+        collAssets[0] = USDC_ASSET;
+        address[] memory takers = new address[](0);
+        ModuleReference[] memory loanOracles = new ModuleReference[](1);
+        loanOracles[0] = ModuleReference({
+            addr: address(uniOracleModule),
+            parameters: abi.encode(
+                UniswapV3Oracle.Parameters({
+                    pathFromUsd: abi.encodePacked(C.USDC, uint24(500), C.WETH),
+                    pathToUsd: abi.encodePacked(C.WETH, uint24(500), C.USDC),
+                    stepSlippageRatio: C.RATIO_FACTOR / 1000,
+                    twapTime: 300
+                })
+                )
+        });
+        ModuleReference[] memory collateralOracles = new ModuleReference[](1);
+        collateralOracles[0] = ModuleReference({
+            addr: address(staticUsdcPriceOracle),
+            parameters: abi.encode(StaticUsdcPriceOracle.Parameters({value: 1000000}))
+        });
+        address[] memory factories = new address[](1);
+        factories[0] = address(factory);
+
+        // Lender creates an offer.
+        return Order({
+            minLoanAmounts: minLoanAmounts,
+            loanAssets: loanAssets,
+            collAssets: collAssets,
+            takers: takers,
+            maxDuration: 7 days,
+            minCollateralRatio: C.RATIO_FACTOR / 5,
+            account: account,
+            assessor: assessor,
+            liquidator: liquidator,
+            /* Allowlisted variables */
+            loanOracles: loanOracles,
+            collateralOracles: collateralOracles,
+            // Lender would need to list parameters for all possible holdable tokens from all possible lent tokens. Instead just allow a whole factory.
+            factories: factories,
+            isOffer: true,
+            borrowerConfig: BorrowerConfig(0, "")
+        });
+    }
+
+    function createFill() private view returns (Fill memory) {
+        BorrowerConfig memory borrowerConfig = BorrowerConfig({
+            initCollateralRatio: C.RATIO_FACTOR / 2,
+            positionParameters: abi.encode(
+                UniV3HoldFactory.Parameters({
+                    enterPath: abi.encodePacked(C.WETH, uint24(3000), SHIB),
+                    exitPath: abi.encodePacked(SHIB, uint24(3000), C.WETH)
+                })
+                )
+        });
+
+        return Fill({
+            loanAmount: 2e18, // must be valid with init CR and available collateral value
+            takerIdx: 0,
+            loanAssetIdx: 0,
+            collAssetIdx: 0,
+            loanOracleIdx: 0,
+            collateralOracleIdx: 0,
+            factoryIdx: 0,
+            isOfferFill: true,
+            borrowerConfig: borrowerConfig
+        });
+    }
+
+    function createSignedBlueprint(Blueprint memory blueprint, uint256 privateKey)
+        private
+        view
+        returns (SignedBlueprint memory)
+    {
+        bytes32 blueprintHash = bookkeeper.getTypedDataHash(keccak256(abi.encode(blueprint)));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, blueprintHash);
+        return
+            SignedBlueprint({blueprint: blueprint, blueprintHash: blueprintHash, signature: abi.encodePacked(r, s, v)});
+    }
+
+    /// @dev assumes one agreement in getRecordedLogs. idk if gets oldest or newest.
+    function retrieveAgreementFromLogs()
+        private
+        returns (SignedBlueprint memory agreementSignedBlueprint, Agreement memory agreement)
+    {
+        // At this point the position is live. Things are happening and money is being made, hopefully. The agreement
+        // was defined in the Bookkeeper contract and emitted as an event.
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        // = abi.decode(entries[entries.length - 1].data, (SignedBlueprint));
+
+        // Extract signed agreement from logs.
+        for (uint256 i; i < entries.length; i++) {
+            // hardcoded event sig for OrderFilled (from brownie console)
+            if (entries[i].topics[0] == 0x21a6001862375a91bbf0eff278ae1eaee77323f67273ed674a16f9607888696f) {
+                // console.log("entry data:");
+                // console.logBytes(entries[i].data);
+                agreementSignedBlueprint = abi.decode(entries[i].data, (SignedBlueprint)); // signed blueprint is only thing in data
+            }
+        }
+        require(agreementSignedBlueprint.blueprintHash != 0x0, "failed to find agreement in logs");
+        (, bytes memory data) = bookkeeper.unpackDataField(agreementSignedBlueprint.blueprint.data);
+        agreement = abi.decode(data, (Agreement));
     }
 }
