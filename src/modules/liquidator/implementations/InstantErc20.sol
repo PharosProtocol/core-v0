@@ -12,51 +12,69 @@ import {IAccount} from "src/interfaces/IAccount.sol";
 import {IOracle} from "src/interfaces/IOracle.sol";
 
 /*
- * Liquidate a position at kick time by giving closing the position and having position contract distribute loan and 
+ * Liquidate a position at kick time and distribute loan and 
  * collateral assets between liquidator, lender, and borrower. Only useable with ERC20s due to need for divisibility.
- * Liquidator reward is a ratio of collateral amount, and maximum is 100% of collateral assets.
  */
 
-contract InstantTakeCollateral is Liquidator {
-    // struct Parameters {}
-
+abstract contract InstantErc20 is Liquidator {
     constructor(address bookkeeperAddr) Liquidator(bookkeeperAddr) {}
 
-    /// @notice Do nothing.
-    function _receiveKick(address kicker, Agreement calldata agreement) internal override {
-        _liquidate(kicker, agreement);
-    }
-
     /// @notice Liquidator prepays assets less reward and keeps position for later handling (no callback).
-    function _liquidate(address sender, Agreement calldata agreement) private {
+    function _liquidate(address sender, Agreement calldata agreement, bool closePosition) internal {
         // require(liquidating[agreement.position.addr], "position not in liquidation phase");
 
         IPosition position = IPosition(agreement.position.addr);
-        uint256 positionAmount = position.close(sender, agreement, false, agreement.position.parameters); // denoted in loan asset
+
+        uint256 positionAmount;
+        if (closePosition) {
+            positionAmount = position.close(sender, agreement, false, agreement.position.parameters);
+        } else {
+            // NOTE security - what happens to erc20 transfer if amount is 0?
+            positionAmount = position.getCloseAmount(agreement.position.parameters);
+            (bool success,) = IPosition(agreement.position.addr).passThrough(
+                payable(address(Utils)),
+                abi.encodeWithSelector(
+                    Utils.safeErc20TransferFrom.selector,
+                    agreement.loanAsset.addr,
+                    sender,
+                    agreement.position.addr,
+                    positionAmount
+                ),
+                true
+            );
+            require(success, "Failed to send loan asset to position");
+        }
 
         // Split loan asset in position between lender and borrower. Lender gets priority.
         uint256 lenderAmount =
             agreement.loanAmount + IAssessor(agreement.assessor.addr).getCost(agreement, positionAmount);
         if (lenderAmount > 0) {
-            bool success = loadFromPosition(position, agreement.lenderAccount, agreement.loanAsset, lenderAmount);
-            require(success, "Failed to send loan asset to lender account");
+            loadFromPosition(position, agreement.lenderAccount, agreement.loanAsset, lenderAmount);
         }
 
         // Might be profitable for borrower or not.
         if (positionAmount > lenderAmount) {
-            bool success = loadFromPosition(
-                position, agreement.borrowerAccount, agreement.loanAsset, positionAmount - lenderAmount
-            );
-            require(success, "Failed to send loan asset to borrower account");
+            loadFromPosition(position, agreement.borrowerAccount, agreement.loanAsset, positionAmount - lenderAmount);
         }
 
-        // Liquidator gets all collateral as reward.
-        if (agreement.collAmount > 0) {
+        // Collateral asset is split between liquidator and borrower. Priority to liquidator.
+        uint256 rewardCollAmount = getRewardCollAmount(agreement);
+        if (agreement.collAmount < rewardCollAmount) rewardCollAmount = agreement.collAmount;
+
+        // Spare collateral goes back to borrower.
+        if (agreement.collAmount > rewardCollAmount) {
+            loadFromPosition(
+                position, agreement.borrowerAccount, agreement.collAsset, agreement.collAmount - rewardCollAmount
+            );
+        }
+
+        // Reward goes direct to liquidator.
+        if (rewardCollAmount > 0) {
             // d4e3bdb6: safeErc20Transfer(address,address,uint256)
             (bool success,) = IPosition(agreement.position.addr).passThrough(
                 payable(address(Utils)),
                 abi.encodeWithSelector(
-                    Utils.safeErc20Transfer.selector, agreement.collAsset.addr, sender, agreement.collAmount
+                    Utils.safeErc20Transfer.selector, agreement.collAsset.addr, sender, rewardCollAmount
                 ),
                 true
             );
@@ -68,20 +86,25 @@ contract InstantTakeCollateral is Liquidator {
         emit Liquidated(agreement.position.addr, sender);
     }
 
+    /// @notice Load assets from position to an account.
     function loadFromPosition(IPosition position, ModuleReference memory account, Asset memory asset, uint256 amount)
         private
-        returns (bool success)
     {
-        (success,) = position.passThrough(
+        (bool success,) = position.passThrough(
             payable(asset.addr), abi.encodeWithSelector(IERC20.approve.selector, account.addr, amount), false
         );
-        require(success, "Failed to approve ERC20 spend");
+        require(success, "Failed to approve position ERC20 spend");
         (success,) = position.passThrough(
             payable(account.addr),
             abi.encodeWithSelector(IAccount.load.selector, asset, amount, account.parameters),
             false
         );
+        require(success, "Failed to load asset from position to account");
     }
+
+    /// @notice Returns amount of collateral asset that is due to the liquidator.
+    /// @dev may return a number that is larger than the total collateral amount.
+    function getRewardCollAmount(Agreement memory agreement) public view virtual returns (uint256 rewardCollAmount);
 
     function canHandleAssets(Asset calldata loanAsset, Asset calldata collAsset, bytes calldata)
         external
