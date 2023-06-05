@@ -49,11 +49,10 @@ contract Bookkeeper is Tractor {
     // receive() external {}
     // fallback() external {}
 
-    function fillOrder(
-        Fill calldata fill,
-        SignedBlueprint calldata orderBlueprint,
-        ModuleReference calldata takerAccount
-    ) external verifySignature(orderBlueprint) {
+    function fillOrder(Fill calldata fill, SignedBlueprint calldata orderBlueprint)
+        external
+        verifySignature(orderBlueprint)
+    {
         // decode order blueprint data and ensure blueprint metadata is valid pairing with embedded data
         (bytes1 blueprintDataType, bytes memory blueprintData) = unpackDataField(orderBlueprint.blueprint.data);
         require(uint8(blueprintDataType) == uint8(BlueprintDataType.ORDER), "BKDTMM");
@@ -61,6 +60,10 @@ contract Bookkeeper is Tractor {
         console.logBytes(blueprintData);
         // console.log("blueprint data at decoding:");
         // console.logBytes(orderBlueprint.blueprint.data);
+        require(
+            msg.sender == IAccount(fill.account.addr).getOwner(fill.account.parameters),
+            "Taker account does not match msg.sender"
+        );
         Order memory order = abi.decode(blueprintData, (Order));
         require(
             orderBlueprint.blueprint.publisher == IAccount(order.account.addr).getOwner(order.account.parameters),
@@ -79,11 +82,11 @@ contract Bookkeeper is Tractor {
 
         if (order.isOffer) {
             agreement.lenderAccount = order.account;
-            agreement.borrowerAccount = takerAccount;
+            agreement.borrowerAccount = fill.account;
             collateralValue = loanValue * fill.borrowerConfig.initCollateralRatio / C.RATIO_FACTOR;
             agreement.position.parameters = fill.borrowerConfig.positionParameters;
         } else {
-            agreement.lenderAccount = takerAccount;
+            agreement.lenderAccount = fill.account;
             agreement.borrowerAccount = order.account;
             collateralValue = loanValue * order.borrowerConfig.initCollateralRatio / C.RATIO_FACTOR;
             agreement.position.parameters = order.borrowerConfig.positionParameters;

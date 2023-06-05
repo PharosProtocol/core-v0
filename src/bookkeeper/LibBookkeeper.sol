@@ -46,6 +46,7 @@ struct BorrowerConfig {
 
 /// @notice Taker defined Position configuration that is compatible with an offer or a request.
 struct Fill {
+    ModuleReference account;
     uint256 loanAmount; // should be valid with both minFillRatios and account balances
     uint256 takerIdx; // ignored if no taker allowlist.
     uint256 loanAssetIdx; // need to verify with the oracle

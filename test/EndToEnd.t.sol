@@ -102,11 +102,9 @@ contract EndToEndTest is TestUtils {
         console.logBytes(orderBlueprint.data);
         SignedBlueprint memory orderSignedBlueprint = createSignedBlueprint(orderBlueprint, LENDER_PRIVATE_KEY);
 
-        Fill memory fill = createFill();
-        ModuleReference memory borrowerAccount =
-            ModuleReference({addr: address(accountModule), parameters: abi.encode(borrowerAccountParams)});
+        Fill memory fill = createFill(borrowerAccountParams);
         vm.prank(borrower);
-        bookkeeper.fillOrder(fill, orderSignedBlueprint, borrowerAccount);
+        bookkeeper.fillOrder(fill, orderSignedBlueprint);
 
         assertEq(accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 8e18);
         assertLt(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000e6);
@@ -165,11 +163,9 @@ contract EndToEndTest is TestUtils {
         console.logBytes(orderBlueprint.data);
         SignedBlueprint memory orderSignedBlueprint = createSignedBlueprint(orderBlueprint, LENDER_PRIVATE_KEY);
 
-        Fill memory fill = createFill();
-        ModuleReference memory borrowerAccount =
-            ModuleReference({addr: address(accountModule), parameters: abi.encode(borrowerAccountParams)});
+        Fill memory fill = createFill(borrowerAccountParams);
         vm.prank(borrower);
-        bookkeeper.fillOrder(fill, orderSignedBlueprint, borrowerAccount);
+        bookkeeper.fillOrder(fill, orderSignedBlueprint);
 
         assertEq(accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 8e18);
         assertLt(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000e6);
@@ -280,7 +276,7 @@ contract EndToEndTest is TestUtils {
         });
     }
 
-    function createFill() private view returns (Fill memory) {
+    function createFill(ERC20Account.Parameters memory borrowerAccountParams) private view returns (Fill memory) {
         BorrowerConfig memory borrowerConfig = BorrowerConfig({
             initCollateralRatio: C.RATIO_FACTOR / 2,
             positionParameters: abi.encode(
@@ -292,6 +288,7 @@ contract EndToEndTest is TestUtils {
         });
 
         return Fill({
+            account: ModuleReference({addr: address(accountModule), parameters: abi.encode(borrowerAccountParams)}),
             loanAmount: 2e18, // must be valid with init CR and available collateral value
             takerIdx: 0,
             loanAssetIdx: 0,
