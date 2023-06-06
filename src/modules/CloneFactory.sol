@@ -30,7 +30,7 @@ import "lib/openzeppelin-contracts/contracts/proxy/utils/Initializable.sol";
  * The Factory is used to spawn positions (clones) and call their intializers.
  */
 
-abstract contract PositionFactory is AccessControl, Initializable {
+abstract contract CloneFactory is AccessControl, Initializable {
     address public immutable BOOKKEEPER_ADDRESS; // Modulus address
     address public immutable FACTORY_ADDRESS; // Implementation contract address // assumes proxy constant values are set by implementation contract
 
