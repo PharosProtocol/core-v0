@@ -2,21 +2,31 @@
 
 pragma solidity 0.8.19;
 
-import {Assessor} from "../Assessor.sol";
+import {Assessor} from "src/modules/assessor/Assessor.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
 import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
 import "src/LibUtil.sol";
 import {C} from "src/C.sol";
 
 /*
- * DynamicInterestAssessor is one possible implementation of an assessor. 
- * It determines its current interest rate and maintains state of what its last updated interest rate was. 
+ * UtilizationBased is one possible implementation of an assessor. 
+ * It determines the current interest rate and maintains state of what its last updated interest rate was. 
+ * This dynamic rate design allows for loans with variable interest rates. Unlike existing implementations, 
+ * the cost is not fixed at agreement time.
+ * Notable limitation of implementations:
+ *   - Accounts need to be able to report utilization rate
+ *   - Updates need to be triggered. This means calling any time any other module changes in a meaningful way. This
+ *        inherently requires opinionated design decisions and also will increase gas cost for operations, even if a
+ *        dynamic assessor is not used.
  */
 
 // NOTE implement an update function? non stateful implementations can ignore it. update on position creation or on
 //      account changes? or *both*
 
-contract DynamicInterestAssessor is Assessor {
+abstract contract UtilizationBased is Assessor {}
+
+// NOTE agreement mostly compiles and should function. Remaining work primarily exist in the account standards design.
+/*
     struct Parameters {
         uint256 baseInterestRate;
         uint256 utilizationKinkRatio;
@@ -37,16 +47,17 @@ contract DynamicInterestAssessor is Assessor {
     function update(Agreement calldata agreement) external {
         Parameters memory params = abi.decode(agreement.assessor.parameters, (Parameters));
         IAccount lenderAccount = IAccount(agreement.lenderAccount.addr);
-        cumulatives[block.now] = _getCumulative();
-        lastInterestRate = _getRate(lenderAccount.getUtilizationRatio(agreement.loanAsset, agreement.loanParameters));
-        lastUpdatedTimestamp = block.now;
+        cumulatives[block.timestamp] = _getCumulative();
+        lastInterestRate =
+            _getRate(lenderAccount.getUtilizationRatio(agreement.loanAsset, agreement.lenderAccount.parameters), params);
+        lastUpdated = block.timestamp;
     }
 
     function _getCumulative() private view returns (uint256) {
-        return cumulatives[lastUpdated] + (block.now - lastUpdatedTimestamp) * lastInterestRate;
+        return cumulatives[lastUpdated] + (block.timestamp - lastUpdated) * lastInterestRate;
     }
 
-    function _getRate(uint256 utilizationRatio) private view returns (uint256) {
+    function _getRate(uint256 utilizationRatio, Parameters memory params) private view returns (uint256) {
         if (utilizationRatio <= params.utilizationKinkRatio) {
             return params.baseInterestRate;
         } else {
@@ -61,6 +72,7 @@ contract DynamicInterestAssessor is Assessor {
         return false;
     }
 }
+*/
 
 /*
 Attempting to get current value to attribute to suppliers is fundamentally different than something like other protocols bc there is not a single or set number of places to look for outstanding interest / cost. instead there is
