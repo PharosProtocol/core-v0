@@ -10,30 +10,24 @@ import {Account} from "../Account.sol";
 import {IWETH9} from "src/interfaces/external/IWETH9.sol";
 import "src/LibUtil.sol";
 
-// NOTE could bypass need here (and other modules) for C.BOOKKEEPER_ROLE by verifying signed agreement and tracking
-//      which have already been processed.
-
 /**
- * Account for holding ETH and ERC20 assets, to use for either lending or borrowing through an Agreement.
+ * Account for holding ERC20 assets, to use for either lending or borrowing through an Agreement.
  * ~ Not compatible with other asset types ~
  */
-contract ERC20Account is Account {
+contract SoloAccount is Account {
     struct Parameters {
         address owner;
         // An owner-unique id for this account.
         bytes32 salt;
     }
 
-    mapping(bytes32 => mapping(bytes32 => uint256)) private accounts; // account id => asset hash => amount
+    mapping(bytes32 => mapping(bytes32 => uint256)) private unlockedBalances; // account id => asset hash => amount
 
-    constructor(address bookkeeperAddr) Account(bookkeeperAddr) {
-        // COMPATIBLE_LOAN_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
-        // COMPATIBLE_COLL_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
-    }
+    constructor(address bookkeeperAddr) Account(bookkeeperAddr) {}
 
     function _load(Asset calldata asset, uint256 amount, bytes calldata parameters) internal override {
         Parameters memory params = abi.decode(parameters, (Parameters));
-        _increaseBalance(asset, amount, params);
+        unlockedBalances[_getId(params.owner, params.salt)][keccak256(abi.encode(asset))] += amount;
 
         if (msg.value > 0 && asset.addr == C.WETH) {
             assert(msg.value == amount);
@@ -46,13 +40,15 @@ contract ERC20Account is Account {
     function _unload(Asset calldata asset, uint256 amount, bytes calldata parameters) internal override {
         Parameters memory params = abi.decode(parameters, (Parameters));
         require(msg.sender == params.owner, "unload: not owner");
-        _decreaseBalance(asset, amount, params);
+        unlockedBalances[_getId(params.owner, params.salt)][keccak256(abi.encode(asset))] -= amount;
         Utils.safeErc20Transfer(asset.addr, msg.sender, amount);
     }
 
-    // NOTE this asset knowledge could be removed entirely from Accounts. This function logic would live in positions,
+    // NOTE this asset knowledge could be removed entirely from unlockedBalances. This function logic would live in positions,
     //      which inherently need ti understand the asset(s), and could be called by the bookkeeper using delegatecall.
     //      Thus account can allow it to remove assets using arbitrary passthrough function.
+    //      Actually does not work bc bookkeeper cannot make delegate calls to unknown external code or state will
+    //      be at risk.
     function _transferToPosition(
         address position,
         Asset calldata asset,
@@ -64,8 +60,9 @@ contract ERC20Account is Account {
 
         bytes32 id = _getId(params.owner, params.salt);
         if (!isLockedAsset) {
-            accounts[id][keccak256(abi.encode(asset))] -= amount;
+            unlockedBalances[id][keccak256(abi.encode(asset))] -= amount;
         }
+        // AUDIT any method to take out of other users locked balance?
         Utils.safeErc20Transfer(asset.addr, position, amount);
     }
 
@@ -79,7 +76,7 @@ contract ERC20Account is Account {
         Parameters memory params = abi.decode(parameters, (Parameters));
 
         bytes32 id = _getId(params.owner, params.salt);
-        accounts[id][keccak256(abi.encode(asset))] -= amount;
+        unlockedBalances[id][keccak256(abi.encode(asset))] -= amount;
     }
 
     function _unlockCollateral(Asset calldata asset, uint256 amount, bytes calldata parameters)
@@ -90,7 +87,7 @@ contract ERC20Account is Account {
         Parameters memory params = abi.decode(parameters, (Parameters));
 
         bytes32 id = _getId(params.owner, params.salt);
-        accounts[id][keccak256(abi.encode(asset))] += amount;
+        unlockedBalances[id][keccak256(abi.encode(asset))] += amount;
     }
 
     function getOwner(bytes calldata parameters) external pure override returns (address) {
@@ -110,15 +107,7 @@ contract ERC20Account is Account {
     {
         Parameters memory params = abi.decode(parameters, (Parameters));
         bytes32 accountId = _getId(params.owner, params.salt);
-        return accounts[accountId][keccak256(abi.encode(asset))];
-    }
-
-    function _increaseBalance(Asset calldata asset, uint256 amount, Parameters memory params) private {
-        accounts[_getId(params.owner, params.salt)][keccak256(abi.encode(asset))] += amount;
-    }
-
-    function _decreaseBalance(Asset calldata asset, uint256 amount, Parameters memory params) private {
-        accounts[_getId(params.owner, params.salt)][keccak256(abi.encode(asset))] -= amount;
+        return unlockedBalances[accountId][keccak256(abi.encode(asset))];
     }
 
     function _getId(address owner, bytes32 salt) private pure returns (bytes32) {

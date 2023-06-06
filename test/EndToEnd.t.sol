@@ -15,7 +15,7 @@ import {TestUtils} from "test/TestUtils.sol";
 // import {IUniswapV3Pool} from "lib/v3-core/contracts/UniswapV3Pool.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import {ERC20Account} from "src/modules/account/implementations/ERC20Account.sol";
+import {SoloAccount} from "src/modules/account/implementations/SoloAccount.sol";
 import {IAssessor} from "src/interfaces/IAssessor.sol";
 import {StandardAssessor} from "src/modules/assessor/implementations/StandardAssessor.sol";
 import {InstantCloseTakeCollateral} from "src/modules/liquidator/implementations/InstantCloseTakeCollateral.sol";
@@ -33,7 +33,7 @@ import {Blueprint, SignedBlueprint, Tractor} from "lib/tractor/Tractor.sol";
 
 contract EndToEndTest is TestUtils {
     Bookkeeper public bookkeeper;
-    ERC20Account public accountModule;
+    SoloAccount public accountModule;
     StandardAssessor public assessorModule;
     InstantCloseTakeCollateral public liquidatorModule;
     UniswapV3Oracle public uniOracleModule;
@@ -66,7 +66,7 @@ contract EndToEndTest is TestUtils {
 
         // Deploy Bookkeeper and module contracts.
         bookkeeper = new Bookkeeper();
-        accountModule = new ERC20Account(address(bookkeeper));
+        accountModule = new SoloAccount(address(bookkeeper));
         assessorModule = new StandardAssessor();
         liquidatorModule = new InstantCloseTakeCollateral(address(bookkeeper));
         uniOracleModule = new UniswapV3Oracle();
@@ -79,9 +79,9 @@ contract EndToEndTest is TestUtils {
         address lender = vm.addr(LENDER_PRIVATE_KEY);
         address borrower = vm.addr(BORROWER_PRIVATE_KEY);
 
-        ERC20Account.Parameters memory lenderAccountParams = ERC20Account.Parameters({owner: lender, salt: bytes32(0)});
-        ERC20Account.Parameters memory borrowerAccountParams =
-            ERC20Account.Parameters({owner: borrower, salt: bytes32(0)});
+        SoloAccount.Parameters memory lenderAccountParams = SoloAccount.Parameters({owner: lender, salt: bytes32(0)});
+        SoloAccount.Parameters memory borrowerAccountParams =
+            SoloAccount.Parameters({owner: borrower, salt: bytes32(0)});
 
         fundAccount(lenderAccountParams);
         fundAccount(borrowerAccountParams);
@@ -140,9 +140,9 @@ contract EndToEndTest is TestUtils {
         address borrower = vm.addr(BORROWER_PRIVATE_KEY);
         address liquidator = vm.addr(LIQUIDATOR_PRIVATE_KEY);
 
-        ERC20Account.Parameters memory lenderAccountParams = ERC20Account.Parameters({owner: lender, salt: bytes32(0)});
-        ERC20Account.Parameters memory borrowerAccountParams =
-            ERC20Account.Parameters({owner: borrower, salt: bytes32(0)});
+        SoloAccount.Parameters memory lenderAccountParams = SoloAccount.Parameters({owner: lender, salt: bytes32(0)});
+        SoloAccount.Parameters memory borrowerAccountParams =
+            SoloAccount.Parameters({owner: borrower, salt: bytes32(0)});
 
         fundAccount(lenderAccountParams);
         fundAccount(borrowerAccountParams);
@@ -199,7 +199,7 @@ contract EndToEndTest is TestUtils {
         console.log("done");
     }
 
-    function fundAccount(ERC20Account.Parameters memory accountParams) private {
+    function fundAccount(SoloAccount.Parameters memory accountParams) private {
         vm.deal(accountParams.owner, 2e18);
         wethDeal(accountParams.owner, 12e18);
         deal(USDC_ASSET.addr, accountParams.owner, 5_000e6, true);
@@ -212,7 +212,7 @@ contract EndToEndTest is TestUtils {
         vm.stopPrank();
     }
 
-    function createOrder(ERC20Account.Parameters memory accountParams) private view returns (Order memory) {
+    function createOrder(SoloAccount.Parameters memory accountParams) private view returns (Order memory) {
         // Set individual structs here for cleanliness and solidity ease.
         ModuleReference memory account =
             ModuleReference({addr: address(accountModule), parameters: abi.encode(accountParams)});
@@ -276,7 +276,7 @@ contract EndToEndTest is TestUtils {
         });
     }
 
-    function createFill(ERC20Account.Parameters memory borrowerAccountParams) private view returns (Fill memory) {
+    function createFill(SoloAccount.Parameters memory borrowerAccountParams) private view returns (Fill memory) {
         BorrowerConfig memory borrowerConfig = BorrowerConfig({
             initCollateralRatio: C.RATIO_FACTOR / 2,
             positionParameters: abi.encode(

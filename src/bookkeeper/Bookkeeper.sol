@@ -60,6 +60,8 @@ contract Bookkeeper is Tractor {
         console.logBytes(blueprintData);
         // console.log("blueprint data at decoding:");
         // console.logBytes(orderBlueprint.blueprint.data);
+
+        // Verify publishers own accounts. May or may not be EOA.
         require(
             msg.sender == IAccount(fill.account.addr).getOwner(fill.account.parameters),
             "Taker account does not match msg.sender"

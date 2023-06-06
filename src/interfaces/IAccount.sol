@@ -59,8 +59,5 @@ interface IAccount {
 
     function getBalance(Asset calldata asset, bytes calldata parameters) external view returns (uint256);
 
-    function canHandleAsset(Asset calldata asset, bytes calldata parameters)
-        external
-        view
-        returns (bool);
+    function canHandleAsset(Asset calldata asset, bytes calldata parameters) external view returns (bool);
 }

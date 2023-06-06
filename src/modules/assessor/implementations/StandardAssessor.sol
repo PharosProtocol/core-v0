@@ -2,8 +2,6 @@
 
 pragma solidity 0.8.19;
 
-import "forge-std/console.sol";
-
 import {Assessor} from "../Assessor.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
 import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
@@ -23,7 +21,7 @@ contract StandardAssessor is Assessor {
     }
 
     /// @notice Return the cost of a loan, quantified in the Loan Asset.
-    function getCost(Agreement calldata agreement, uint256 currentAmount) external view override returns (uint256 amount) {
+    function getCost(Agreement calldata agreement, uint256 currentAmount) external view override returns (uint256) {
         Parameters memory params = abi.decode(agreement.assessor.parameters, (Parameters));
         uint256 originationFee = agreement.loanAmount * params.originationFeeRatio / C.RATIO_FACTOR;
         uint256 interest =
@@ -32,8 +30,7 @@ contract StandardAssessor is Assessor {
         uint256 profitShare =
             currentAmount > lenderAmount ? (currentAmount - lenderAmount) * params.profitShareRatio / C.RATIO_FACTOR : 0;
 
-        amount = originationFee + interest + profitShare;
-        console.log("cost: %s", amount);
+        return originationFee + interest + profitShare;
     }
 
     // Although the assessor is not moving assets around, this assessment only makes sense with divisible assets.

@@ -3,7 +3,7 @@
 pragma solidity 0.8.19;
 
 import {IPosition} from "src/interfaces/IPosition.sol";
-import {PositionFactory} from "src/modules/position/PositionFactory.sol";
+import {CloneFactory} from "src/modules/CloneFactory.sol";
 import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
 import {IAccount} from "src/interfaces/IAccount.sol";
 import {AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
@@ -13,10 +13,10 @@ import {Module} from "src/modules/Module.sol";
 import {C} from "src/C.sol";
 import "src/LibUtil.sol";
 
-abstract contract Position is IPosition, PositionFactory, Module {
+abstract contract Position is IPosition, CloneFactory, Module {
     event ControlTransferred(address previousController, address newController);
 
-    constructor(address bookkeeperAddr) PositionFactory(bookkeeperAddr) {
+    constructor(address bookkeeperAddr) CloneFactory(bookkeeperAddr) {
         // _setupRole
         // _setupRole
     }

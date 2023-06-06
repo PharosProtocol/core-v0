@@ -12,7 +12,7 @@ from brownie_tokens import MintableForkToken
 
 import .script.utils as utils
 
-# from brownie import (LibBookkeeper, Bookkeeper, ERC20Account,
+# from brownie import (LibBookkeeper, Bookkeeper, SoloAccount,
 #                      StandardAssessor, UniV3HoldFactory, UniswapV3Oracle, InstantLiquidator, LibUniswapV3, Utils)
 
 RATIO_FACTOR = 1e18
@@ -38,7 +38,7 @@ def isolation(fn_isolation):
 
 def test_agree(accounts):
     bk = Bookkeeper[0]
-    a = ERC20Account[0]
+    a = SoloAccount[0]
 
     usdc = MintableForkToken.from_explorer(
         "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48")

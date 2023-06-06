@@ -1,4 +1,4 @@
-from brownie import (accounts, LibBookkeeper, Bookkeeper, ERC20Account,
+from brownie import (accounts, LibBookkeeper, Bookkeeper, SoloAccount,
                      StandardAssessor, UniV3HoldFactory, UniswapV3Oracle, InstantLiquidator, LibUniswapV3, Utils)
 
 from brownie.network import max_fee, priority_fee
@@ -21,7 +21,7 @@ def deploy():
 
     Utils.deploy({'from': accounts[0]})
     LibUniswapV3.deploy({'from': accounts[0]})
-    ERC20Account.deploy(Bookkeeper[0].address, {'from': accounts[0]})
+    SoloAccount.deploy(Bookkeeper[0].address, {'from': accounts[0]})
     StandardAssessor.deploy({'from': accounts[0]})
     UniV3HoldFactory.deploy(Bookkeeper[0].address, {'from': accounts[0]})
     UniswapV3Oracle.deploy({'from': accounts[0]})

@@ -15,10 +15,10 @@ import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.so
 
 import {C} from "src/C.sol";
 import {Asset, AssetStandard, ETH_STANDARD, ERC20_STANDARD} from "src/LibUtil.sol";
-import {ERC20Account} from "src/modules/account/implementations/ERC20Account.sol";
+import {SoloAccount} from "src/modules/account/implementations/SoloAccount.sol";
 
 contract AccountTest is TestUtils {
-    ERC20Account public accountModule;
+    SoloAccount public accountModule;
     Asset[] ASSETS;
 
     // Copy of event definitions.
@@ -35,7 +35,7 @@ contract AccountTest is TestUtils {
     function setUp() public {
         vm.recordLogs();
         vm.createSelectFork(vm.rpcUrl("mainnet"), 17092863);
-        accountModule = new ERC20Account(address(1));
+        accountModule = new SoloAccount(address(1));
     }
 
     // NOTE it is unclear if this should be a fuzz or a direct unit tests. Are fuzzes handled by invariant tests?
@@ -60,7 +60,7 @@ contract AccountTest is TestUtils {
         vm.startPrank(msg.sender);
 
         // Define account instance.
-        bytes memory parameters = abi.encode(ERC20Account.Parameters({owner: msg.sender, salt: "salt"}));
+        bytes memory parameters = abi.encode(SoloAccount.Parameters({owner: msg.sender, salt: "salt"}));
         assertEq(accountModule.getOwner(parameters), msg.sender);
 
         // Fail to add WETH because balance too low.
@@ -138,7 +138,7 @@ contract AccountTest is TestUtils {
 }
 
 contract Handler is Test, HandlerUtils {
-    ERC20Account public accountModule;
+    SoloAccount public accountModule;
     Asset[] public ASSETS;
     uint256[] public assetBalances;
     // uint256[] public assetsIn;
@@ -148,7 +148,7 @@ contract Handler is Test, HandlerUtils {
         ASSETS.push(Asset({standard: ETH_STANDARD, addr: address(0), id: 0, data: ""}));
         ASSETS.push(Asset({standard: ERC20_STANDARD, addr: C.USDC, id: 0, data: ""}));
         assetBalances = new uint256[](ASSETS.length);
-        accountModule = new ERC20Account(address(1));
+        accountModule = new SoloAccount(address(1));
     }
 
     function load(uint256 assetIdx, uint256 amount, address owner, bytes32 salt)
@@ -160,7 +160,7 @@ contract Handler is Test, HandlerUtils {
         assetIdx = bound(assetIdx, 0, ASSETS.length - 1);
         amount = bound(amount, 0, type(uint128).max);
         Asset memory asset = ASSETS[assetIdx];
-        bytes memory parameters = abi.encode(ERC20Account.Parameters({owner: owner, salt: salt}));
+        bytes memory parameters = abi.encode(SoloAccount.Parameters({owner: owner, salt: salt}));
         assetBalances[assetIdx] += amount;
 
         // Set ETH balance.
@@ -188,7 +188,7 @@ contract Handler is Test, HandlerUtils {
         assetIdx = bound(assetIdx, 0, ASSETS.length - 1);
         amount = bound(amount, 0, type(uint128).max);
         Asset memory asset = ASSETS[assetIdx];
-        bytes memory parameters = abi.encode(ERC20Account.Parameters({owner: owner, salt: salt}));
+        bytes memory parameters = abi.encode(SoloAccount.Parameters({owner: owner, salt: salt}));
         assetBalances[assetIdx] -= amount; // NOTE how does invariant behave on reverts? will this protect lower failures?
 
         vm.prank(currentActor);
