@@ -39,17 +39,21 @@ import {Asset} from "src/LibUtil.sol";
 
 interface IAccount {
     /// @notice Transfer asset and increment account balance. Pulls asset from sender or uses msg.value.
-    function load(Asset calldata asset, uint256 amount, bytes calldata parameters) external payable;
+    function loadFromUser(Asset calldata asset, uint256 amount, bytes calldata parameters) external payable;
+    /// @notice Transfer asset and increment account balance. Pulls asset from sender or uses msg.value.
+    /// @dev Assets may not literally be coming from a position.
+    function loadFromPosition(Asset calldata asset, uint256 amount, bytes calldata parameters) external payable;
     /// @notice Transfer asset out and decrement account balance. Pushes asset to sender.
-    function unload(Asset calldata asset, uint256 amount, bytes calldata parameters) external;
+    function unloadToUser(Asset calldata asset, uint256 amount, bytes calldata parameters) external;
     /// @notice Transfer loan or collateral asset from account to Position MPC. Pushes.
-    function transferToPosition(
+    function unloadToPosition(
         address position,
         Asset calldata asset,
         uint256 amount,
-        bool isLockedAsset,
+        bool isLockedColl,
         bytes calldata parameters
     ) external;
+
     function lockCollateral(Asset calldata asset, uint256 amount, bytes calldata parameters) external;
     function unlockCollateral(Asset calldata asset, uint256 amount, bytes calldata parameters) external;
 
