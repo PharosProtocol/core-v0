@@ -26,9 +26,12 @@ import "src/LibUtil.sol";
 //          returns assets to the account. Although *if* a position does close it will always close with the amount
 //          dictated by the assessor. We would expect this to be at least the same as the initial amount, but a bad
 //          actor could design an assessor that returns less. When less is returned, what will happen to lenders in
-//          this type of account? They will be able to withdraw, but it will be a smaller amount than they put in. 
+//          this type of account? They will be able to withdraw, but it will be a smaller amount than they put in.
 //          However, each account has a known Order and Assessor assigned at creation, so users are agreeing to the
-//          terms, even if they are bad. 
+//          terms, even if they are bad.
+
+// NOTE this contract pushes the limits of my economic knowledge and math ability. Likely has room for conceptual
+//      improvement.
 
 // Could track historical utilization by using summation system located in the account. Assessors could then pull
 // cumulative utilization since agreement inception and use it to price loan cost without any state in the
@@ -52,13 +55,20 @@ contract PoolSupplyAccount is Account {
 
     // One order per pool account contract. One pool per address.
     constructor(address bookkeeperAddr, Order memory order) Account(bookkeeperAddr) {
-        IBookkeeper(bookkeeperAddr).signPublishOrder(order);
+        IBookkeeper(bookkeeperAddr).signPublishOrder(order, type(uint256).max);
     }
 
+    // Supply of pool can be (roughly) approximated as available + deployed. A reasonable order with reasonable assessor
+    // will result in deployed always be equal or less than the amount that will be returned by closing positions. Thus
+    // we can treat it as the minimum supply. Bad debt may never close.
+    // We do not use supply here because it is not possible to (securely) determine the delta between original
+    // amount and returned amount when closing a position.
     // Amount of assets currently in the pool available to be used.
     mapping(bytes32 => uint256) private available; // asset hash => balance
-    // Amount of (known) assets this pool under management of this pool as its associated positions.
-    mapping(bytes32 => uint256) private supply; // asset hash => supply
+    // Amount of (known) assets that have been deployed to positions and not yet returned.
+    mapping(bytes32 => uint256) private deployed; // asset hash => supply
+    // // Amount of (known) assets this pool under management of this pool as its associated positions.
+    // mapping(bytes32 => uint256) private supply; // asset hash => supply
 
     uint256 utilization;
     mapping(uint256 => mapping(bytes32 => uint256)) private utilizationSum; // time => asset hash => utilization sum
@@ -67,26 +77,25 @@ contract PoolSupplyAccount is Account {
     // Marks indicate entitlement to assets.
 
     // QUESTION GAS does embedding of many layers of map create high lookup cost?
-    mapping(bytes32 => uint256) private marks; // asset hash =>
-    mapping(bytes32 => uint256) private marksSum; // asset hash => total ownership count
+    mapping(bytes32 => uint256) private contributions; // asset hash =>
+    mapping(bytes32 => uint256) private marks; // asset hash => total ownership count
     mapping(bytes32 => uint256) private marksLastUpdated; // asset hash =>
 
     // The amount contributed by a user. This is the amount sum will increase by each second.
+    mapping(address => mapping(bytes32 => uint256)) private userContributions; // user => asset hash => balance
     mapping(address => mapping(bytes32 => uint256)) private userMarks; // user => asset hash => balance
-    mapping(address => mapping(bytes32 => uint256)) private userMarksSum; // user => asset hash => balance
     mapping(address => mapping(bytes32 => uint256)) userMarksLastUpdated;
 
     /// @notice Get time weighted average utilization from startTime to now.
-    function getTWAUtilization(Asset calldata asset, uint256 startTime, bytes calldata parameters)
+    function getTWAUtilization(Asset calldata asset, uint256 startTime, bytes calldata)
         external
         view
         returns (uint256)
     {
-        Parameters memory params = abi.decode(parameters, (Parameters));
         bytes32 assetHash = keccak256(abi.encode(asset));
         uint256 startSum = utilizationSum[startTime][assetHash];
-        uint256 currentSum = utilizationSum[utilizationLastUpdated][assetHash] +=
-            utilization * (block.timestamp - utilizationLastUpdated[assetHash]);
+        uint256 currentSum = utilizationSum[utilizationLastUpdated[assetHash]][assetHash]
+            + utilization * (block.timestamp - utilizationLastUpdated[assetHash]);
         // require(startSum != 0, "getTWAUtilization: no start sum");
         // GAS utilizationSum can use unchecked sub.
         return (currentSum - startSum) / (block.timestamp - startTime);
@@ -96,6 +105,21 @@ contract PoolSupplyAccount is Account {
         Parameters memory params = abi.decode(parameters, (Parameters));
         bytes32 assetHash = keccak256(abi.encode(asset));
 
+        _updateMarks(assetHash);
+        _updateUserMarks(params.user, assetHash);
+
+        uint256 minSupply = available[assetHash] + deployed[assetHash];
+        uint256 userAmount = minSupply * userMarks[params.user][assetHash] / marks[assetHash];
+        // SECURITY could this ever get caught and block with reverts?
+        uint256 deltaContributions = userAmount + amount - userContributions[params.user][assetHash];
+
+        contributions[assetHash] += deltaContributions;
+        userContributions[params.user][assetHash] = userAmount + amount;
+
+        available[assetHash] += amount;
+
+        _updateUtilizationAndSum(assetHash);
+
         if (msg.value > 0 && asset.addr == C.WETH) {
             assert(msg.value == amount);
             IWETH9(C.WETH).deposit{value: msg.value}();
@@ -103,24 +127,19 @@ contract PoolSupplyAccount is Account {
             // NOTE SECURITY fee on transfer erc20s.
             Utils.safeErc20TransferFrom(asset.addr, msg.sender, address(this), amount);
         }
-
-        _updateMarksSum(assetHash);
-        marks[assetHash] += amount;
-        _updateUserMarksSum(params.user, assetHash);
-        userMarks[params.user][assetHash] += amount;
-
-        available[assetHash] += amount;
-        supply[assetHash] += amount;
-
-        _updateUtilizationAndSum(assetHash);
     }
 
-    function _loadFromPosition(Asset calldata asset, uint256 amount, int256 change, bytes calldata parameters)
-        internal
-        override
-    {
-        Parameters memory params = abi.decode(parameters, (Parameters));
+    function _loadFromPosition(Asset calldata asset, uint256 amount, bytes calldata) internal override {
         bytes32 assetHash = keccak256(abi.encode(asset));
+
+        available[assetHash] += amount;
+        if (deployed[assetHash] > amount) {
+            deployed[assetHash] -= amount;
+        } else {
+            deployed[assetHash] = 0;
+        }
+
+        _updateUtilizationAndSum(assetHash);
 
         if (msg.value > 0 && asset.addr == C.WETH) {
             assert(msg.value == amount);
@@ -129,17 +148,6 @@ contract PoolSupplyAccount is Account {
             // SECURITY fee on transfer erc20s.
             Utils.safeErc20TransferFrom(asset.addr, msg.sender, address(this), amount);
         }
-        available[assetHash] += amount;
-
-        // SECURITY would we ever see a number so large this conversion fails?
-        if (change >= 0) {
-            supply[assetHash] += uint256(change);
-        } else {
-            // SECURITY Can change ever be larger than poolSupply ?
-            supply[assetHash] -= uint256(change);
-        }
-
-        _updateUtilizationAndSum(assetHash);
     }
 
     function _unloadToUser(Asset calldata asset, uint256 amount, bytes calldata parameters) internal override {
@@ -149,22 +157,37 @@ contract PoolSupplyAccount is Account {
 
         // SECURITY could rounding errors below cause a tiny shortage of funds leading to locking?
 
+        _updateMarks(assetHash);
+        _updateUserMarks(params.user, assetHash);
+
         // Determine proportional marks and amount.
+        uint256 minSupply = available[assetHash] + deployed[assetHash];
+        uint256 userAmount = minSupply * userMarks[params.user][assetHash] / marks[assetHash];
         uint256 unloadMarks;
         if (amount == type(uint256).max) {
             unloadMarks = userMarks[params.user][assetHash];
-            amount = unloadMarks * supply[assetHash] / marks[assetHash];
+            amount = userAmount;
         } else {
-            unloadMarks = marks[assetHash] * amount / supply[assetHash];
+            unloadMarks = marks[assetHash] * amount / minSupply;
         }
 
-        _updateMarksSum(assetHash);
+        // NOTE should users have a way to update on the fly to compound returns?
+
+        // This puts all entitled amount into user contribution balance, less withdraw amount. At this point rewards
+        // will begin compound earning. Contributions could grow or shrink.
+        uint256 nextUserContributions = userAmount - amount; // might be 0 if withdraw > contributions
+        if (nextUserContributions > userContributions[params.user][assetHash]) {
+            contributions[assetHash] += (nextUserContributions - userContributions[params.user][assetHash]);
+        } else {
+            contributions[assetHash] -= (userContributions[params.user][assetHash] - nextUserContributions);
+        }
+        userContributions[params.user][assetHash] = nextUserContributions;
+
         marks[assetHash] -= unloadMarks;
-        _updateUserMarksSum(params.user, assetHash);
+        // This sub verifies withdrawal is not larger than user entitlement.
         userMarks[params.user][assetHash] -= unloadMarks;
 
         available[assetHash] -= amount;
-        supply[assetHash] -= amount;
 
         _updateUtilizationAndSum(assetHash);
 
@@ -173,15 +196,15 @@ contract PoolSupplyAccount is Account {
     }
 
     /// @dev Not configured to handle borrowing (locked assets).
-    function _unloadToPosition(address position, Asset calldata asset, uint256 amount, bool, bytes calldata parameters)
+    function _unloadToPosition(address position, Asset calldata asset, uint256 amount, bool, bytes calldata)
         internal
         override
         onlyRole(C.BOOKKEEPER_ROLE)
     {
-        Parameters memory params = abi.decode(parameters, (Parameters));
         bytes32 assetHash = keccak256(abi.encode(asset));
 
         available[assetHash] -= amount;
+        deployed[assetHash] += amount;
 
         _updateUtilizationAndSum(assetHash);
 
@@ -191,23 +214,25 @@ contract PoolSupplyAccount is Account {
 
     // Without wasting gas on ERC20 transfer, lock assets here. In normal case (healthy position close) no transfers
     // of collateral are necessary.
-    function _lockCollateral(Asset calldata asset, uint256 amount, bytes calldata parameters)
+    function _lockCollateral(Asset calldata, uint256, bytes calldata)
         internal
+        view
         override
         onlyRole(C.BOOKKEEPER_ROLE)
     {
         revert("PoolAccount: Not compatible with borrowing");
     }
 
-    function _unlockCollateral(Asset calldata asset, uint256 amount, bytes calldata parameters)
+    function _unlockCollateral(Asset calldata, uint256, bytes calldata)
         internal
+        view
         override
         onlyRole(C.BOOKKEEPER_ROLE)
     {
         revert("PoolAccount: Not compatible with borrowing");
     }
 
-    function getOwner(bytes calldata parameters) external pure override returns (address) {
+    function getOwner(bytes calldata) external view override returns (address) {
         return address(this);
     }
 
@@ -223,21 +248,29 @@ contract PoolSupplyAccount is Account {
         override
         returns (uint256 amounts)
     {
-        return available[keccak256(abi.encode(asset))];
+        Parameters memory params = abi.decode(parameters, (Parameters));
+        bytes32 assetHash = keccak256(abi.encode(asset));
+
+        uint256 minSupply = available[assetHash] + deployed[assetHash];
+        uint256 currentUserMarks = userMarks[params.user][assetHash]
+            + userContributions[params.user][assetHash] * (block.timestamp - userMarksLastUpdated[params.user][assetHash]);
+        uint256 currentMarks =
+            marks[assetHash] + contributions[assetHash] * (block.timestamp - marksLastUpdated[assetHash]);
+        return minSupply * currentUserMarks / currentMarks;
     }
 
-    function _updateMarksSum(bytes32 assetHash) private {
+    function _updateMarks(bytes32 assetHash) private {
         uint256 deltaTime = block.timestamp - marksLastUpdated[assetHash];
 
-        marksSum[assetHash] += marks[assetHash] * deltaTime;
+        marks[assetHash] += contributions[assetHash] * deltaTime;
 
         marksLastUpdated[assetHash] = block.timestamp;
     }
 
-    function _updateUserMarksSum(address user, bytes32 assetHash) private {
+    function _updateUserMarks(address user, bytes32 assetHash) private {
         uint256 deltaTime = block.timestamp - userMarksLastUpdated[user][assetHash];
 
-        userMarksSum[user][assetHash] += userMarks[user][assetHash] * deltaTime;
+        userMarks[user][assetHash] += userContributions[user][assetHash] * deltaTime;
 
         userMarksLastUpdated[user][assetHash] = block.timestamp;
     }
@@ -250,7 +283,7 @@ contract PoolSupplyAccount is Account {
 
         utilizationSum[block.timestamp][assetHash] += utilization * deltaTime;
 
-        utilization = C.RATIO_FACTOR * (supply[assetHash] - available[assetHash]) / supply[assetHash];
+        utilization = C.RATIO_FACTOR * deployed[assetHash] / (deployed[assetHash] + available[assetHash]);
 
         utilizationLastUpdated[assetHash] = block.timestamp;
     }
