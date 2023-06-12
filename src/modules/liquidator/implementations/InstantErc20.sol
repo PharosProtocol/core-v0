@@ -86,6 +86,9 @@ abstract contract InstantErc20 is Liquidator {
         emit Liquidated(agreement.position.addr, sender);
     }
 
+    // NOTE could this be improved by doing sideLoad in bookkeeper (w/o knowledge of asset handling) and then having
+    //      bookkeeper report Asset(s) and Loaded amount(s) at kick time?  Trusted bookkeeper sideload reduces # of
+    //      asset transfers by 1 per asset.
     /// @notice Load assets from position to an account.
     function loadFromPosition(IPosition position, ModuleReference memory account, Asset memory asset, uint256 amount)
         private
@@ -94,9 +97,13 @@ abstract contract InstantErc20 is Liquidator {
             payable(asset.addr), abi.encodeWithSelector(IERC20.approve.selector, account.addr, amount), false
         );
         require(success, "Failed to approve position ERC20 spend");
+        // SECURITY why does anyone involved in the agreement care if liquidator uses loadFromPosition vs
+        //          loadFromUser? It is basically passing up on ownership of account assets. A hostile liquidator
+        //          implementation could then essentially siphon off assets in an account without loss by lender
+        //          or borrower.
         (success,) = position.passThrough(
             payable(account.addr),
-            abi.encodeWithSelector(IAccount.load.selector, asset, amount, account.parameters),
+            abi.encodeWithSelector(IAccount.loadFromUser.selector, asset, amount, account.parameters),
             false
         );
         require(success, "Failed to load asset from position to account");

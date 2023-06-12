@@ -47,6 +47,9 @@ library Utils {
         return (size > 0);
     }
 
+    // SECURITY NOTE: did not account for fee on transfer ERC20s. Either need to update logic or restrict to non-fee ERC20s.
+    //                Probably easiest to do the later and treat fee-based erc20s as a different asset type.
+
     /// @notice Transfers tokens from msg.sender to a recipient.
     /// @dev Return value is optional.
     function safeErc20Transfer(address token, address to, uint256 value) public {

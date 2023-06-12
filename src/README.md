@@ -13,3 +13,5 @@ has been considered a bit (need to verify use of CEI flow) but also griefing. a 
 contract which reverts on fund receipt thus locking lender funds in the contracts. Might be alleviated by using verified
 account contracts?
 https://fravoll.github.io/solidity-patterns/pull_over_push.html
+
+- Question: when is it ok to use types smaller than uint256? Such as int256 or uint128? also, when is it preferred?

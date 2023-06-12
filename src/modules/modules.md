@@ -39,3 +39,19 @@ a Module of that Category. ? you can guarantee parity between different componen
 
 ## Implementing a Module
 are modules expected to verify their data?
+
+## Module implementation notes
+- All modules should have a non-reverting callback implemented. This allows them to be compatible with other modules
+that use non-standard functions.
+^^ Arguably the opposite is true. Hard revert on non-implemented functions to indicate incompatibility. But this may
+just cause stuck positions as indicator may come too late.
+
+
+// IDEA
+// Tag based compatibility system. Each module implementation could self select tags that represent it. The UI
+// users, and other contracts can pull these tags and use them to determine if modules fit together for a healthy
+// agreement. This avoids the issue of new modules being default-incompatible with all existing modules, yet it
+// allows for intricate compatibility.
+// Ex) Assessor:deterministic_cost, Account:assessor_updater, position:imperfect_exit_amount
+// Not covered by this design is where a module adds a tag that indicates *incompatibility* with another module bc
+// existing modules would not be aware of newly implemented incompatibility tags.

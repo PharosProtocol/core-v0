@@ -180,7 +180,7 @@ contract UniV3HoldFactory is Position {
 
         // Approve ERC20s.
         IERC20(heldAsset).approve(UNI_V3_ROUTER, transferAmount); // NOTE front running?
-        
+
         // TODO: can add recipient in certain scenarios to save an ERC20 transfer.
         {
             ISwapRouter router = ISwapRouter(UNI_V3_ROUTER);
@@ -214,7 +214,9 @@ contract UniV3HoldFactory is Position {
         if (distribute) {
             if (lenderOwed > 0) {
                 loanAsset.approve(agreement.lenderAccount.addr, lenderOwed);
-                IAccount(agreement.lenderAccount.addr).load(
+                // SECURITY account assets of non-involved parties are at risk if a position uses
+                //          loadFromUser rathe than loadFromPosition.
+                IAccount(agreement.lenderAccount.addr).loadFromPosition(
                     agreement.loanAsset, lenderOwed, agreement.lenderAccount.parameters
                 );
             }
@@ -222,7 +224,7 @@ contract UniV3HoldFactory is Position {
             // Send borrower loan asset funds to their account. Requires compatibility btwn loan asset and borrow account.
             if (borrowerAmount > 0) {
                 loanAsset.approve(agreement.borrowerAccount.addr, borrowerAmount);
-                IAccount(agreement.borrowerAccount.addr).load(
+                IAccount(agreement.borrowerAccount.addr).loadFromPosition(
                     agreement.loanAsset, borrowerAmount, agreement.borrowerAccount.parameters
                 );
             }

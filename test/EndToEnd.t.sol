@@ -206,9 +206,9 @@ contract EndToEndTest is TestUtils {
 
         vm.startPrank(accountParams.owner);
         IERC20(C.WETH).approve(address(accountModule), 10e18);
-        accountModule.load(WETH_ASSET, 10e18, abi.encode(accountParams));
+        accountModule.loadFromUser(WETH_ASSET, 10e18, abi.encode(accountParams));
         IERC20(C.USDC).approve(address(accountModule), 5_000e6);
-        accountModule.load(USDC_ASSET, 5_000e6, abi.encode(accountParams));
+        accountModule.loadFromUser(USDC_ASSET, 5_000e6, abi.encode(accountParams));
         vm.stopPrank();
     }
 

@@ -116,7 +116,7 @@ contract Bookkeeper is Tractor {
         (bool success, bytes memory data) = agreement.position.addr.call(abi.encodeWithSignature("createPosition()"));
         require(success, "BKFCP");
         agreement.position.addr = abi.decode(data, (address));
-        IAccount(agreement.lenderAccount.addr).transferToPosition(
+        IAccount(agreement.lenderAccount.addr).unloadToPosition(
             agreement.position.addr,
             agreement.loanAsset,
             agreement.loanAmount,
@@ -191,7 +191,7 @@ contract Bookkeeper is Tractor {
 
         require(LibBookkeeper.isLiquidatable(agreement), "Bookkeeper: Position is not liquidatable");
 
-        IAccount(agreement.borrowerAccount.addr).transferToPosition(
+        IAccount(agreement.borrowerAccount.addr).unloadToPosition(
             agreement.position.addr,
             agreement.collAsset,
             agreement.collAmount,
@@ -205,6 +205,26 @@ contract Bookkeeper is Tractor {
 
         // Allow liquidator to react to kick.
         ILiquidator(agreement.liquidator.addr).receiveKick(msg.sender, agreement);
+    }
+
+    /// @notice sign and publish order on chain using EIP-1271 standard.
+    function signPublishOrder(Order calldata order, uint256 endTime) external {
+        require(
+            msg.sender == IAccount(order.account.addr).getOwner(order.account.parameters),
+            "Only account owner can publish associated order"
+        );
+        SignedBlueprint memory signedBlueprint;
+        signedBlueprint.blueprint = Blueprint({
+            publisher: msg.sender,
+            data: packDataField(bytes1(uint8(BlueprintDataType.ORDER)), abi.encode(order)),
+            maxNonce: type(uint256).max,
+            startTime: block.timestamp,
+            endTime: endTime
+        });
+        signedBlueprint.blueprintHash = getBlueprintHash(signedBlueprint.blueprint);
+        // signedBlueprint.signature = "";
+        signBlueprint(signedBlueprint.blueprintHash);
+        publishBlueprint(signedBlueprint);
     }
 
     function signAgreement(Agreement memory agreement) private returns (SignedBlueprint memory signedBlueprint) {
