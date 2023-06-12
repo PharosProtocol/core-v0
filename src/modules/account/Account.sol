@@ -71,9 +71,7 @@ abstract contract Account is IAccount, AccessControl, Module {
     }
 
     function _loadFromUser(Asset calldata asset, uint256 amount, bytes calldata parameters) internal virtual;
-    function _loadFromPosition(Asset calldata asset, uint256 amount, int256 change, bytes calldata parameters)
-        internal
-        virtual;
+    function _loadFromPosition(Asset calldata asset, uint256 amount, bytes calldata parameters) internal virtual;
     function _unloadToUser(Asset calldata asset, uint256 amount, bytes calldata parameters) internal virtual;
     function _unloadToPosition(
         address position,

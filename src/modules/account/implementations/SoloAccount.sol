@@ -10,6 +10,14 @@ import {Account} from "../Account.sol";
 import {IWETH9} from "src/interfaces/external/IWETH9.sol";
 import "src/LibUtil.sol";
 
+// SECURITY although unlikely, in the extreme situation of bad debt it is possible that a position never closes and
+//          returns assets to the account. Although *if* a position does close it will always close with the amount
+//          dictated by the assessor. We would expect this to be at least the same as the initial amount, but a bad
+//          actor could design an assessor that returns less. When less is returned, what will happen to lenders in
+//          this type of account? Someone will be left out. Does this basically allow a bad actor to extract assets
+//          from a shared account contract instance by taking both sides of an agreement with a negative assessor?
+//          No, this can be protected by only subtracting that loss from the lender.
+
 /**
  * Account for holding ERC20 assets, to use for either lending or borrowing through an Agreement.
  * ~ Not compatible with other asset types ~
@@ -25,7 +33,15 @@ contract SoloAccount is Account {
 
     constructor(address bookkeeperAddr) Account(bookkeeperAddr) {}
 
-    function _load(Asset calldata asset, uint256 amount, bytes calldata parameters) internal override {
+    function _loadFromUser(Asset calldata asset, uint256 amount, bytes calldata parameters) internal override {
+        _load(asset, amount, parameters);
+    }
+
+    function _loadFromPosition(Asset calldata asset, uint256 amount, bytes calldata parameters) internal override {
+        _load(asset, amount, parameters);
+    }
+
+    function _load(Asset calldata asset, uint256 amount, bytes calldata parameters) private {
         Parameters memory params = abi.decode(parameters, (Parameters));
         unlockedBalances[_getId(params.owner, params.salt)][keccak256(abi.encode(asset))] += amount;
 
@@ -37,7 +53,7 @@ contract SoloAccount is Account {
         }
     }
 
-    function _unload(Asset calldata asset, uint256 amount, bytes calldata parameters) internal override {
+    function _unloadToUser(Asset calldata asset, uint256 amount, bytes calldata parameters) internal override {
         Parameters memory params = abi.decode(parameters, (Parameters));
         require(msg.sender == params.owner, "unload: not owner");
         unlockedBalances[_getId(params.owner, params.salt)][keccak256(abi.encode(asset))] -= amount;
@@ -49,17 +65,17 @@ contract SoloAccount is Account {
     //      Thus account can allow it to remove assets using arbitrary passthrough function.
     //      Actually does not work bc bookkeeper cannot make delegate calls to unknown external code or state will
     //      be at risk.
-    function _transferToPosition(
+    function _unloadToPosition(
         address position,
         Asset calldata asset,
         uint256 amount,
-        bool isLockedAsset,
+        bool isLockedColl,
         bytes calldata parameters
     ) internal override onlyRole(C.BOOKKEEPER_ROLE) {
         Parameters memory params = abi.decode(parameters, (Parameters));
 
         bytes32 id = _getId(params.owner, params.salt);
-        if (!isLockedAsset) {
+        if (!isLockedColl) {
             unlockedBalances[id][keccak256(abi.encode(asset))] -= amount;
         }
         // AUDIT any method to take out of other users locked balance?
