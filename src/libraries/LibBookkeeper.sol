@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.19;
 
-import {C} from "src/C.sol";
-import "src/LibUtil.sol";
+import {C} from "src/libraries/C.sol";
+import "src/libraries/LibUtil.sol";
 import "lib/tractor/Tractor.sol";
 import "src/interfaces/IPosition.sol";
 import {IOracle} from "src/interfaces/IOracle.sol";

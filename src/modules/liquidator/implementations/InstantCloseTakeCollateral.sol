@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.19;
 
-import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
+import {Agreement} from "src/libraries/LibBookkeeper.sol";
 import {InstantErc20} from "./InstantErc20.sol";
 
 /*

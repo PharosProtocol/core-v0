@@ -24,11 +24,11 @@ import {StaticUsdcPriceOracle} from "src/modules/oracle/implementations/StaticVa
 import {IPosition} from "src/interfaces/IPosition.sol";
 import {UniV3HoldFactory} from "src/modules/position/implementations/UniV3Hold.sol";
 
-import {Bookkeeper} from "src/bookkeeper/Bookkeeper.sol";
-import {IndexPair, ModuleReference, BorrowerConfig, Order, Fill, Agreement} from "src/bookkeeper/LibBookkeeper.sol";
+import {Bookkeeper} from "src/Bookkeeper.sol";
+import {IndexPair, ModuleReference, BorrowerConfig, Order, Fill, Agreement} from "src/libraries/LibBookkeeper.sol";
 
-import "src/C.sol";
-import "src/LibUtil.sol";
+import "src/libraries/C.sol";
+import "src/libraries/LibUtil.sol";
 import {Blueprint, SignedBlueprint, Tractor} from "lib/tractor/Tractor.sol";
 
 contract EndToEndTest is TestUtils {

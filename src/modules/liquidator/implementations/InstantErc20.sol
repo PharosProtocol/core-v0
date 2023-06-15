@@ -2,10 +2,10 @@
 
 pragma solidity 0.8.19;
 
-import {C} from "src/C.sol";
+import {C} from "src/libraries/C.sol";
 import {Liquidator} from "../Liquidator.sol";
-import "src/LibUtil.sol";
-import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
+import "src/libraries/LibUtil.sol";
+import {Agreement} from "src/libraries/LibBookkeeper.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
 import {IAssessor} from "src/interfaces/IAssessor.sol";
 import {IAccount} from "src/interfaces/IAccount.sol";

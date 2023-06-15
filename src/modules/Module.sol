@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.19;
 
-import {Asset} from "src/LibUtil.sol";
-import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
+import {Asset} from "src/libraries/LibUtil.sol";
+import {Agreement} from "src/libraries/LibBookkeeper.sol";
 
 abstract contract Module {
     // /// @dev Not intended to be used for verification on-chain.

@@ -2,14 +2,14 @@
 
 pragma solidity 0.8.19;
 
-import {C} from "src/C.sol";
+import {C} from "src/libraries/C.sol";
 import {IBookkeeper} from "src/interfaces/IBookkeeper.sol";
-import {Order} from "src/bookkeeper/LibBookkeeper.sol";
-import {Asset, ERC20_STANDARD} from "src/LibUtil.sol";
+import {Order} from "src/libraries/LibBookkeeper.sol";
+import {Asset, ERC20_STANDARD} from "src/libraries/LibUtil.sol";
 import {CloneFactory} from "src/modules/CloneFactory.sol";
 import {Account} from "../Account.sol";
 import {IWETH9} from "src/interfaces/external/IWETH9.sol";
-import "src/LibUtil.sol";
+import "src/libraries/LibUtil.sol";
 
 /**
  * PoolAccount is one possible implementation of how an account can be implemented to pool user assets.

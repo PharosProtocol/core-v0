@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.19;
 
-import "src/C.sol";
-import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
+import "src/libraries/C.sol";
+import {Agreement} from "src/libraries/LibBookkeeper.sol";
 import {InstantErc20} from "./InstantErc20.sol";
 import {IOracle} from "src/interfaces/IOracle.sol";
 

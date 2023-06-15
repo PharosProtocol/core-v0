@@ -3,9 +3,9 @@
 pragma solidity 0.8.19;
 
 import "forge-std/Script.sol";
-import "src/bookkeeper/LibBookkeeper.sol";
-import "src/bookkeeper/Bookkeeper.sol";
-import "src/LibUtil.sol";
+import "src/libraries/LibBookkeeper.sol";
+import "src/Bookkeeper.sol";
+import "src/libraries/LibUtil.sol";
 import "src/modules/account/implementations/SoloAccount.sol";
 import "src/modules/oracle/implementations/StaticValue.sol";
 import "src/modules/assessor/implementations/StandardAssessor.sol";

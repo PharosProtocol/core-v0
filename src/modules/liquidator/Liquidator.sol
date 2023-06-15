@@ -3,8 +3,8 @@
 pragma solidity 0.8.19;
 
 import {AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
-import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
-import {C} from "src/C.sol";
+import {Agreement} from "src/libraries/LibBookkeeper.sol";
+import {C} from "src/libraries/C.sol";
 import {ILiquidator} from "src/interfaces/ILiquidator.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
 import {Module} from "src/modules/Module.sol";

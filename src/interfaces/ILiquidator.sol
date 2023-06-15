@@ -3,10 +3,10 @@
 pragma solidity 0.8.19;
 
 import {AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
-import {C} from "src/C.sol";
-import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
+import {C} from "src/libraries/C.sol";
+import {Agreement} from "src/libraries/LibBookkeeper.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
-import {Asset} from "src/LibUtil.sol";
+import {Asset} from "src/libraries/LibUtil.sol";
 
 /**
  * Liquidators are used to dismantle a kicked Position and return capital to Lender and Borrower. Liquidators will be

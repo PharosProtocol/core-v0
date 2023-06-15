@@ -2,11 +2,11 @@
 
 pragma solidity 0.8.19;
 
-import {C} from "src/C.sol";
+import {C} from "src/libraries/C.sol";
 
-import {Asset} from "src/LibUtil.sol";
+import {Asset} from "src/libraries/LibUtil.sol";
 import {AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
-import {Agreement} from "src/bookkeeper/Bookkeeper.sol";
+import {Agreement} from "src/Bookkeeper.sol";
 import {Clones} from "lib/openzeppelin-contracts/contracts/proxy/Clones.sol";
 import "lib/openzeppelin-contracts/contracts/proxy/utils/Initializable.sol";
 

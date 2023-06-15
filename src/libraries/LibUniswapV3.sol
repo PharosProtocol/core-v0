@@ -4,12 +4,12 @@ pragma solidity 0.8.19;
 
 import "lib/forge-std/src/console.sol";
 
-import {C} from "src/C.sol";
+import {C} from "src/libraries/C.sol";
 import {IUniswapV3Pool} from "lib/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import {PoolAddress} from "lib/v3-periphery/contracts/libraries/PoolAddress.sol";
 import {OracleLibrary} from "lib/v3-periphery/contracts/libraries/OracleLibrary.sol";
 import {Path} from "lib/v3-periphery/contracts/libraries/path.sol";
-import {Utils} from "src/LibUtil.sol";
+import {Utils} from "src/libraries/LibUtil.sol";
 
 // NOTE: Could really use another set of eyes on this. So much potential for arithmetic errors.
 

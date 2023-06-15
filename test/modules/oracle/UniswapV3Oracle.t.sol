@@ -20,8 +20,8 @@ import {FullMath} from "lib/v3-core/contracts/libraries/FullMath.sol";
 
 import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
-import "src/LibUtil.sol";
-import {C} from "src/C.sol";
+import "src/libraries/LibUtil.sol";
+import {C} from "src/libraries/C.sol";
 import {UniswapV3Oracle} from "src/modules/oracle/implementations/UniswapV3Oracle.sol";
 
 contract UniswapV3OracleTest is Test, Module {

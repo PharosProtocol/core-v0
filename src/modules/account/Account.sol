@@ -4,9 +4,9 @@ pragma solidity 0.8.19;
 
 import {AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
 
-// import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
-import "src/C.sol";
-import {Asset} from "src/LibUtil.sol";
+// import {Agreement} from "src/libraries/LibBookkeeper.sol";
+import "src/libraries/C.sol";
+import {Asset} from "src/libraries/LibUtil.sol";
 import {IAccount} from "src/interfaces/IAccount.sol";
 import {Module} from "src/modules/Module.sol";
 

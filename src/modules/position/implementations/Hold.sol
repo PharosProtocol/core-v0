@@ -4,10 +4,10 @@ pragma solidity 0.8.19;
 
 import "forge-std/console.sol";
 
-import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
-import {C} from "src/C.sol";
+import {Agreement} from "src/libraries/LibBookkeeper.sol";
+import {C} from "src/libraries/C.sol";
 import {Position} from "src/modules/position/Position.sol";
-import {Asset, ETH_STANDARD, ERC20_STANDARD} from "src/LibUtil.sol";
+import {Asset, ETH_STANDARD, ERC20_STANDARD} from "src/libraries/LibUtil.sol";
 import {Module} from "src/modules/Module.sol";
 
 import "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";

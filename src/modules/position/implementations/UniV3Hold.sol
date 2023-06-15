@@ -5,11 +5,11 @@ pragma solidity 0.8.19;
 import "forge-std/console.sol";
 
 import {IAccount} from "src/interfaces/IAccount.sol";
-import {C} from "src/C.sol";
+import {C} from "src/libraries/C.sol";
 import {Position} from "src/modules/position/Position.sol";
 import {Module} from "src/modules/Module.sol";
 import {IAssessor} from "src/interfaces/IAssessor.sol";
-import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
+import {Agreement} from "src/libraries/LibBookkeeper.sol";
 
 import "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
@@ -29,8 +29,8 @@ import {Path} from "lib/v3-periphery/contracts/libraries/path.sol";
 import {IUniswapV3Factory} from "lib/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import {CallbackValidation} from "lib/v3-periphery/contracts/libraries/CallbackValidation.sol";
 
-import {LibUniswapV3} from "src/util/LibUniswapV3.sol";
-import "src/LibUtil.sol";
+import {LibUniswapV3} from "src/libraries/LibUniswapV3.sol";
+import "src/libraries/LibUtil.sol";
 
 // import {SwapCallbackData} from "lib/v3-periphery/contracts/SwapRouter.sol";
 struct SwapCallbackData {

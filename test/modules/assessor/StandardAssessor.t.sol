@@ -15,10 +15,10 @@ import {MockPosition} from "test/mocks/MockPosition.sol";
 
 import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
-import "src/LibUtil.sol";
-import {C} from "src/C.sol";
-import {Asset, AssetStandard, ETH_STANDARD, ERC20_STANDARD} from "src/LibUtil.sol";
-import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
+import "src/libraries/LibUtil.sol";
+import {C} from "src/libraries/C.sol";
+import {Asset, AssetStandard, ETH_STANDARD, ERC20_STANDARD} from "src/libraries/LibUtil.sol";
+import {Agreement} from "src/libraries/LibBookkeeper.sol";
 import {StandardAssessor} from "src/modules/assessor/implementations/StandardAssessor.sol";
 
 contract StandardAssessorTest is Test {

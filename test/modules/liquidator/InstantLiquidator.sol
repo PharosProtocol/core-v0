@@ -13,8 +13,8 @@ import {TestUtils} from "test/TestUtils.sol";
 
 import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
-import {C} from "src/C.sol";
-import {Asset, AssetStandard, ETH_STANDARD, ERC20_STANDARD} from "src/LibUtil.sol";
+import {C} from "src/libraries/C.sol";
+import {Asset, AssetStandard, ETH_STANDARD, ERC20_STANDARD} from "src/libraries/LibUtil.sol";
 import {SoloAccount} from "src/modules/account/implementations/SoloAccount.sol";
 
 contract AccountTest is TestUtils {

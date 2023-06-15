@@ -2,9 +2,9 @@
 
 pragma solidity 0.8.19;
 
-import {Asset} from "src/LibUtil.sol";
+import {Asset} from "src/libraries/LibUtil.sol";
 import {Position} from "src/modules/position/Position.sol";
-import {Agreement} from "src/bookkeeper/LibBookkeeper.sol";
+import {Agreement} from "src/libraries/LibBookkeeper.sol";
 
 contract MockPosition is Position {
     uint256 currentAmount;
