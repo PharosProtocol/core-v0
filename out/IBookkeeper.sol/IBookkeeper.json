@@ -1,0 +1,789 @@
+{
+  "abi": [
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256[]",
+              "name": "minLoanAmounts",
+              "type": "uint256[]"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "bytes3",
+                  "name": "standard",
+                  "type": "bytes3"
+                },
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "data",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct Asset[]",
+              "name": "loanAssets",
+              "type": "tuple[]"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "bytes3",
+                  "name": "standard",
+                  "type": "bytes3"
+                },
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "data",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct Asset[]",
+              "name": "collAssets",
+              "type": "tuple[]"
+            },
+            {
+              "internalType": "address[]",
+              "name": "takers",
+              "type": "address[]"
+            },
+            {
+              "internalType": "uint256",
+              "name": "maxDuration",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "minCollateralRatio",
+              "type": "uint256"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "parameters",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct ModuleReference",
+              "name": "account",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "parameters",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct ModuleReference",
+              "name": "assessor",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "parameters",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct ModuleReference",
+              "name": "liquidator",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "parameters",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct ModuleReference[]",
+              "name": "loanOracles",
+              "type": "tuple[]"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "parameters",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct ModuleReference[]",
+              "name": "collateralOracles",
+              "type": "tuple[]"
+            },
+            {
+              "internalType": "address[]",
+              "name": "factories",
+              "type": "address[]"
+            },
+            {
+              "internalType": "bool",
+              "name": "isOffer",
+              "type": "bool"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "initCollateralRatio",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "positionParameters",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct BorrowerConfig",
+              "name": "borrowerConfig",
+              "type": "tuple"
+            }
+          ],
+          "internalType": "struct Order",
+          "name": "order",
+          "type": "tuple"
+        },
+        {
+          "internalType": "uint256",
+          "name": "endTime",
+          "type": "uint256"
+        }
+      ],
+      "name": "signPublishOrder",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "signPublishOrder((uint256[],(bytes3,address,uint256,bytes)[],(bytes3,address,uint256,bytes)[],address[],uint256,uint256,(address,bytes),(address,bytes),(address,bytes),(address,bytes)[],(address,bytes)[],address[],bool,(uint256,bytes)),uint256)": "6bc71ddf"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.8.19+commit.7dd6d404\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"components\":[{\"internalType\":\"uint256[]\",\"name\":\"minLoanAmounts\",\"type\":\"uint256[]\"},{\"components\":[{\"internalType\":\"bytes3\",\"name\":\"standard\",\"type\":\"bytes3\"},{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"internalType\":\"struct Asset[]\",\"name\":\"loanAssets\",\"type\":\"tuple[]\"},{\"components\":[{\"internalType\":\"bytes3\",\"name\":\"standard\",\"type\":\"bytes3\"},{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"internalType\":\"struct Asset[]\",\"name\":\"collAssets\",\"type\":\"tuple[]\"},{\"internalType\":\"address[]\",\"name\":\"takers\",\"type\":\"address[]\"},{\"internalType\":\"uint256\",\"name\":\"maxDuration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"minCollateralRatio\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"parameters\",\"type\":\"bytes\"}],\"internalType\":\"struct ModuleReference\",\"name\":\"account\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"parameters\",\"type\":\"bytes\"}],\"internalType\":\"struct ModuleReference\",\"name\":\"assessor\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"parameters\",\"type\":\"bytes\"}],\"internalType\":\"struct ModuleReference\",\"name\":\"liquidator\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"parameters\",\"type\":\"bytes\"}],\"internalType\":\"struct ModuleReference[]\",\"name\":\"loanOracles\",\"type\":\"tuple[]\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"parameters\",\"type\":\"bytes\"}],\"internalType\":\"struct ModuleReference[]\",\"name\":\"collateralOracles\",\"type\":\"tuple[]\"},{\"internalType\":\"address[]\",\"name\":\"factories\",\"type\":\"address[]\"},{\"internalType\":\"bool\",\"name\":\"isOffer\",\"type\":\"bool\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"initCollateralRatio\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"positionParameters\",\"type\":\"bytes\"}],\"internalType\":\"struct BorrowerConfig\",\"name\":\"borrowerConfig\",\"type\":\"tuple\"}],\"internalType\":\"struct Order\",\"name\":\"order\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"endTime\",\"type\":\"uint256\"}],\"name\":\"signPublishOrder\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"src/interfaces/IBookkeeper.sol\":\"IBookkeeper\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@openzeppelin/=lib/openzeppelin-contracts/\",\":@uniswap/=lib/\",\":ds-test/=lib/forge-std/lib/ds-test/src/\",\":erc4626-tests/=lib/openzeppelin-contracts/lib/erc4626-tests/\",\":forge-std/=lib/forge-std/src/\",\":openzeppelin-contracts/=lib/openzeppelin-contracts/\",\":tractor/=lib/tractor/\",\":v2-periphery/=lib/v2-periphery/contracts/\",\":v3-core/=lib/v3-core/contracts/\",\":v3-periphery/=lib/v3-periphery/contracts/\"]},\"sources\":{\"lib/openzeppelin-contracts/contracts/access/IAccessControl.sol\":{\"keccak256\":\"0x59ce320a585d7e1f163cd70390a0ef2ff9cec832e2aa544293a00692465a7a57\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://bb2c137c343ef0c4c7ce7b18c1d108afdc9d315a04e48307288d2d05adcbde3a\",\"dweb:/ipfs/QmUxhrAQM3MM3FF5j7AtcXLXguWCJBHJ14BRdVtuoQc8Fh\"]},\"lib/openzeppelin-contracts/contracts/interfaces/IERC1271.sol\":{\"keccak256\":\"0x0705a4b1b86d7b0bd8432118f226ba139c44b9dcaba0a6eafba2dd7d0639c544\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://c45b821ef9e882e57c256697a152e108f0f2ad6997609af8904cae99c9bd422e\",\"dweb:/ipfs/QmRKCJW6jjzR5UYZcLpGnhEJ75UVbH6EHkEa49sWx2SKng\"]},\"lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol\":{\"keccak256\":\"0x00c839ff53d07d19db2e7cfa1e5133f9ee90a8d64b0e2e57f50446a2d1a3a0e0\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://3dac621d015a68a5251b1e5d41dda0faf252699bf6e8bcf46a958b29964d9dd1\",\"dweb:/ipfs/QmP9axjgZv4cezAhALoTemM62sdLtMDJ9MGTxECnNwHgSJ\"]},\"lib/openzeppelin-contracts/contracts/utils/Strings.sol\":{\"keccak256\":\"0x2626d8ab3dfdad0fad630c212ad146d59473d0f48b771784c61a7c1dbbea1f3f\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://d7c144532f1e7c76ac95fb6a8f617c1f740d7a73442a907eb60910e99dfa1fbf\",\"dweb:/ipfs/QmZsGyooD6emxB8JCuugRjnRYS2MPZEL586uuV7dgC8Jng\"]},\"lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol\":{\"keccak256\":\"0x54ee424bfc83ce63b2a918b9a1efb5090a0fb68dbd1de3b10bc667776885dd4f\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://9c8245bd91b51a6e411db1a68397e6d89ea76d28fd3fff2b5986ebd860c43aca\",\"dweb:/ipfs/QmUBfM8dUuxABn9ctfZWqierQbbux6NuhvSmQuSdrSEdch\"]},\"lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol\":{\"keccak256\":\"0x948d8b2d18f38141ec78c5229d770d950ebc781ed3f44cc9e3ccbb9fded5846a\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://7311ac950ed2d81f3ccf1784a926efbfc82a86dcb5c98d41eb3792c0cac63a2f\",\"dweb:/ipfs/QmRRwCUHewkPmehx8QRYENFoWyLNx8UEZGULxWYUeSZdTS\"]},\"lib/openzeppelin-contracts/contracts/utils/cryptography/SignatureChecker.sol\":{\"keccak256\":\"0x9c33a3c8766f83b5cb436757cc66cb55c15f9732485a79b290b7f3ad473cc879\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://13d2d01cba0309288dde95066a5293e7688dd628d3d91ab60f83e3e536c7145a\",\"dweb:/ipfs/QmYQajquUVjsM9m4hXWicomSWBmbNUvGDMsQLSC6SGgFBM\"]},\"lib/openzeppelin-contracts/contracts/utils/math/Math.sol\":{\"keccak256\":\"0x5d9242699672087b2f423dfab23a3b8326448f58da4e38cd9e4ba6a3e7e153a2\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://aa2d66521307fbe5942f90c0fed06bf9269e2a083b5d0d57861da938e83fa8b4\",\"dweb:/ipfs/QmPAJDLtTqWX6XTekr5WZEPgNPYReADj1Z4wbt3YPWmB1b\"]},\"lib/openzeppelin-contracts/contracts/utils/math/SignedMath.sol\":{\"keccak256\":\"0xf92515413956f529d95977adc9b0567d583c6203fc31ab1c23824c35187e3ddc\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://c50fcc459e49a9858b6d8ad5f911295cb7c9ab57567845a250bf0153f84a95c7\",\"dweb:/ipfs/QmcEW85JRzvDkQggxiBBLVAasXWdkhEysqypj9EaB6H2g6\"]},\"lib/tractor/Tractor.sol\":{\"keccak256\":\"0x1052c901d309f9774f2146851da6b0e8ae5caac5671b45a169c717a6a0bf3296\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://e6ce9704b9710cc74ac18849f312465a1220b47219c85deadb18b410b81ad854\",\"dweb:/ipfs/QmRkLo543PG7uq9iMuvkRZP2YaHZU3mPySXh6wNG7jDQqT\"]},\"src/interfaces/IAccount.sol\":{\"keccak256\":\"0x46a8ce45ef74c4d55bb1763a7e2caf5d26d2c92530efeb08c06561d6093e71f4\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://9ab61fa7733e7848e4935f76ecbe480ebde2a33d8a05796879ed9c1d5782dcb8\",\"dweb:/ipfs/QmbRLafzabN53ZMrehYugA48juKNdHZGD42iMawQAPAeTm\"]},\"src/interfaces/IAssessor.sol\":{\"keccak256\":\"0xdf95173a2ab3117b0d1cd0c2cba1caaa003d151233cf59f251d93c37d6b6a803\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://d1fc274de410e9172ddcbe4e5c813639e87239aa441444aff53f3438cfd4ed99\",\"dweb:/ipfs/QmeDuLYjSFzJKyXRCGfHB9P6zFHGuso1ttdMLA8wPZapQP\"]},\"src/interfaces/IBookkeeper.sol\":{\"keccak256\":\"0x7667d884497065637b6f7d2864475cffb667a13d90f1f75ceb19a18ffa725934\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://2d68ab58854fdf45fcf215068339a8c8524ea1c6eb764e142db3712b7b5ee438\",\"dweb:/ipfs/QmQBveXBBT9FfW5VfzSbFUAcwJQ68vsCVYpPh8uB5hP5NM\"]},\"src/interfaces/IOracle.sol\":{\"keccak256\":\"0xf616bc4e30f20a391be3ab1229792c59b92fe537fc14fdd8244c8d60480b4a4d\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://887154e13016933d887f3f640a8772c7907849ada264b7095756be1ffcf412b8\",\"dweb:/ipfs/QmdWQFAmNGQKkQnhSw6qVyMayizFXbRxjfKkZHRXPjR3ZM\"]},\"src/interfaces/IPosition.sol\":{\"keccak256\":\"0xd01dbd0cdd06ac73b04dcf451ecb09fba44a8fa00cfb769d2b2ff6735d507117\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://83eb2fca43c59c7b300aa7175ca2bc6e78d3d27256e45679a51455c1b4a72e16\",\"dweb:/ipfs/QmSZc2gnSDG9nfJ8nLtwJGrjMX1kqEoSPT8YCLPyCHTz1v\"]},\"src/libraries/C.sol\":{\"keccak256\":\"0x20e1ca27397ff429097c7c88e84ec66ebbd3598c5e2fc411255c5ca9280368af\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://652438db0a61dbb73b36f74408f65544fa7e5c8e6a3346f003c9ad893e421f01\",\"dweb:/ipfs/QmV5wsspZokuZHcWqyeL4t6uSKNWNgEmyWmruJ6Gw419Wf\"]},\"src/libraries/LibBookkeeper.sol\":{\"keccak256\":\"0x1d991945b347c852252ac7278f28ab2ef55fe8c81e02474a75c4a5f38dc3d4e2\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://ac17a2a5021f8807740ad73a2f7aab72dadb01af6e372838d7f6e9d531f20796\",\"dweb:/ipfs/Qme6SALVDwu4WfUxPrEc1GvDUSk7Bvve8VgtYDzsoDYTsD\"]},\"src/libraries/LibUtil.sol\":{\"keccak256\":\"0xeffb44640d40d932294a546d9655b91b15b7781f9f8f0180858b0ee035f1a534\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://5dee02324c23f95f48dac3b3407444a9694cf58d1d07d38e392c159ef4e79e4a\",\"dweb:/ipfs/QmNNkk92JFpgpd6imRmdS7CDo7m4JxpxNMwZGZYPFu3CFF\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.8.19+commit.7dd6d404"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [
+            {
+              "internalType": "struct Order",
+              "name": "order",
+              "type": "tuple",
+              "components": [
+                {
+                  "internalType": "uint256[]",
+                  "name": "minLoanAmounts",
+                  "type": "uint256[]"
+                },
+                {
+                  "internalType": "struct Asset[]",
+                  "name": "loanAssets",
+                  "type": "tuple[]",
+                  "components": [
+                    {
+                      "internalType": "bytes3",
+                      "name": "standard",
+                      "type": "bytes3"
+                    },
+                    {
+                      "internalType": "address",
+                      "name": "addr",
+                      "type": "address"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "id",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "bytes",
+                      "name": "data",
+                      "type": "bytes"
+                    }
+                  ]
+                },
+                {
+                  "internalType": "struct Asset[]",
+                  "name": "collAssets",
+                  "type": "tuple[]",
+                  "components": [
+                    {
+                      "internalType": "bytes3",
+                      "name": "standard",
+                      "type": "bytes3"
+                    },
+                    {
+                      "internalType": "address",
+                      "name": "addr",
+                      "type": "address"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "id",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "bytes",
+                      "name": "data",
+                      "type": "bytes"
+                    }
+                  ]
+                },
+                {
+                  "internalType": "address[]",
+                  "name": "takers",
+                  "type": "address[]"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "maxDuration",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "minCollateralRatio",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "struct ModuleReference",
+                  "name": "account",
+                  "type": "tuple",
+                  "components": [
+                    {
+                      "internalType": "address",
+                      "name": "addr",
+                      "type": "address"
+                    },
+                    {
+                      "internalType": "bytes",
+                      "name": "parameters",
+                      "type": "bytes"
+                    }
+                  ]
+                },
+                {
+                  "internalType": "struct ModuleReference",
+                  "name": "assessor",
+                  "type": "tuple",
+                  "components": [
+                    {
+                      "internalType": "address",
+                      "name": "addr",
+                      "type": "address"
+                    },
+                    {
+                      "internalType": "bytes",
+                      "name": "parameters",
+                      "type": "bytes"
+                    }
+                  ]
+                },
+                {
+                  "internalType": "struct ModuleReference",
+                  "name": "liquidator",
+                  "type": "tuple",
+                  "components": [
+                    {
+                      "internalType": "address",
+                      "name": "addr",
+                      "type": "address"
+                    },
+                    {
+                      "internalType": "bytes",
+                      "name": "parameters",
+                      "type": "bytes"
+                    }
+                  ]
+                },
+                {
+                  "internalType": "struct ModuleReference[]",
+                  "name": "loanOracles",
+                  "type": "tuple[]",
+                  "components": [
+                    {
+                      "internalType": "address",
+                      "name": "addr",
+                      "type": "address"
+                    },
+                    {
+                      "internalType": "bytes",
+                      "name": "parameters",
+                      "type": "bytes"
+                    }
+                  ]
+                },
+                {
+                  "internalType": "struct ModuleReference[]",
+                  "name": "collateralOracles",
+                  "type": "tuple[]",
+                  "components": [
+                    {
+                      "internalType": "address",
+                      "name": "addr",
+                      "type": "address"
+                    },
+                    {
+                      "internalType": "bytes",
+                      "name": "parameters",
+                      "type": "bytes"
+                    }
+                  ]
+                },
+                {
+                  "internalType": "address[]",
+                  "name": "factories",
+                  "type": "address[]"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "isOffer",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "struct BorrowerConfig",
+                  "name": "borrowerConfig",
+                  "type": "tuple",
+                  "components": [
+                    {
+                      "internalType": "uint256",
+                      "name": "initCollateralRatio",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "bytes",
+                      "name": "positionParameters",
+                      "type": "bytes"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "internalType": "uint256",
+              "name": "endTime",
+              "type": "uint256"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "signPublishOrder"
+        }
+      ],
+      "devdoc": {
+        "kind": "dev",
+        "methods": {},
+        "version": 1
+      },
+      "userdoc": {
+        "kind": "user",
+        "methods": {},
+        "version": 1
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@openzeppelin/=lib/openzeppelin-contracts/",
+        ":@uniswap/=lib/",
+        ":ds-test/=lib/forge-std/lib/ds-test/src/",
+        ":erc4626-tests/=lib/openzeppelin-contracts/lib/erc4626-tests/",
+        ":forge-std/=lib/forge-std/src/",
+        ":openzeppelin-contracts/=lib/openzeppelin-contracts/",
+        ":tractor/=lib/tractor/",
+        ":v2-periphery/=lib/v2-periphery/contracts/",
+        ":v3-core/=lib/v3-core/contracts/",
+        ":v3-periphery/=lib/v3-periphery/contracts/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "metadata": {
+        "bytecodeHash": "ipfs"
+      },
+      "compilationTarget": {
+        "src/interfaces/IBookkeeper.sol": "IBookkeeper"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "lib/openzeppelin-contracts/contracts/access/IAccessControl.sol": {
+        "keccak256": "0x59ce320a585d7e1f163cd70390a0ef2ff9cec832e2aa544293a00692465a7a57",
+        "urls": [
+          "bzz-raw://bb2c137c343ef0c4c7ce7b18c1d108afdc9d315a04e48307288d2d05adcbde3a",
+          "dweb:/ipfs/QmUxhrAQM3MM3FF5j7AtcXLXguWCJBHJ14BRdVtuoQc8Fh"
+        ],
+        "license": "MIT"
+      },
+      "lib/openzeppelin-contracts/contracts/interfaces/IERC1271.sol": {
+        "keccak256": "0x0705a4b1b86d7b0bd8432118f226ba139c44b9dcaba0a6eafba2dd7d0639c544",
+        "urls": [
+          "bzz-raw://c45b821ef9e882e57c256697a152e108f0f2ad6997609af8904cae99c9bd422e",
+          "dweb:/ipfs/QmRKCJW6jjzR5UYZcLpGnhEJ75UVbH6EHkEa49sWx2SKng"
+        ],
+        "license": "MIT"
+      },
+      "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol": {
+        "keccak256": "0x00c839ff53d07d19db2e7cfa1e5133f9ee90a8d64b0e2e57f50446a2d1a3a0e0",
+        "urls": [
+          "bzz-raw://3dac621d015a68a5251b1e5d41dda0faf252699bf6e8bcf46a958b29964d9dd1",
+          "dweb:/ipfs/QmP9axjgZv4cezAhALoTemM62sdLtMDJ9MGTxECnNwHgSJ"
+        ],
+        "license": "MIT"
+      },
+      "lib/openzeppelin-contracts/contracts/utils/Strings.sol": {
+        "keccak256": "0x2626d8ab3dfdad0fad630c212ad146d59473d0f48b771784c61a7c1dbbea1f3f",
+        "urls": [
+          "bzz-raw://d7c144532f1e7c76ac95fb6a8f617c1f740d7a73442a907eb60910e99dfa1fbf",
+          "dweb:/ipfs/QmZsGyooD6emxB8JCuugRjnRYS2MPZEL586uuV7dgC8Jng"
+        ],
+        "license": "MIT"
+      },
+      "lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol": {
+        "keccak256": "0x54ee424bfc83ce63b2a918b9a1efb5090a0fb68dbd1de3b10bc667776885dd4f",
+        "urls": [
+          "bzz-raw://9c8245bd91b51a6e411db1a68397e6d89ea76d28fd3fff2b5986ebd860c43aca",
+          "dweb:/ipfs/QmUBfM8dUuxABn9ctfZWqierQbbux6NuhvSmQuSdrSEdch"
+        ],
+        "license": "MIT"
+      },
+      "lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol": {
+        "keccak256": "0x948d8b2d18f38141ec78c5229d770d950ebc781ed3f44cc9e3ccbb9fded5846a",
+        "urls": [
+          "bzz-raw://7311ac950ed2d81f3ccf1784a926efbfc82a86dcb5c98d41eb3792c0cac63a2f",
+          "dweb:/ipfs/QmRRwCUHewkPmehx8QRYENFoWyLNx8UEZGULxWYUeSZdTS"
+        ],
+        "license": "MIT"
+      },
+      "lib/openzeppelin-contracts/contracts/utils/cryptography/SignatureChecker.sol": {
+        "keccak256": "0x9c33a3c8766f83b5cb436757cc66cb55c15f9732485a79b290b7f3ad473cc879",
+        "urls": [
+          "bzz-raw://13d2d01cba0309288dde95066a5293e7688dd628d3d91ab60f83e3e536c7145a",
+          "dweb:/ipfs/QmYQajquUVjsM9m4hXWicomSWBmbNUvGDMsQLSC6SGgFBM"
+        ],
+        "license": "MIT"
+      },
+      "lib/openzeppelin-contracts/contracts/utils/math/Math.sol": {
+        "keccak256": "0x5d9242699672087b2f423dfab23a3b8326448f58da4e38cd9e4ba6a3e7e153a2",
+        "urls": [
+          "bzz-raw://aa2d66521307fbe5942f90c0fed06bf9269e2a083b5d0d57861da938e83fa8b4",
+          "dweb:/ipfs/QmPAJDLtTqWX6XTekr5WZEPgNPYReADj1Z4wbt3YPWmB1b"
+        ],
+        "license": "MIT"
+      },
+      "lib/openzeppelin-contracts/contracts/utils/math/SignedMath.sol": {
+        "keccak256": "0xf92515413956f529d95977adc9b0567d583c6203fc31ab1c23824c35187e3ddc",
+        "urls": [
+          "bzz-raw://c50fcc459e49a9858b6d8ad5f911295cb7c9ab57567845a250bf0153f84a95c7",
+          "dweb:/ipfs/QmcEW85JRzvDkQggxiBBLVAasXWdkhEysqypj9EaB6H2g6"
+        ],
+        "license": "MIT"
+      },
+      "lib/tractor/Tractor.sol": {
+        "keccak256": "0x1052c901d309f9774f2146851da6b0e8ae5caac5671b45a169c717a6a0bf3296",
+        "urls": [
+          "bzz-raw://e6ce9704b9710cc74ac18849f312465a1220b47219c85deadb18b410b81ad854",
+          "dweb:/ipfs/QmRkLo543PG7uq9iMuvkRZP2YaHZU3mPySXh6wNG7jDQqT"
+        ],
+        "license": "MIT"
+      },
+      "src/interfaces/IAccount.sol": {
+        "keccak256": "0x46a8ce45ef74c4d55bb1763a7e2caf5d26d2c92530efeb08c06561d6093e71f4",
+        "urls": [
+          "bzz-raw://9ab61fa7733e7848e4935f76ecbe480ebde2a33d8a05796879ed9c1d5782dcb8",
+          "dweb:/ipfs/QmbRLafzabN53ZMrehYugA48juKNdHZGD42iMawQAPAeTm"
+        ],
+        "license": "UNLICENSED"
+      },
+      "src/interfaces/IAssessor.sol": {
+        "keccak256": "0xdf95173a2ab3117b0d1cd0c2cba1caaa003d151233cf59f251d93c37d6b6a803",
+        "urls": [
+          "bzz-raw://d1fc274de410e9172ddcbe4e5c813639e87239aa441444aff53f3438cfd4ed99",
+          "dweb:/ipfs/QmeDuLYjSFzJKyXRCGfHB9P6zFHGuso1ttdMLA8wPZapQP"
+        ],
+        "license": "UNLICENSED"
+      },
+      "src/interfaces/IBookkeeper.sol": {
+        "keccak256": "0x7667d884497065637b6f7d2864475cffb667a13d90f1f75ceb19a18ffa725934",
+        "urls": [
+          "bzz-raw://2d68ab58854fdf45fcf215068339a8c8524ea1c6eb764e142db3712b7b5ee438",
+          "dweb:/ipfs/QmQBveXBBT9FfW5VfzSbFUAcwJQ68vsCVYpPh8uB5hP5NM"
+        ],
+        "license": "UNLICENSED"
+      },
+      "src/interfaces/IOracle.sol": {
+        "keccak256": "0xf616bc4e30f20a391be3ab1229792c59b92fe537fc14fdd8244c8d60480b4a4d",
+        "urls": [
+          "bzz-raw://887154e13016933d887f3f640a8772c7907849ada264b7095756be1ffcf412b8",
+          "dweb:/ipfs/QmdWQFAmNGQKkQnhSw6qVyMayizFXbRxjfKkZHRXPjR3ZM"
+        ],
+        "license": "UNLICENSED"
+      },
+      "src/interfaces/IPosition.sol": {
+        "keccak256": "0xd01dbd0cdd06ac73b04dcf451ecb09fba44a8fa00cfb769d2b2ff6735d507117",
+        "urls": [
+          "bzz-raw://83eb2fca43c59c7b300aa7175ca2bc6e78d3d27256e45679a51455c1b4a72e16",
+          "dweb:/ipfs/QmSZc2gnSDG9nfJ8nLtwJGrjMX1kqEoSPT8YCLPyCHTz1v"
+        ],
+        "license": "UNLICENSED"
+      },
+      "src/libraries/C.sol": {
+        "keccak256": "0x20e1ca27397ff429097c7c88e84ec66ebbd3598c5e2fc411255c5ca9280368af",
+        "urls": [
+          "bzz-raw://652438db0a61dbb73b36f74408f65544fa7e5c8e6a3346f003c9ad893e421f01",
+          "dweb:/ipfs/QmV5wsspZokuZHcWqyeL4t6uSKNWNgEmyWmruJ6Gw419Wf"
+        ],
+        "license": "UNLICENSED"
+      },
+      "src/libraries/LibBookkeeper.sol": {
+        "keccak256": "0x1d991945b347c852252ac7278f28ab2ef55fe8c81e02474a75c4a5f38dc3d4e2",
+        "urls": [
+          "bzz-raw://ac17a2a5021f8807740ad73a2f7aab72dadb01af6e372838d7f6e9d531f20796",
+          "dweb:/ipfs/Qme6SALVDwu4WfUxPrEc1GvDUSk7Bvve8VgtYDzsoDYTsD"
+        ],
+        "license": "UNLICENSED"
+      },
+      "src/libraries/LibUtil.sol": {
+        "keccak256": "0xeffb44640d40d932294a546d9655b91b15b7781f9f8f0180858b0ee035f1a534",
+        "urls": [
+          "bzz-raw://5dee02324c23f95f48dac3b3407444a9694cf58d1d07d38e392c159ef4e79e4a",
+          "dweb:/ipfs/QmNNkk92JFpgpd6imRmdS7CDo7m4JxpxNMwZGZYPFu3CFF"
+        ],
+        "license": "UNLICENSED"
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "src/interfaces/IBookkeeper.sol",
+    "id": 32429,
+    "exportedSymbols": {
+      "IBookkeeper": [
+        32428
+      ],
+      "Order": [
+        32728
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "40:186:66",
+    "nodes": [
+      {
+        "id": 32417,
+        "nodeType": "PragmaDirective",
+        "src": "40:23:66",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "0.8",
+          ".19"
+        ]
+      },
+      {
+        "id": 32419,
+        "nodeType": "ImportDirective",
+        "src": "65:54:66",
+        "nodes": [],
+        "absolutePath": "src/libraries/LibBookkeeper.sol",
+        "file": "src/libraries/LibBookkeeper.sol",
+        "nameLocation": "-1:-1:-1",
+        "scope": 32429,
+        "sourceUnit": 32906,
+        "symbolAliases": [
+          {
+            "foreign": {
+              "id": 32418,
+              "name": "Order",
+              "nodeType": "Identifier",
+              "overloadedDeclarations": [],
+              "referencedDeclaration": 32728,
+              "src": "73:5:66",
+              "typeDescriptions": {}
+            },
+            "nameLocation": "-1:-1:-1"
+          }
+        ],
+        "unitAlias": ""
+      },
+      {
+        "id": 32428,
+        "nodeType": "ContractDefinition",
+        "src": "121:104:66",
+        "nodes": [
+          {
+            "id": 32427,
+            "nodeType": "FunctionDefinition",
+            "src": "149:74:66",
+            "nodes": [],
+            "functionSelector": "6bc71ddf",
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "signPublishOrder",
+            "nameLocation": "158:16:66",
+            "parameters": {
+              "id": 32425,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32422,
+                  "mutability": "mutable",
+                  "name": "order",
+                  "nameLocation": "190:5:66",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32427,
+                  "src": "175:20:66",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Order_$32728_calldata_ptr",
+                    "typeString": "struct Order"
+                  },
+                  "typeName": {
+                    "id": 32421,
+                    "nodeType": "UserDefinedTypeName",
+                    "pathNode": {
+                      "id": 32420,
+                      "name": "Order",
+                      "nameLocations": [
+                        "175:5:66"
+                      ],
+                      "nodeType": "IdentifierPath",
+                      "referencedDeclaration": 32728,
+                      "src": "175:5:66"
+                    },
+                    "referencedDeclaration": 32728,
+                    "src": "175:5:66",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_Order_$32728_storage_ptr",
+                      "typeString": "struct Order"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32424,
+                  "mutability": "mutable",
+                  "name": "endTime",
+                  "nameLocation": "205:7:66",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32427,
+                  "src": "197:15:66",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 32423,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "197:7:66",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "174:39:66"
+            },
+            "returnParameters": {
+              "id": 32426,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "222:0:66"
+            },
+            "scope": 32428,
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "abstract": false,
+        "baseContracts": [],
+        "canonicalName": "IBookkeeper",
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "fullyImplemented": false,
+        "linearizedBaseContracts": [
+          32428
+        ],
+        "name": "IBookkeeper",
+        "nameLocation": "131:11:66",
+        "scope": 32429,
+        "usedErrors": []
+      }
+    ],
+    "license": "UNLICENSED"
+  },
+  "id": 66
+}

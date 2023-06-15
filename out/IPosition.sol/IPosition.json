@@ -1,0 +1,2288 @@
+{
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "previousAdminRole",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "newAdminRole",
+          "type": "bytes32"
+        }
+      ],
+      "name": "RoleAdminChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        }
+      ],
+      "name": "RoleGranted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        }
+      ],
+      "name": "RoleRevoked",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "bytes3",
+              "name": "standard",
+              "type": "bytes3"
+            },
+            {
+              "internalType": "address",
+              "name": "addr",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "id",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "data",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct Asset",
+          "name": "asset",
+          "type": "tuple"
+        },
+        {
+          "internalType": "bytes",
+          "name": "parameters",
+          "type": "bytes"
+        }
+      ],
+      "name": "canHandleAsset",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "loanAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "collAmount",
+              "type": "uint256"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "bytes3",
+                  "name": "standard",
+                  "type": "bytes3"
+                },
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "data",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct Asset",
+              "name": "loanAsset",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "bytes3",
+                  "name": "standard",
+                  "type": "bytes3"
+                },
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "data",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct Asset",
+              "name": "collAsset",
+              "type": "tuple"
+            },
+            {
+              "internalType": "uint256",
+              "name": "minCollateralRatio",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "maxDuration",
+              "type": "uint256"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "parameters",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct ModuleReference",
+              "name": "lenderAccount",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "parameters",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct ModuleReference",
+              "name": "borrowerAccount",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "parameters",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct ModuleReference",
+              "name": "assessor",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "parameters",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct ModuleReference",
+              "name": "liquidator",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "parameters",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct ModuleReference",
+              "name": "loanOracle",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "parameters",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct ModuleReference",
+              "name": "collateralOracle",
+              "type": "tuple"
+            },
+            {
+              "internalType": "address",
+              "name": "factory",
+              "type": "address"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "parameters",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct ModuleReference",
+              "name": "position",
+              "type": "tuple"
+            },
+            {
+              "internalType": "uint256",
+              "name": "deploymentTime",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct Agreement",
+          "name": "agreement",
+          "type": "tuple"
+        },
+        {
+          "internalType": "bool",
+          "name": "distribute",
+          "type": "bool"
+        },
+        {
+          "internalType": "bytes",
+          "name": "parameters",
+          "type": "bytes"
+        }
+      ],
+      "name": "close",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "bytes3",
+              "name": "standard",
+              "type": "bytes3"
+            },
+            {
+              "internalType": "address",
+              "name": "addr",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "id",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "data",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct Asset",
+          "name": "asset",
+          "type": "tuple"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes",
+          "name": "parameters",
+          "type": "bytes"
+        }
+      ],
+      "name": "deploy",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "parameters",
+          "type": "bytes"
+        }
+      ],
+      "name": "getCloseAmount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        }
+      ],
+      "name": "getRoleAdmin",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "grantRole",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "hasRole",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address payable",
+          "name": "destination",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes",
+          "name": "data",
+          "type": "bytes"
+        },
+        {
+          "internalType": "bool",
+          "name": "delegateCall",
+          "type": "bool"
+        }
+      ],
+      "name": "passThrough",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        },
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "renounceRole",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "revokeRole",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "controller",
+          "type": "address"
+        }
+      ],
+      "name": "transferContract",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "canHandleAsset((bytes3,address,uint256,bytes),bytes)": "f55e8480",
+    "close(address,(uint256,uint256,(bytes3,address,uint256,bytes),(bytes3,address,uint256,bytes),uint256,uint256,(address,bytes),(address,bytes),(address,bytes),(address,bytes),(address,bytes),(address,bytes),address,(address,bytes),uint256),bool,bytes)": "c37a2e9c",
+    "deploy((bytes3,address,uint256,bytes),uint256,bytes)": "1702c3ea",
+    "getCloseAmount(bytes)": "c252d869",
+    "getRoleAdmin(bytes32)": "248a9ca3",
+    "grantRole(bytes32,address)": "2f2ff15d",
+    "hasRole(bytes32,address)": "91d14854",
+    "passThrough(address,bytes,bool)": "b9fdc2a2",
+    "renounceRole(bytes32,address)": "36568abe",
+    "revokeRole(bytes32,address)": "d547741f",
+    "transferContract(address)": "47635dac"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.8.19+commit.7dd6d404\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"previousAdminRole\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"newAdminRole\",\"type\":\"bytes32\"}],\"name\":\"RoleAdminChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"}],\"name\":\"RoleGranted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"}],\"name\":\"RoleRevoked\",\"type\":\"event\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes3\",\"name\":\"standard\",\"type\":\"bytes3\"},{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"internalType\":\"struct Asset\",\"name\":\"asset\",\"type\":\"tuple\"},{\"internalType\":\"bytes\",\"name\":\"parameters\",\"type\":\"bytes\"}],\"name\":\"canHandleAsset\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"loanAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"collAmount\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"bytes3\",\"name\":\"standard\",\"type\":\"bytes3\"},{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"internalType\":\"struct Asset\",\"name\":\"loanAsset\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"bytes3\",\"name\":\"standard\",\"type\":\"bytes3\"},{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"internalType\":\"struct Asset\",\"name\":\"collAsset\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"minCollateralRatio\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"maxDuration\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"parameters\",\"type\":\"bytes\"}],\"internalType\":\"struct ModuleReference\",\"name\":\"lenderAccount\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"parameters\",\"type\":\"bytes\"}],\"internalType\":\"struct ModuleReference\",\"name\":\"borrowerAccount\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"parameters\",\"type\":\"bytes\"}],\"internalType\":\"struct ModuleReference\",\"name\":\"assessor\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"parameters\",\"type\":\"bytes\"}],\"internalType\":\"struct ModuleReference\",\"name\":\"liquidator\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"parameters\",\"type\":\"bytes\"}],\"internalType\":\"struct ModuleReference\",\"name\":\"loanOracle\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"parameters\",\"type\":\"bytes\"}],\"internalType\":\"struct ModuleReference\",\"name\":\"collateralOracle\",\"type\":\"tuple\"},{\"internalType\":\"address\",\"name\":\"factory\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"parameters\",\"type\":\"bytes\"}],\"internalType\":\"struct ModuleReference\",\"name\":\"position\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"deploymentTime\",\"type\":\"uint256\"}],\"internalType\":\"struct Agreement\",\"name\":\"agreement\",\"type\":\"tuple\"},{\"internalType\":\"bool\",\"name\":\"distribute\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"parameters\",\"type\":\"bytes\"}],\"name\":\"close\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes3\",\"name\":\"standard\",\"type\":\"bytes3\"},{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"internalType\":\"struct Asset\",\"name\":\"asset\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"parameters\",\"type\":\"bytes\"}],\"name\":\"deploy\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"parameters\",\"type\":\"bytes\"}],\"name\":\"getCloseAmount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"}],\"name\":\"getRoleAdmin\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"grantRole\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"hasRole\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address payable\",\"name\":\"destination\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"},{\"internalType\":\"bool\",\"name\":\"delegateCall\",\"type\":\"bool\"}],\"name\":\"passThrough\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"renounceRole\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"revokeRole\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"controller\",\"type\":\"address\"}],\"name\":\"transferContract\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"events\":{\"RoleAdminChanged(bytes32,bytes32,bytes32)\":{\"details\":\"Emitted when `newAdminRole` is set as ``role``'s admin role, replacing `previousAdminRole` `DEFAULT_ADMIN_ROLE` is the starting admin for all roles, despite {RoleAdminChanged} not being emitted signaling this. _Available since v3.1._\"},\"RoleGranted(bytes32,address,address)\":{\"details\":\"Emitted when `account` is granted `role`. `sender` is the account that originated the contract call, an admin role bearer except when using {AccessControl-_setupRole}.\"},\"RoleRevoked(bytes32,address,address)\":{\"details\":\"Emitted when `account` is revoked `role`. `sender` is the account that originated the contract call:   - if using `revokeRole`, it is the admin role bearer   - if using `renounceRole`, it is the role bearer (i.e. `account`)\"}},\"kind\":\"dev\",\"methods\":{\"close(address,(uint256,uint256,(bytes3,address,uint256,bytes),(bytes3,address,uint256,bytes),uint256,uint256,(address,bytes),(address,bytes),(address,bytes),(address,bytes),(address,bytes),(address,bytes),address,(address,bytes),uint256),bool,bytes)\":{\"details\":\"Guarantees enough asset to pay lender bc it will be taken from sender.\"},\"getRoleAdmin(bytes32)\":{\"details\":\"Returns the admin role that controls `role`. See {grantRole} and {revokeRole}. To change a role's admin, use {AccessControl-_setRoleAdmin}.\"},\"grantRole(bytes32,address)\":{\"details\":\"Grants `role` to `account`. If `account` had not been already granted `role`, emits a {RoleGranted} event. Requirements: - the caller must have ``role``'s admin role.\"},\"hasRole(bytes32,address)\":{\"details\":\"Returns `true` if `account` has been granted `role`.\"},\"passThrough(address,bytes,bool)\":{\"details\":\"Internal functions are not reachable. // NOTE right? bc allowing controller to be set *back* to bookkeeper will open exploits\"},\"renounceRole(bytes32,address)\":{\"details\":\"Revokes `role` from the calling account. Roles are often managed via {grantRole} and {revokeRole}: this function's purpose is to provide a mechanism for accounts to lose their privileges if they are compromised (such as when a trusted device is misplaced). If the calling account had been granted `role`, emits a {RoleRevoked} event. Requirements: - the caller must be `account`.\"},\"revokeRole(bytes32,address)\":{\"details\":\"Revokes `role` from `account`. If `account` had been granted `role`, emits a {RoleRevoked} event. Requirements: - the caller must have ``role``'s admin role.\"},\"transferContract(address)\":{\"details\":\"Do not set admin role to prevent liquidator from pushing the position back into the protocol.\"}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"close(address,(uint256,uint256,(bytes3,address,uint256,bytes),(bytes3,address,uint256,bytes),uint256,uint256,(address,bytes),(address,bytes),(address,bytes),(address,bytes),(address,bytes),(address,bytes),address,(address,bytes),uint256),bool,bytes)\":{\"notice\":\"Admin close position and optionally distribute assets back to agreement accounts.Distribute assets to appropriate Accounts/wallets. Give control to borrower.\"},\"deploy((bytes3,address,uint256,bytes),uint256,bytes)\":{\"notice\":\"Deploy capital into the defined position.\"},\"getCloseAmount(bytes)\":{\"notice\":\"Get current exitable value of the position, denoted in loan asset.\"},\"passThrough(address,bytes,bool)\":{\"notice\":\"Pass through function to allow the position to interact with other contracts after liquidation.\"},\"transferContract(address)\":{\"notice\":\"Transfer the position to a new controller. Used for liquidations.\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"src/interfaces/IPosition.sol\":\"IPosition\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@openzeppelin/=lib/openzeppelin-contracts/\",\":@uniswap/=lib/\",\":ds-test/=lib/forge-std/lib/ds-test/src/\",\":erc4626-tests/=lib/openzeppelin-contracts/lib/erc4626-tests/\",\":forge-std/=lib/forge-std/src/\",\":openzeppelin-contracts/=lib/openzeppelin-contracts/\",\":tractor/=lib/tractor/\",\":v2-periphery/=lib/v2-periphery/contracts/\",\":v3-core/=lib/v3-core/contracts/\",\":v3-periphery/=lib/v3-periphery/contracts/\"]},\"sources\":{\"lib/openzeppelin-contracts/contracts/access/IAccessControl.sol\":{\"keccak256\":\"0x59ce320a585d7e1f163cd70390a0ef2ff9cec832e2aa544293a00692465a7a57\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://bb2c137c343ef0c4c7ce7b18c1d108afdc9d315a04e48307288d2d05adcbde3a\",\"dweb:/ipfs/QmUxhrAQM3MM3FF5j7AtcXLXguWCJBHJ14BRdVtuoQc8Fh\"]},\"lib/openzeppelin-contracts/contracts/interfaces/IERC1271.sol\":{\"keccak256\":\"0x0705a4b1b86d7b0bd8432118f226ba139c44b9dcaba0a6eafba2dd7d0639c544\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://c45b821ef9e882e57c256697a152e108f0f2ad6997609af8904cae99c9bd422e\",\"dweb:/ipfs/QmRKCJW6jjzR5UYZcLpGnhEJ75UVbH6EHkEa49sWx2SKng\"]},\"lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol\":{\"keccak256\":\"0x00c839ff53d07d19db2e7cfa1e5133f9ee90a8d64b0e2e57f50446a2d1a3a0e0\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://3dac621d015a68a5251b1e5d41dda0faf252699bf6e8bcf46a958b29964d9dd1\",\"dweb:/ipfs/QmP9axjgZv4cezAhALoTemM62sdLtMDJ9MGTxECnNwHgSJ\"]},\"lib/openzeppelin-contracts/contracts/utils/Strings.sol\":{\"keccak256\":\"0x2626d8ab3dfdad0fad630c212ad146d59473d0f48b771784c61a7c1dbbea1f3f\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://d7c144532f1e7c76ac95fb6a8f617c1f740d7a73442a907eb60910e99dfa1fbf\",\"dweb:/ipfs/QmZsGyooD6emxB8JCuugRjnRYS2MPZEL586uuV7dgC8Jng\"]},\"lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol\":{\"keccak256\":\"0x54ee424bfc83ce63b2a918b9a1efb5090a0fb68dbd1de3b10bc667776885dd4f\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://9c8245bd91b51a6e411db1a68397e6d89ea76d28fd3fff2b5986ebd860c43aca\",\"dweb:/ipfs/QmUBfM8dUuxABn9ctfZWqierQbbux6NuhvSmQuSdrSEdch\"]},\"lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol\":{\"keccak256\":\"0x948d8b2d18f38141ec78c5229d770d950ebc781ed3f44cc9e3ccbb9fded5846a\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://7311ac950ed2d81f3ccf1784a926efbfc82a86dcb5c98d41eb3792c0cac63a2f\",\"dweb:/ipfs/QmRRwCUHewkPmehx8QRYENFoWyLNx8UEZGULxWYUeSZdTS\"]},\"lib/openzeppelin-contracts/contracts/utils/cryptography/SignatureChecker.sol\":{\"keccak256\":\"0x9c33a3c8766f83b5cb436757cc66cb55c15f9732485a79b290b7f3ad473cc879\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://13d2d01cba0309288dde95066a5293e7688dd628d3d91ab60f83e3e536c7145a\",\"dweb:/ipfs/QmYQajquUVjsM9m4hXWicomSWBmbNUvGDMsQLSC6SGgFBM\"]},\"lib/openzeppelin-contracts/contracts/utils/math/Math.sol\":{\"keccak256\":\"0x5d9242699672087b2f423dfab23a3b8326448f58da4e38cd9e4ba6a3e7e153a2\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://aa2d66521307fbe5942f90c0fed06bf9269e2a083b5d0d57861da938e83fa8b4\",\"dweb:/ipfs/QmPAJDLtTqWX6XTekr5WZEPgNPYReADj1Z4wbt3YPWmB1b\"]},\"lib/openzeppelin-contracts/contracts/utils/math/SignedMath.sol\":{\"keccak256\":\"0xf92515413956f529d95977adc9b0567d583c6203fc31ab1c23824c35187e3ddc\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://c50fcc459e49a9858b6d8ad5f911295cb7c9ab57567845a250bf0153f84a95c7\",\"dweb:/ipfs/QmcEW85JRzvDkQggxiBBLVAasXWdkhEysqypj9EaB6H2g6\"]},\"lib/tractor/Tractor.sol\":{\"keccak256\":\"0x1052c901d309f9774f2146851da6b0e8ae5caac5671b45a169c717a6a0bf3296\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://e6ce9704b9710cc74ac18849f312465a1220b47219c85deadb18b410b81ad854\",\"dweb:/ipfs/QmRkLo543PG7uq9iMuvkRZP2YaHZU3mPySXh6wNG7jDQqT\"]},\"src/interfaces/IAccount.sol\":{\"keccak256\":\"0x46a8ce45ef74c4d55bb1763a7e2caf5d26d2c92530efeb08c06561d6093e71f4\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://9ab61fa7733e7848e4935f76ecbe480ebde2a33d8a05796879ed9c1d5782dcb8\",\"dweb:/ipfs/QmbRLafzabN53ZMrehYugA48juKNdHZGD42iMawQAPAeTm\"]},\"src/interfaces/IAssessor.sol\":{\"keccak256\":\"0xdf95173a2ab3117b0d1cd0c2cba1caaa003d151233cf59f251d93c37d6b6a803\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://d1fc274de410e9172ddcbe4e5c813639e87239aa441444aff53f3438cfd4ed99\",\"dweb:/ipfs/QmeDuLYjSFzJKyXRCGfHB9P6zFHGuso1ttdMLA8wPZapQP\"]},\"src/interfaces/IOracle.sol\":{\"keccak256\":\"0xf616bc4e30f20a391be3ab1229792c59b92fe537fc14fdd8244c8d60480b4a4d\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://887154e13016933d887f3f640a8772c7907849ada264b7095756be1ffcf412b8\",\"dweb:/ipfs/QmdWQFAmNGQKkQnhSw6qVyMayizFXbRxjfKkZHRXPjR3ZM\"]},\"src/interfaces/IPosition.sol\":{\"keccak256\":\"0xd01dbd0cdd06ac73b04dcf451ecb09fba44a8fa00cfb769d2b2ff6735d507117\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://83eb2fca43c59c7b300aa7175ca2bc6e78d3d27256e45679a51455c1b4a72e16\",\"dweb:/ipfs/QmSZc2gnSDG9nfJ8nLtwJGrjMX1kqEoSPT8YCLPyCHTz1v\"]},\"src/libraries/C.sol\":{\"keccak256\":\"0x20e1ca27397ff429097c7c88e84ec66ebbd3598c5e2fc411255c5ca9280368af\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://652438db0a61dbb73b36f74408f65544fa7e5c8e6a3346f003c9ad893e421f01\",\"dweb:/ipfs/QmV5wsspZokuZHcWqyeL4t6uSKNWNgEmyWmruJ6Gw419Wf\"]},\"src/libraries/LibBookkeeper.sol\":{\"keccak256\":\"0x1d991945b347c852252ac7278f28ab2ef55fe8c81e02474a75c4a5f38dc3d4e2\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://ac17a2a5021f8807740ad73a2f7aab72dadb01af6e372838d7f6e9d531f20796\",\"dweb:/ipfs/Qme6SALVDwu4WfUxPrEc1GvDUSk7Bvve8VgtYDzsoDYTsD\"]},\"src/libraries/LibUtil.sol\":{\"keccak256\":\"0xeffb44640d40d932294a546d9655b91b15b7781f9f8f0180858b0ee035f1a534\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://5dee02324c23f95f48dac3b3407444a9694cf58d1d07d38e392c159ef4e79e4a\",\"dweb:/ipfs/QmNNkk92JFpgpd6imRmdS7CDo7m4JxpxNMwZGZYPFu3CFF\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.8.19+commit.7dd6d404"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [
+            {
+              "internalType": "bytes32",
+              "name": "role",
+              "type": "bytes32",
+              "indexed": true
+            },
+            {
+              "internalType": "bytes32",
+              "name": "previousAdminRole",
+              "type": "bytes32",
+              "indexed": true
+            },
+            {
+              "internalType": "bytes32",
+              "name": "newAdminRole",
+              "type": "bytes32",
+              "indexed": true
+            }
+          ],
+          "type": "event",
+          "name": "RoleAdminChanged",
+          "anonymous": false
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "bytes32",
+              "name": "role",
+              "type": "bytes32",
+              "indexed": true
+            },
+            {
+              "internalType": "address",
+              "name": "account",
+              "type": "address",
+              "indexed": true
+            },
+            {
+              "internalType": "address",
+              "name": "sender",
+              "type": "address",
+              "indexed": true
+            }
+          ],
+          "type": "event",
+          "name": "RoleGranted",
+          "anonymous": false
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "bytes32",
+              "name": "role",
+              "type": "bytes32",
+              "indexed": true
+            },
+            {
+              "internalType": "address",
+              "name": "account",
+              "type": "address",
+              "indexed": true
+            },
+            {
+              "internalType": "address",
+              "name": "sender",
+              "type": "address",
+              "indexed": true
+            }
+          ],
+          "type": "event",
+          "name": "RoleRevoked",
+          "anonymous": false
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "struct Asset",
+              "name": "asset",
+              "type": "tuple",
+              "components": [
+                {
+                  "internalType": "bytes3",
+                  "name": "standard",
+                  "type": "bytes3"
+                },
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "data",
+                  "type": "bytes"
+                }
+              ]
+            },
+            {
+              "internalType": "bytes",
+              "name": "parameters",
+              "type": "bytes"
+            }
+          ],
+          "stateMutability": "pure",
+          "type": "function",
+          "name": "canHandleAsset",
+          "outputs": [
+            {
+              "internalType": "bool",
+              "name": "",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "sender",
+              "type": "address"
+            },
+            {
+              "internalType": "struct Agreement",
+              "name": "agreement",
+              "type": "tuple",
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "loanAmount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "collAmount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "struct Asset",
+                  "name": "loanAsset",
+                  "type": "tuple",
+                  "components": [
+                    {
+                      "internalType": "bytes3",
+                      "name": "standard",
+                      "type": "bytes3"
+                    },
+                    {
+                      "internalType": "address",
+                      "name": "addr",
+                      "type": "address"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "id",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "bytes",
+                      "name": "data",
+                      "type": "bytes"
+                    }
+                  ]
+                },
+                {
+                  "internalType": "struct Asset",
+                  "name": "collAsset",
+                  "type": "tuple",
+                  "components": [
+                    {
+                      "internalType": "bytes3",
+                      "name": "standard",
+                      "type": "bytes3"
+                    },
+                    {
+                      "internalType": "address",
+                      "name": "addr",
+                      "type": "address"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "id",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "bytes",
+                      "name": "data",
+                      "type": "bytes"
+                    }
+                  ]
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "minCollateralRatio",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "maxDuration",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "struct ModuleReference",
+                  "name": "lenderAccount",
+                  "type": "tuple",
+                  "components": [
+                    {
+                      "internalType": "address",
+                      "name": "addr",
+                      "type": "address"
+                    },
+                    {
+                      "internalType": "bytes",
+                      "name": "parameters",
+                      "type": "bytes"
+                    }
+                  ]
+                },
+                {
+                  "internalType": "struct ModuleReference",
+                  "name": "borrowerAccount",
+                  "type": "tuple",
+                  "components": [
+                    {
+                      "internalType": "address",
+                      "name": "addr",
+                      "type": "address"
+                    },
+                    {
+                      "internalType": "bytes",
+                      "name": "parameters",
+                      "type": "bytes"
+                    }
+                  ]
+                },
+                {
+                  "internalType": "struct ModuleReference",
+                  "name": "assessor",
+                  "type": "tuple",
+                  "components": [
+                    {
+                      "internalType": "address",
+                      "name": "addr",
+                      "type": "address"
+                    },
+                    {
+                      "internalType": "bytes",
+                      "name": "parameters",
+                      "type": "bytes"
+                    }
+                  ]
+                },
+                {
+                  "internalType": "struct ModuleReference",
+                  "name": "liquidator",
+                  "type": "tuple",
+                  "components": [
+                    {
+                      "internalType": "address",
+                      "name": "addr",
+                      "type": "address"
+                    },
+                    {
+                      "internalType": "bytes",
+                      "name": "parameters",
+                      "type": "bytes"
+                    }
+                  ]
+                },
+                {
+                  "internalType": "struct ModuleReference",
+                  "name": "loanOracle",
+                  "type": "tuple",
+                  "components": [
+                    {
+                      "internalType": "address",
+                      "name": "addr",
+                      "type": "address"
+                    },
+                    {
+                      "internalType": "bytes",
+                      "name": "parameters",
+                      "type": "bytes"
+                    }
+                  ]
+                },
+                {
+                  "internalType": "struct ModuleReference",
+                  "name": "collateralOracle",
+                  "type": "tuple",
+                  "components": [
+                    {
+                      "internalType": "address",
+                      "name": "addr",
+                      "type": "address"
+                    },
+                    {
+                      "internalType": "bytes",
+                      "name": "parameters",
+                      "type": "bytes"
+                    }
+                  ]
+                },
+                {
+                  "internalType": "address",
+                  "name": "factory",
+                  "type": "address"
+                },
+                {
+                  "internalType": "struct ModuleReference",
+                  "name": "position",
+                  "type": "tuple",
+                  "components": [
+                    {
+                      "internalType": "address",
+                      "name": "addr",
+                      "type": "address"
+                    },
+                    {
+                      "internalType": "bytes",
+                      "name": "parameters",
+                      "type": "bytes"
+                    }
+                  ]
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "deploymentTime",
+                  "type": "uint256"
+                }
+              ]
+            },
+            {
+              "internalType": "bool",
+              "name": "distribute",
+              "type": "bool"
+            },
+            {
+              "internalType": "bytes",
+              "name": "parameters",
+              "type": "bytes"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "close",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "struct Asset",
+              "name": "asset",
+              "type": "tuple",
+              "components": [
+                {
+                  "internalType": "bytes3",
+                  "name": "standard",
+                  "type": "bytes3"
+                },
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "data",
+                  "type": "bytes"
+                }
+              ]
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "parameters",
+              "type": "bytes"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "deploy"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "bytes",
+              "name": "parameters",
+              "type": "bytes"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "getCloseAmount",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "bytes32",
+              "name": "role",
+              "type": "bytes32"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "getRoleAdmin",
+          "outputs": [
+            {
+              "internalType": "bytes32",
+              "name": "",
+              "type": "bytes32"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "bytes32",
+              "name": "role",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "address",
+              "name": "account",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "grantRole"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "bytes32",
+              "name": "role",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "address",
+              "name": "account",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "hasRole",
+          "outputs": [
+            {
+              "internalType": "bool",
+              "name": "",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address payable",
+              "name": "destination",
+              "type": "address"
+            },
+            {
+              "internalType": "bytes",
+              "name": "data",
+              "type": "bytes"
+            },
+            {
+              "internalType": "bool",
+              "name": "delegateCall",
+              "type": "bool"
+            }
+          ],
+          "stateMutability": "payable",
+          "type": "function",
+          "name": "passThrough",
+          "outputs": [
+            {
+              "internalType": "bool",
+              "name": "",
+              "type": "bool"
+            },
+            {
+              "internalType": "bytes",
+              "name": "",
+              "type": "bytes"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "bytes32",
+              "name": "role",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "address",
+              "name": "account",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "renounceRole"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "bytes32",
+              "name": "role",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "address",
+              "name": "account",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "revokeRole"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "controller",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "transferContract"
+        }
+      ],
+      "devdoc": {
+        "kind": "dev",
+        "methods": {
+          "close(address,(uint256,uint256,(bytes3,address,uint256,bytes),(bytes3,address,uint256,bytes),uint256,uint256,(address,bytes),(address,bytes),(address,bytes),(address,bytes),(address,bytes),(address,bytes),address,(address,bytes),uint256),bool,bytes)": {
+            "details": "Guarantees enough asset to pay lender bc it will be taken from sender."
+          },
+          "getRoleAdmin(bytes32)": {
+            "details": "Returns the admin role that controls `role`. See {grantRole} and {revokeRole}. To change a role's admin, use {AccessControl-_setRoleAdmin}."
+          },
+          "grantRole(bytes32,address)": {
+            "details": "Grants `role` to `account`. If `account` had not been already granted `role`, emits a {RoleGranted} event. Requirements: - the caller must have ``role``'s admin role."
+          },
+          "hasRole(bytes32,address)": {
+            "details": "Returns `true` if `account` has been granted `role`."
+          },
+          "passThrough(address,bytes,bool)": {
+            "details": "Internal functions are not reachable. // NOTE right? bc allowing controller to be set *back* to bookkeeper will open exploits"
+          },
+          "renounceRole(bytes32,address)": {
+            "details": "Revokes `role` from the calling account. Roles are often managed via {grantRole} and {revokeRole}: this function's purpose is to provide a mechanism for accounts to lose their privileges if they are compromised (such as when a trusted device is misplaced). If the calling account had been granted `role`, emits a {RoleRevoked} event. Requirements: - the caller must be `account`."
+          },
+          "revokeRole(bytes32,address)": {
+            "details": "Revokes `role` from `account`. If `account` had been granted `role`, emits a {RoleRevoked} event. Requirements: - the caller must have ``role``'s admin role."
+          },
+          "transferContract(address)": {
+            "details": "Do not set admin role to prevent liquidator from pushing the position back into the protocol."
+          }
+        },
+        "version": 1
+      },
+      "userdoc": {
+        "kind": "user",
+        "methods": {
+          "close(address,(uint256,uint256,(bytes3,address,uint256,bytes),(bytes3,address,uint256,bytes),uint256,uint256,(address,bytes),(address,bytes),(address,bytes),(address,bytes),(address,bytes),(address,bytes),address,(address,bytes),uint256),bool,bytes)": {
+            "notice": "Admin close position and optionally distribute assets back to agreement accounts.Distribute assets to appropriate Accounts/wallets. Give control to borrower."
+          },
+          "deploy((bytes3,address,uint256,bytes),uint256,bytes)": {
+            "notice": "Deploy capital into the defined position."
+          },
+          "getCloseAmount(bytes)": {
+            "notice": "Get current exitable value of the position, denoted in loan asset."
+          },
+          "passThrough(address,bytes,bool)": {
+            "notice": "Pass through function to allow the position to interact with other contracts after liquidation."
+          },
+          "transferContract(address)": {
+            "notice": "Transfer the position to a new controller. Used for liquidations."
+          }
+        },
+        "version": 1
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@openzeppelin/=lib/openzeppelin-contracts/",
+        ":@uniswap/=lib/",
+        ":ds-test/=lib/forge-std/lib/ds-test/src/",
+        ":erc4626-tests/=lib/openzeppelin-contracts/lib/erc4626-tests/",
+        ":forge-std/=lib/forge-std/src/",
+        ":openzeppelin-contracts/=lib/openzeppelin-contracts/",
+        ":tractor/=lib/tractor/",
+        ":v2-periphery/=lib/v2-periphery/contracts/",
+        ":v3-core/=lib/v3-core/contracts/",
+        ":v3-periphery/=lib/v3-periphery/contracts/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "metadata": {
+        "bytecodeHash": "ipfs"
+      },
+      "compilationTarget": {
+        "src/interfaces/IPosition.sol": "IPosition"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "lib/openzeppelin-contracts/contracts/access/IAccessControl.sol": {
+        "keccak256": "0x59ce320a585d7e1f163cd70390a0ef2ff9cec832e2aa544293a00692465a7a57",
+        "urls": [
+          "bzz-raw://bb2c137c343ef0c4c7ce7b18c1d108afdc9d315a04e48307288d2d05adcbde3a",
+          "dweb:/ipfs/QmUxhrAQM3MM3FF5j7AtcXLXguWCJBHJ14BRdVtuoQc8Fh"
+        ],
+        "license": "MIT"
+      },
+      "lib/openzeppelin-contracts/contracts/interfaces/IERC1271.sol": {
+        "keccak256": "0x0705a4b1b86d7b0bd8432118f226ba139c44b9dcaba0a6eafba2dd7d0639c544",
+        "urls": [
+          "bzz-raw://c45b821ef9e882e57c256697a152e108f0f2ad6997609af8904cae99c9bd422e",
+          "dweb:/ipfs/QmRKCJW6jjzR5UYZcLpGnhEJ75UVbH6EHkEa49sWx2SKng"
+        ],
+        "license": "MIT"
+      },
+      "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol": {
+        "keccak256": "0x00c839ff53d07d19db2e7cfa1e5133f9ee90a8d64b0e2e57f50446a2d1a3a0e0",
+        "urls": [
+          "bzz-raw://3dac621d015a68a5251b1e5d41dda0faf252699bf6e8bcf46a958b29964d9dd1",
+          "dweb:/ipfs/QmP9axjgZv4cezAhALoTemM62sdLtMDJ9MGTxECnNwHgSJ"
+        ],
+        "license": "MIT"
+      },
+      "lib/openzeppelin-contracts/contracts/utils/Strings.sol": {
+        "keccak256": "0x2626d8ab3dfdad0fad630c212ad146d59473d0f48b771784c61a7c1dbbea1f3f",
+        "urls": [
+          "bzz-raw://d7c144532f1e7c76ac95fb6a8f617c1f740d7a73442a907eb60910e99dfa1fbf",
+          "dweb:/ipfs/QmZsGyooD6emxB8JCuugRjnRYS2MPZEL586uuV7dgC8Jng"
+        ],
+        "license": "MIT"
+      },
+      "lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol": {
+        "keccak256": "0x54ee424bfc83ce63b2a918b9a1efb5090a0fb68dbd1de3b10bc667776885dd4f",
+        "urls": [
+          "bzz-raw://9c8245bd91b51a6e411db1a68397e6d89ea76d28fd3fff2b5986ebd860c43aca",
+          "dweb:/ipfs/QmUBfM8dUuxABn9ctfZWqierQbbux6NuhvSmQuSdrSEdch"
+        ],
+        "license": "MIT"
+      },
+      "lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol": {
+        "keccak256": "0x948d8b2d18f38141ec78c5229d770d950ebc781ed3f44cc9e3ccbb9fded5846a",
+        "urls": [
+          "bzz-raw://7311ac950ed2d81f3ccf1784a926efbfc82a86dcb5c98d41eb3792c0cac63a2f",
+          "dweb:/ipfs/QmRRwCUHewkPmehx8QRYENFoWyLNx8UEZGULxWYUeSZdTS"
+        ],
+        "license": "MIT"
+      },
+      "lib/openzeppelin-contracts/contracts/utils/cryptography/SignatureChecker.sol": {
+        "keccak256": "0x9c33a3c8766f83b5cb436757cc66cb55c15f9732485a79b290b7f3ad473cc879",
+        "urls": [
+          "bzz-raw://13d2d01cba0309288dde95066a5293e7688dd628d3d91ab60f83e3e536c7145a",
+          "dweb:/ipfs/QmYQajquUVjsM9m4hXWicomSWBmbNUvGDMsQLSC6SGgFBM"
+        ],
+        "license": "MIT"
+      },
+      "lib/openzeppelin-contracts/contracts/utils/math/Math.sol": {
+        "keccak256": "0x5d9242699672087b2f423dfab23a3b8326448f58da4e38cd9e4ba6a3e7e153a2",
+        "urls": [
+          "bzz-raw://aa2d66521307fbe5942f90c0fed06bf9269e2a083b5d0d57861da938e83fa8b4",
+          "dweb:/ipfs/QmPAJDLtTqWX6XTekr5WZEPgNPYReADj1Z4wbt3YPWmB1b"
+        ],
+        "license": "MIT"
+      },
+      "lib/openzeppelin-contracts/contracts/utils/math/SignedMath.sol": {
+        "keccak256": "0xf92515413956f529d95977adc9b0567d583c6203fc31ab1c23824c35187e3ddc",
+        "urls": [
+          "bzz-raw://c50fcc459e49a9858b6d8ad5f911295cb7c9ab57567845a250bf0153f84a95c7",
+          "dweb:/ipfs/QmcEW85JRzvDkQggxiBBLVAasXWdkhEysqypj9EaB6H2g6"
+        ],
+        "license": "MIT"
+      },
+      "lib/tractor/Tractor.sol": {
+        "keccak256": "0x1052c901d309f9774f2146851da6b0e8ae5caac5671b45a169c717a6a0bf3296",
+        "urls": [
+          "bzz-raw://e6ce9704b9710cc74ac18849f312465a1220b47219c85deadb18b410b81ad854",
+          "dweb:/ipfs/QmRkLo543PG7uq9iMuvkRZP2YaHZU3mPySXh6wNG7jDQqT"
+        ],
+        "license": "MIT"
+      },
+      "src/interfaces/IAccount.sol": {
+        "keccak256": "0x46a8ce45ef74c4d55bb1763a7e2caf5d26d2c92530efeb08c06561d6093e71f4",
+        "urls": [
+          "bzz-raw://9ab61fa7733e7848e4935f76ecbe480ebde2a33d8a05796879ed9c1d5782dcb8",
+          "dweb:/ipfs/QmbRLafzabN53ZMrehYugA48juKNdHZGD42iMawQAPAeTm"
+        ],
+        "license": "UNLICENSED"
+      },
+      "src/interfaces/IAssessor.sol": {
+        "keccak256": "0xdf95173a2ab3117b0d1cd0c2cba1caaa003d151233cf59f251d93c37d6b6a803",
+        "urls": [
+          "bzz-raw://d1fc274de410e9172ddcbe4e5c813639e87239aa441444aff53f3438cfd4ed99",
+          "dweb:/ipfs/QmeDuLYjSFzJKyXRCGfHB9P6zFHGuso1ttdMLA8wPZapQP"
+        ],
+        "license": "UNLICENSED"
+      },
+      "src/interfaces/IOracle.sol": {
+        "keccak256": "0xf616bc4e30f20a391be3ab1229792c59b92fe537fc14fdd8244c8d60480b4a4d",
+        "urls": [
+          "bzz-raw://887154e13016933d887f3f640a8772c7907849ada264b7095756be1ffcf412b8",
+          "dweb:/ipfs/QmdWQFAmNGQKkQnhSw6qVyMayizFXbRxjfKkZHRXPjR3ZM"
+        ],
+        "license": "UNLICENSED"
+      },
+      "src/interfaces/IPosition.sol": {
+        "keccak256": "0xd01dbd0cdd06ac73b04dcf451ecb09fba44a8fa00cfb769d2b2ff6735d507117",
+        "urls": [
+          "bzz-raw://83eb2fca43c59c7b300aa7175ca2bc6e78d3d27256e45679a51455c1b4a72e16",
+          "dweb:/ipfs/QmSZc2gnSDG9nfJ8nLtwJGrjMX1kqEoSPT8YCLPyCHTz1v"
+        ],
+        "license": "UNLICENSED"
+      },
+      "src/libraries/C.sol": {
+        "keccak256": "0x20e1ca27397ff429097c7c88e84ec66ebbd3598c5e2fc411255c5ca9280368af",
+        "urls": [
+          "bzz-raw://652438db0a61dbb73b36f74408f65544fa7e5c8e6a3346f003c9ad893e421f01",
+          "dweb:/ipfs/QmV5wsspZokuZHcWqyeL4t6uSKNWNgEmyWmruJ6Gw419Wf"
+        ],
+        "license": "UNLICENSED"
+      },
+      "src/libraries/LibBookkeeper.sol": {
+        "keccak256": "0x1d991945b347c852252ac7278f28ab2ef55fe8c81e02474a75c4a5f38dc3d4e2",
+        "urls": [
+          "bzz-raw://ac17a2a5021f8807740ad73a2f7aab72dadb01af6e372838d7f6e9d531f20796",
+          "dweb:/ipfs/Qme6SALVDwu4WfUxPrEc1GvDUSk7Bvve8VgtYDzsoDYTsD"
+        ],
+        "license": "UNLICENSED"
+      },
+      "src/libraries/LibUtil.sol": {
+        "keccak256": "0xeffb44640d40d932294a546d9655b91b15b7781f9f8f0180858b0ee035f1a534",
+        "urls": [
+          "bzz-raw://5dee02324c23f95f48dac3b3407444a9694cf58d1d07d38e392c159ef4e79e4a",
+          "dweb:/ipfs/QmNNkk92JFpgpd6imRmdS7CDo7m4JxpxNMwZGZYPFu3CFF"
+        ],
+        "license": "UNLICENSED"
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "src/interfaces/IPosition.sol",
+    "id": 32586,
+    "exportedSymbols": {
+      "Agreement": [
+        32796
+      ],
+      "Asset": [
+        33171
+      ],
+      "IAccessControl": [
+        25901
+      ],
+      "IPosition": [
+        32585
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "40:2037:70",
+    "nodes": [
+      {
+        "id": 32512,
+        "nodeType": "PragmaDirective",
+        "src": "40:23:70",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "0.8",
+          ".19"
+        ]
+      },
+      {
+        "id": 32514,
+        "nodeType": "ImportDirective",
+        "src": "65:58:70",
+        "nodes": [],
+        "absolutePath": "src/libraries/LibBookkeeper.sol",
+        "file": "src/libraries/LibBookkeeper.sol",
+        "nameLocation": "-1:-1:-1",
+        "scope": 32586,
+        "sourceUnit": 32906,
+        "symbolAliases": [
+          {
+            "foreign": {
+              "id": 32513,
+              "name": "Agreement",
+              "nodeType": "Identifier",
+              "overloadedDeclarations": [],
+              "referencedDeclaration": 32796,
+              "src": "73:9:70",
+              "typeDescriptions": {}
+            },
+            "nameLocation": "-1:-1:-1"
+          }
+        ],
+        "unitAlias": ""
+      },
+      {
+        "id": 32516,
+        "nodeType": "ImportDirective",
+        "src": "124:94:70",
+        "nodes": [],
+        "absolutePath": "lib/openzeppelin-contracts/contracts/access/IAccessControl.sol",
+        "file": "lib/openzeppelin-contracts/contracts/access/IAccessControl.sol",
+        "nameLocation": "-1:-1:-1",
+        "scope": 32586,
+        "sourceUnit": 25902,
+        "symbolAliases": [
+          {
+            "foreign": {
+              "id": 32515,
+              "name": "IAccessControl",
+              "nodeType": "Identifier",
+              "overloadedDeclarations": [],
+              "referencedDeclaration": 25901,
+              "src": "132:14:70",
+              "typeDescriptions": {}
+            },
+            "nameLocation": "-1:-1:-1"
+          }
+        ],
+        "unitAlias": ""
+      },
+      {
+        "id": 32518,
+        "nodeType": "ImportDirective",
+        "src": "219:48:70",
+        "nodes": [],
+        "absolutePath": "src/libraries/LibUtil.sol",
+        "file": "src/libraries/LibUtil.sol",
+        "nameLocation": "-1:-1:-1",
+        "scope": 32586,
+        "sourceUnit": 33300,
+        "symbolAliases": [
+          {
+            "foreign": {
+              "id": 32517,
+              "name": "Asset",
+              "nodeType": "Identifier",
+              "overloadedDeclarations": [],
+              "referencedDeclaration": 33171,
+              "src": "227:5:70",
+              "typeDescriptions": {}
+            },
+            "nameLocation": "-1:-1:-1"
+          }
+        ],
+        "unitAlias": ""
+      },
+      {
+        "id": 32585,
+        "nodeType": "ContractDefinition",
+        "src": "420:1656:70",
+        "nodes": [
+          {
+            "id": 32531,
+            "nodeType": "FunctionDefinition",
+            "src": "522:90:70",
+            "nodes": [],
+            "documentation": {
+              "id": 32521,
+              "nodeType": "StructuredDocumentation",
+              "src": "464:53:70",
+              "text": "@notice Deploy capital into the defined position."
+            },
+            "functionSelector": "1702c3ea",
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "deploy",
+            "nameLocation": "531:6:70",
+            "parameters": {
+              "id": 32529,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32524,
+                  "mutability": "mutable",
+                  "name": "asset",
+                  "nameLocation": "553:5:70",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32531,
+                  "src": "538:20:70",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Asset_$33171_calldata_ptr",
+                    "typeString": "struct Asset"
+                  },
+                  "typeName": {
+                    "id": 32523,
+                    "nodeType": "UserDefinedTypeName",
+                    "pathNode": {
+                      "id": 32522,
+                      "name": "Asset",
+                      "nameLocations": [
+                        "538:5:70"
+                      ],
+                      "nodeType": "IdentifierPath",
+                      "referencedDeclaration": 33171,
+                      "src": "538:5:70"
+                    },
+                    "referencedDeclaration": 33171,
+                    "src": "538:5:70",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_Asset_$33171_storage_ptr",
+                      "typeString": "struct Asset"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32526,
+                  "mutability": "mutable",
+                  "name": "amount",
+                  "nameLocation": "568:6:70",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32531,
+                  "src": "560:14:70",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 32525,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "560:7:70",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32528,
+                  "mutability": "mutable",
+                  "name": "parameters",
+                  "nameLocation": "591:10:70",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32531,
+                  "src": "576:25:70",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_calldata_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 32527,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "576:5:70",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "537:65:70"
+            },
+            "returnParameters": {
+              "id": 32530,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "611:0:70"
+            },
+            "scope": 32585,
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "id": 32546,
+            "nodeType": "FunctionDefinition",
+            "src": "892:146:70",
+            "nodes": [],
+            "documentation": {
+              "id": 32532,
+              "nodeType": "StructuredDocumentation",
+              "src": "617:270:70",
+              "text": "@notice Admin close position and optionally distribute assets back to agreement accounts.\n @notice Distribute assets to appropriate Accounts/wallets. Give control to borrower.\n @dev Guarantees enough asset to pay lender bc it will be taken from sender."
+            },
+            "functionSelector": "c37a2e9c",
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "close",
+            "nameLocation": "901:5:70",
+            "parameters": {
+              "id": 32542,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32534,
+                  "mutability": "mutable",
+                  "name": "sender",
+                  "nameLocation": "915:6:70",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32546,
+                  "src": "907:14:70",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 32533,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "907:7:70",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32537,
+                  "mutability": "mutable",
+                  "name": "agreement",
+                  "nameLocation": "940:9:70",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32546,
+                  "src": "923:26:70",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Agreement_$32796_memory_ptr",
+                    "typeString": "struct Agreement"
+                  },
+                  "typeName": {
+                    "id": 32536,
+                    "nodeType": "UserDefinedTypeName",
+                    "pathNode": {
+                      "id": 32535,
+                      "name": "Agreement",
+                      "nameLocations": [
+                        "923:9:70"
+                      ],
+                      "nodeType": "IdentifierPath",
+                      "referencedDeclaration": 32796,
+                      "src": "923:9:70"
+                    },
+                    "referencedDeclaration": 32796,
+                    "src": "923:9:70",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_Agreement_$32796_storage_ptr",
+                      "typeString": "struct Agreement"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32539,
+                  "mutability": "mutable",
+                  "name": "distribute",
+                  "nameLocation": "956:10:70",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32546,
+                  "src": "951:15:70",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 32538,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "951:4:70",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32541,
+                  "mutability": "mutable",
+                  "name": "parameters",
+                  "nameLocation": "983:10:70",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32546,
+                  "src": "968:25:70",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_calldata_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 32540,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "968:5:70",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "906:88:70"
+            },
+            "returnParameters": {
+              "id": 32545,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32544,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nameLocation": "-1:-1:-1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32546,
+                  "src": "1029:7:70",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 32543,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1029:7:70",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1028:9:70"
+            },
+            "scope": 32585,
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "id": 32552,
+            "nodeType": "FunctionDefinition",
+            "src": "1232:55:70",
+            "nodes": [],
+            "documentation": {
+              "id": 32547,
+              "nodeType": "StructuredDocumentation",
+              "src": "1043:184:70",
+              "text": "@notice Transfer the position to a new controller. Used for liquidations.\n @dev Do not set admin role to prevent liquidator from pushing the position back into the protocol."
+            },
+            "functionSelector": "47635dac",
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "transferContract",
+            "nameLocation": "1241:16:70",
+            "parameters": {
+              "id": 32550,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32549,
+                  "mutability": "mutable",
+                  "name": "controller",
+                  "nameLocation": "1266:10:70",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32552,
+                  "src": "1258:18:70",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 32548,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1258:7:70",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1257:20:70"
+            },
+            "returnParameters": {
+              "id": 32551,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1286:0:70"
+            },
+            "scope": 32585,
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "id": 32560,
+            "nodeType": "FunctionDefinition",
+            "src": "1375:83:70",
+            "nodes": [],
+            "documentation": {
+              "id": 32553,
+              "nodeType": "StructuredDocumentation",
+              "src": "1292:78:70",
+              "text": "@notice Get current exitable value of the position, denoted in loan asset."
+            },
+            "functionSelector": "c252d869",
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "getCloseAmount",
+            "nameLocation": "1384:14:70",
+            "parameters": {
+              "id": 32556,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32555,
+                  "mutability": "mutable",
+                  "name": "parameters",
+                  "nameLocation": "1414:10:70",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32560,
+                  "src": "1399:25:70",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_calldata_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 32554,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1399:5:70",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1398:27:70"
+            },
+            "returnParameters": {
+              "id": 32559,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32558,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nameLocation": "-1:-1:-1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32560,
+                  "src": "1449:7:70",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 32557,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1449:7:70",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1448:9:70"
+            },
+            "scope": 32585,
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "id": 32570,
+            "nodeType": "FunctionDefinition",
+            "src": "1464:102:70",
+            "nodes": [],
+            "functionSelector": "f55e8480",
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "canHandleAsset",
+            "nameLocation": "1473:14:70",
+            "parameters": {
+              "id": 32566,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32563,
+                  "mutability": "mutable",
+                  "name": "asset",
+                  "nameLocation": "1503:5:70",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32570,
+                  "src": "1488:20:70",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Asset_$33171_calldata_ptr",
+                    "typeString": "struct Asset"
+                  },
+                  "typeName": {
+                    "id": 32562,
+                    "nodeType": "UserDefinedTypeName",
+                    "pathNode": {
+                      "id": 32561,
+                      "name": "Asset",
+                      "nameLocations": [
+                        "1488:5:70"
+                      ],
+                      "nodeType": "IdentifierPath",
+                      "referencedDeclaration": 33171,
+                      "src": "1488:5:70"
+                    },
+                    "referencedDeclaration": 33171,
+                    "src": "1488:5:70",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_Asset_$33171_storage_ptr",
+                      "typeString": "struct Asset"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32565,
+                  "mutability": "mutable",
+                  "name": "parameters",
+                  "nameLocation": "1525:10:70",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32570,
+                  "src": "1510:25:70",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_calldata_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 32564,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1510:5:70",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1487:49:70"
+            },
+            "returnParameters": {
+              "id": 32569,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32568,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nameLocation": "-1:-1:-1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32570,
+                  "src": "1560:4:70",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 32567,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1560:4:70",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1559:6:70"
+            },
+            "scope": 32585,
+            "stateMutability": "pure",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "id": 32584,
+            "nodeType": "FunctionDefinition",
+            "src": "1822:160:70",
+            "nodes": [],
+            "documentation": {
+              "id": 32571,
+              "nodeType": "StructuredDocumentation",
+              "src": "1571:246:70",
+              "text": "@notice Pass through function to allow the position to interact with other contracts after liquidation.\n @dev Internal functions are not reachable. // NOTE right? bc allowing controller to be set *back* to bookkeeper will open exploits"
+            },
+            "functionSelector": "b9fdc2a2",
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "passThrough",
+            "nameLocation": "1831:11:70",
+            "parameters": {
+              "id": 32578,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32573,
+                  "mutability": "mutable",
+                  "name": "destination",
+                  "nameLocation": "1859:11:70",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32584,
+                  "src": "1843:27:70",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address_payable",
+                    "typeString": "address payable"
+                  },
+                  "typeName": {
+                    "id": 32572,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1843:15:70",
+                    "stateMutability": "payable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address_payable",
+                      "typeString": "address payable"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32575,
+                  "mutability": "mutable",
+                  "name": "data",
+                  "nameLocation": "1887:4:70",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32584,
+                  "src": "1872:19:70",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_calldata_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 32574,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1872:5:70",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32577,
+                  "mutability": "mutable",
+                  "name": "delegateCall",
+                  "nameLocation": "1898:12:70",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32584,
+                  "src": "1893:17:70",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 32576,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1893:4:70",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1842:69:70"
+            },
+            "returnParameters": {
+              "id": 32583,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32580,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nameLocation": "-1:-1:-1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32584,
+                  "src": "1962:4:70",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 32579,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1962:4:70",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32582,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nameLocation": "-1:-1:-1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32584,
+                  "src": "1968:12:70",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_memory_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 32581,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1968:5:70",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1961:20:70"
+            },
+            "scope": 32585,
+            "stateMutability": "payable",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "abstract": false,
+        "baseContracts": [
+          {
+            "baseName": {
+              "id": 32519,
+              "name": "IAccessControl",
+              "nameLocations": [
+                "443:14:70"
+              ],
+              "nodeType": "IdentifierPath",
+              "referencedDeclaration": 25901,
+              "src": "443:14:70"
+            },
+            "id": 32520,
+            "nodeType": "InheritanceSpecifier",
+            "src": "443:14:70"
+          }
+        ],
+        "canonicalName": "IPosition",
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "fullyImplemented": false,
+        "linearizedBaseContracts": [
+          32585,
+          25901
+        ],
+        "name": "IPosition",
+        "nameLocation": "430:9:70",
+        "scope": 32586,
+        "usedErrors": []
+      }
+    ],
+    "license": "UNLICENSED"
+  },
+  "id": 70
+}

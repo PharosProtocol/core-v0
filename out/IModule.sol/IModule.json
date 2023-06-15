@@ -1,0 +1,63 @@
+{
+  "abi": [],
+  "bytecode": {
+    "object": "0x",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x",
+    "linkReferences": {}
+  },
+  "ast": {
+    "absolutePath": "src/interfaces/IModule.sol",
+    "id": 32469,
+    "exportedSymbols": {
+      "Agreement": [
+        32796
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "40:113:68",
+    "nodes": [
+      {
+        "id": 32466,
+        "nodeType": "PragmaDirective",
+        "src": "40:23:68",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "0.8",
+          ".19"
+        ]
+      },
+      {
+        "id": 32468,
+        "nodeType": "ImportDirective",
+        "src": "65:58:68",
+        "nodes": [],
+        "absolutePath": "src/libraries/LibBookkeeper.sol",
+        "file": "src/libraries/LibBookkeeper.sol",
+        "nameLocation": "-1:-1:-1",
+        "scope": 32469,
+        "sourceUnit": 32906,
+        "symbolAliases": [
+          {
+            "foreign": {
+              "id": 32467,
+              "name": "Agreement",
+              "nodeType": "Identifier",
+              "overloadedDeclarations": [],
+              "referencedDeclaration": 32796,
+              "src": "73:9:68",
+              "typeDescriptions": {}
+            },
+            "nameLocation": "-1:-1:-1"
+          }
+        ],
+        "unitAlias": ""
+      }
+    ],
+    "license": "UNLICENSED"
+  },
+  "id": 68
+}

@@ -1,0 +1,2210 @@
+{
+  "abi": [
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "bytes3",
+              "name": "standard",
+              "type": "bytes3"
+            },
+            {
+              "internalType": "address",
+              "name": "addr",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "id",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "data",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct Asset",
+          "name": "asset",
+          "type": "tuple"
+        },
+        {
+          "internalType": "bytes",
+          "name": "parameters",
+          "type": "bytes"
+        }
+      ],
+      "name": "canHandleAsset",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "bytes3",
+              "name": "standard",
+              "type": "bytes3"
+            },
+            {
+              "internalType": "address",
+              "name": "addr",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "id",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "data",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct Asset",
+          "name": "asset",
+          "type": "tuple"
+        },
+        {
+          "internalType": "bytes",
+          "name": "parameters",
+          "type": "bytes"
+        }
+      ],
+      "name": "getBalance",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "parameters",
+          "type": "bytes"
+        }
+      ],
+      "name": "getOwner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "bytes3",
+              "name": "standard",
+              "type": "bytes3"
+            },
+            {
+              "internalType": "address",
+              "name": "addr",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "id",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "data",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct Asset",
+          "name": "asset",
+          "type": "tuple"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes",
+          "name": "parameters",
+          "type": "bytes"
+        }
+      ],
+      "name": "loadFromPosition",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "bytes3",
+              "name": "standard",
+              "type": "bytes3"
+            },
+            {
+              "internalType": "address",
+              "name": "addr",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "id",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "data",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct Asset",
+          "name": "asset",
+          "type": "tuple"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes",
+          "name": "parameters",
+          "type": "bytes"
+        }
+      ],
+      "name": "loadFromUser",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "bytes3",
+              "name": "standard",
+              "type": "bytes3"
+            },
+            {
+              "internalType": "address",
+              "name": "addr",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "id",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "data",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct Asset",
+          "name": "asset",
+          "type": "tuple"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes",
+          "name": "parameters",
+          "type": "bytes"
+        }
+      ],
+      "name": "lockCollateral",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "position",
+          "type": "address"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes3",
+              "name": "standard",
+              "type": "bytes3"
+            },
+            {
+              "internalType": "address",
+              "name": "addr",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "id",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "data",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct Asset",
+          "name": "asset",
+          "type": "tuple"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "isLockedColl",
+          "type": "bool"
+        },
+        {
+          "internalType": "bytes",
+          "name": "parameters",
+          "type": "bytes"
+        }
+      ],
+      "name": "unloadToPosition",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "bytes3",
+              "name": "standard",
+              "type": "bytes3"
+            },
+            {
+              "internalType": "address",
+              "name": "addr",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "id",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "data",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct Asset",
+          "name": "asset",
+          "type": "tuple"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes",
+          "name": "parameters",
+          "type": "bytes"
+        }
+      ],
+      "name": "unloadToUser",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "bytes3",
+              "name": "standard",
+              "type": "bytes3"
+            },
+            {
+              "internalType": "address",
+              "name": "addr",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "id",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "data",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct Asset",
+          "name": "asset",
+          "type": "tuple"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes",
+          "name": "parameters",
+          "type": "bytes"
+        }
+      ],
+      "name": "unlockCollateral",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "canHandleAsset((bytes3,address,uint256,bytes),bytes)": "f55e8480",
+    "getBalance((bytes3,address,uint256,bytes),bytes)": "e78ae3fd",
+    "getOwner(bytes)": "b102bfbe",
+    "loadFromPosition((bytes3,address,uint256,bytes),uint256,bytes)": "cf75b15f",
+    "loadFromUser((bytes3,address,uint256,bytes),uint256,bytes)": "a3483286",
+    "lockCollateral((bytes3,address,uint256,bytes),uint256,bytes)": "e1141cc2",
+    "unloadToPosition(address,(bytes3,address,uint256,bytes),uint256,bool,bytes)": "ba337dae",
+    "unloadToUser((bytes3,address,uint256,bytes),uint256,bytes)": "7e7537ba",
+    "unlockCollateral((bytes3,address,uint256,bytes),uint256,bytes)": "dfecf966"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.8.19+commit.7dd6d404\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"components\":[{\"internalType\":\"bytes3\",\"name\":\"standard\",\"type\":\"bytes3\"},{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"internalType\":\"struct Asset\",\"name\":\"asset\",\"type\":\"tuple\"},{\"internalType\":\"bytes\",\"name\":\"parameters\",\"type\":\"bytes\"}],\"name\":\"canHandleAsset\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes3\",\"name\":\"standard\",\"type\":\"bytes3\"},{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"internalType\":\"struct Asset\",\"name\":\"asset\",\"type\":\"tuple\"},{\"internalType\":\"bytes\",\"name\":\"parameters\",\"type\":\"bytes\"}],\"name\":\"getBalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"parameters\",\"type\":\"bytes\"}],\"name\":\"getOwner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes3\",\"name\":\"standard\",\"type\":\"bytes3\"},{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"internalType\":\"struct Asset\",\"name\":\"asset\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"parameters\",\"type\":\"bytes\"}],\"name\":\"loadFromPosition\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes3\",\"name\":\"standard\",\"type\":\"bytes3\"},{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"internalType\":\"struct Asset\",\"name\":\"asset\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"parameters\",\"type\":\"bytes\"}],\"name\":\"loadFromUser\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes3\",\"name\":\"standard\",\"type\":\"bytes3\"},{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"internalType\":\"struct Asset\",\"name\":\"asset\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"parameters\",\"type\":\"bytes\"}],\"name\":\"lockCollateral\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"position\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"bytes3\",\"name\":\"standard\",\"type\":\"bytes3\"},{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"internalType\":\"struct Asset\",\"name\":\"asset\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"isLockedColl\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"parameters\",\"type\":\"bytes\"}],\"name\":\"unloadToPosition\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes3\",\"name\":\"standard\",\"type\":\"bytes3\"},{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"internalType\":\"struct Asset\",\"name\":\"asset\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"parameters\",\"type\":\"bytes\"}],\"name\":\"unloadToUser\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes3\",\"name\":\"standard\",\"type\":\"bytes3\"},{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"internalType\":\"struct Asset\",\"name\":\"asset\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"parameters\",\"type\":\"bytes\"}],\"name\":\"unlockCollateral\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"loadFromPosition((bytes3,address,uint256,bytes),uint256,bytes)\":{\"details\":\"Assets may not literally be coming from a position.\"}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"loadFromPosition((bytes3,address,uint256,bytes),uint256,bytes)\":{\"notice\":\"Transfer asset and increment account balance. Pulls asset from sender or uses msg.value.\"},\"loadFromUser((bytes3,address,uint256,bytes),uint256,bytes)\":{\"notice\":\"Transfer asset and increment account balance. Pulls asset from sender or uses msg.value.\"},\"unloadToPosition(address,(bytes3,address,uint256,bytes),uint256,bool,bytes)\":{\"notice\":\"Transfer loan or collateral asset from account to Position MPC. Pushes.\"},\"unloadToUser((bytes3,address,uint256,bytes),uint256,bytes)\":{\"notice\":\"Transfer asset out and decrement account balance. Pushes asset to sender.\"}},\"notice\":\"Accounts are used to hold user capital to back outstanding unfilled orders.\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"src/interfaces/IAccount.sol\":\"IAccount\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@openzeppelin/=lib/openzeppelin-contracts/\",\":@uniswap/=lib/\",\":ds-test/=lib/forge-std/lib/ds-test/src/\",\":erc4626-tests/=lib/openzeppelin-contracts/lib/erc4626-tests/\",\":forge-std/=lib/forge-std/src/\",\":openzeppelin-contracts/=lib/openzeppelin-contracts/\",\":tractor/=lib/tractor/\",\":v2-periphery/=lib/v2-periphery/contracts/\",\":v3-core/=lib/v3-core/contracts/\",\":v3-periphery/=lib/v3-periphery/contracts/\"]},\"sources\":{\"lib/openzeppelin-contracts/contracts/access/IAccessControl.sol\":{\"keccak256\":\"0x59ce320a585d7e1f163cd70390a0ef2ff9cec832e2aa544293a00692465a7a57\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://bb2c137c343ef0c4c7ce7b18c1d108afdc9d315a04e48307288d2d05adcbde3a\",\"dweb:/ipfs/QmUxhrAQM3MM3FF5j7AtcXLXguWCJBHJ14BRdVtuoQc8Fh\"]},\"lib/openzeppelin-contracts/contracts/interfaces/IERC1271.sol\":{\"keccak256\":\"0x0705a4b1b86d7b0bd8432118f226ba139c44b9dcaba0a6eafba2dd7d0639c544\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://c45b821ef9e882e57c256697a152e108f0f2ad6997609af8904cae99c9bd422e\",\"dweb:/ipfs/QmRKCJW6jjzR5UYZcLpGnhEJ75UVbH6EHkEa49sWx2SKng\"]},\"lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol\":{\"keccak256\":\"0x00c839ff53d07d19db2e7cfa1e5133f9ee90a8d64b0e2e57f50446a2d1a3a0e0\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://3dac621d015a68a5251b1e5d41dda0faf252699bf6e8bcf46a958b29964d9dd1\",\"dweb:/ipfs/QmP9axjgZv4cezAhALoTemM62sdLtMDJ9MGTxECnNwHgSJ\"]},\"lib/openzeppelin-contracts/contracts/utils/Strings.sol\":{\"keccak256\":\"0x2626d8ab3dfdad0fad630c212ad146d59473d0f48b771784c61a7c1dbbea1f3f\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://d7c144532f1e7c76ac95fb6a8f617c1f740d7a73442a907eb60910e99dfa1fbf\",\"dweb:/ipfs/QmZsGyooD6emxB8JCuugRjnRYS2MPZEL586uuV7dgC8Jng\"]},\"lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol\":{\"keccak256\":\"0x54ee424bfc83ce63b2a918b9a1efb5090a0fb68dbd1de3b10bc667776885dd4f\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://9c8245bd91b51a6e411db1a68397e6d89ea76d28fd3fff2b5986ebd860c43aca\",\"dweb:/ipfs/QmUBfM8dUuxABn9ctfZWqierQbbux6NuhvSmQuSdrSEdch\"]},\"lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol\":{\"keccak256\":\"0x948d8b2d18f38141ec78c5229d770d950ebc781ed3f44cc9e3ccbb9fded5846a\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://7311ac950ed2d81f3ccf1784a926efbfc82a86dcb5c98d41eb3792c0cac63a2f\",\"dweb:/ipfs/QmRRwCUHewkPmehx8QRYENFoWyLNx8UEZGULxWYUeSZdTS\"]},\"lib/openzeppelin-contracts/contracts/utils/cryptography/SignatureChecker.sol\":{\"keccak256\":\"0x9c33a3c8766f83b5cb436757cc66cb55c15f9732485a79b290b7f3ad473cc879\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://13d2d01cba0309288dde95066a5293e7688dd628d3d91ab60f83e3e536c7145a\",\"dweb:/ipfs/QmYQajquUVjsM9m4hXWicomSWBmbNUvGDMsQLSC6SGgFBM\"]},\"lib/openzeppelin-contracts/contracts/utils/math/Math.sol\":{\"keccak256\":\"0x5d9242699672087b2f423dfab23a3b8326448f58da4e38cd9e4ba6a3e7e153a2\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://aa2d66521307fbe5942f90c0fed06bf9269e2a083b5d0d57861da938e83fa8b4\",\"dweb:/ipfs/QmPAJDLtTqWX6XTekr5WZEPgNPYReADj1Z4wbt3YPWmB1b\"]},\"lib/openzeppelin-contracts/contracts/utils/math/SignedMath.sol\":{\"keccak256\":\"0xf92515413956f529d95977adc9b0567d583c6203fc31ab1c23824c35187e3ddc\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://c50fcc459e49a9858b6d8ad5f911295cb7c9ab57567845a250bf0153f84a95c7\",\"dweb:/ipfs/QmcEW85JRzvDkQggxiBBLVAasXWdkhEysqypj9EaB6H2g6\"]},\"lib/tractor/Tractor.sol\":{\"keccak256\":\"0x1052c901d309f9774f2146851da6b0e8ae5caac5671b45a169c717a6a0bf3296\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://e6ce9704b9710cc74ac18849f312465a1220b47219c85deadb18b410b81ad854\",\"dweb:/ipfs/QmRkLo543PG7uq9iMuvkRZP2YaHZU3mPySXh6wNG7jDQqT\"]},\"src/interfaces/IAccount.sol\":{\"keccak256\":\"0x46a8ce45ef74c4d55bb1763a7e2caf5d26d2c92530efeb08c06561d6093e71f4\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://9ab61fa7733e7848e4935f76ecbe480ebde2a33d8a05796879ed9c1d5782dcb8\",\"dweb:/ipfs/QmbRLafzabN53ZMrehYugA48juKNdHZGD42iMawQAPAeTm\"]},\"src/interfaces/IAssessor.sol\":{\"keccak256\":\"0xdf95173a2ab3117b0d1cd0c2cba1caaa003d151233cf59f251d93c37d6b6a803\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://d1fc274de410e9172ddcbe4e5c813639e87239aa441444aff53f3438cfd4ed99\",\"dweb:/ipfs/QmeDuLYjSFzJKyXRCGfHB9P6zFHGuso1ttdMLA8wPZapQP\"]},\"src/interfaces/IOracle.sol\":{\"keccak256\":\"0xf616bc4e30f20a391be3ab1229792c59b92fe537fc14fdd8244c8d60480b4a4d\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://887154e13016933d887f3f640a8772c7907849ada264b7095756be1ffcf412b8\",\"dweb:/ipfs/QmdWQFAmNGQKkQnhSw6qVyMayizFXbRxjfKkZHRXPjR3ZM\"]},\"src/interfaces/IPosition.sol\":{\"keccak256\":\"0xd01dbd0cdd06ac73b04dcf451ecb09fba44a8fa00cfb769d2b2ff6735d507117\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://83eb2fca43c59c7b300aa7175ca2bc6e78d3d27256e45679a51455c1b4a72e16\",\"dweb:/ipfs/QmSZc2gnSDG9nfJ8nLtwJGrjMX1kqEoSPT8YCLPyCHTz1v\"]},\"src/libraries/C.sol\":{\"keccak256\":\"0x20e1ca27397ff429097c7c88e84ec66ebbd3598c5e2fc411255c5ca9280368af\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://652438db0a61dbb73b36f74408f65544fa7e5c8e6a3346f003c9ad893e421f01\",\"dweb:/ipfs/QmV5wsspZokuZHcWqyeL4t6uSKNWNgEmyWmruJ6Gw419Wf\"]},\"src/libraries/LibBookkeeper.sol\":{\"keccak256\":\"0x1d991945b347c852252ac7278f28ab2ef55fe8c81e02474a75c4a5f38dc3d4e2\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://ac17a2a5021f8807740ad73a2f7aab72dadb01af6e372838d7f6e9d531f20796\",\"dweb:/ipfs/Qme6SALVDwu4WfUxPrEc1GvDUSk7Bvve8VgtYDzsoDYTsD\"]},\"src/libraries/LibUtil.sol\":{\"keccak256\":\"0xeffb44640d40d932294a546d9655b91b15b7781f9f8f0180858b0ee035f1a534\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://5dee02324c23f95f48dac3b3407444a9694cf58d1d07d38e392c159ef4e79e4a\",\"dweb:/ipfs/QmNNkk92JFpgpd6imRmdS7CDo7m4JxpxNMwZGZYPFu3CFF\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.8.19+commit.7dd6d404"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [
+            {
+              "internalType": "struct Asset",
+              "name": "asset",
+              "type": "tuple",
+              "components": [
+                {
+                  "internalType": "bytes3",
+                  "name": "standard",
+                  "type": "bytes3"
+                },
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "data",
+                  "type": "bytes"
+                }
+              ]
+            },
+            {
+              "internalType": "bytes",
+              "name": "parameters",
+              "type": "bytes"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "canHandleAsset",
+          "outputs": [
+            {
+              "internalType": "bool",
+              "name": "",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "struct Asset",
+              "name": "asset",
+              "type": "tuple",
+              "components": [
+                {
+                  "internalType": "bytes3",
+                  "name": "standard",
+                  "type": "bytes3"
+                },
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "data",
+                  "type": "bytes"
+                }
+              ]
+            },
+            {
+              "internalType": "bytes",
+              "name": "parameters",
+              "type": "bytes"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "getBalance",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "bytes",
+              "name": "parameters",
+              "type": "bytes"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "getOwner",
+          "outputs": [
+            {
+              "internalType": "address",
+              "name": "",
+              "type": "address"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "struct Asset",
+              "name": "asset",
+              "type": "tuple",
+              "components": [
+                {
+                  "internalType": "bytes3",
+                  "name": "standard",
+                  "type": "bytes3"
+                },
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "data",
+                  "type": "bytes"
+                }
+              ]
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "parameters",
+              "type": "bytes"
+            }
+          ],
+          "stateMutability": "payable",
+          "type": "function",
+          "name": "loadFromPosition"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "struct Asset",
+              "name": "asset",
+              "type": "tuple",
+              "components": [
+                {
+                  "internalType": "bytes3",
+                  "name": "standard",
+                  "type": "bytes3"
+                },
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "data",
+                  "type": "bytes"
+                }
+              ]
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "parameters",
+              "type": "bytes"
+            }
+          ],
+          "stateMutability": "payable",
+          "type": "function",
+          "name": "loadFromUser"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "struct Asset",
+              "name": "asset",
+              "type": "tuple",
+              "components": [
+                {
+                  "internalType": "bytes3",
+                  "name": "standard",
+                  "type": "bytes3"
+                },
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "data",
+                  "type": "bytes"
+                }
+              ]
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "parameters",
+              "type": "bytes"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "lockCollateral"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "position",
+              "type": "address"
+            },
+            {
+              "internalType": "struct Asset",
+              "name": "asset",
+              "type": "tuple",
+              "components": [
+                {
+                  "internalType": "bytes3",
+                  "name": "standard",
+                  "type": "bytes3"
+                },
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "data",
+                  "type": "bytes"
+                }
+              ]
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bool",
+              "name": "isLockedColl",
+              "type": "bool"
+            },
+            {
+              "internalType": "bytes",
+              "name": "parameters",
+              "type": "bytes"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "unloadToPosition"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "struct Asset",
+              "name": "asset",
+              "type": "tuple",
+              "components": [
+                {
+                  "internalType": "bytes3",
+                  "name": "standard",
+                  "type": "bytes3"
+                },
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "data",
+                  "type": "bytes"
+                }
+              ]
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "parameters",
+              "type": "bytes"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "unloadToUser"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "struct Asset",
+              "name": "asset",
+              "type": "tuple",
+              "components": [
+                {
+                  "internalType": "bytes3",
+                  "name": "standard",
+                  "type": "bytes3"
+                },
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "data",
+                  "type": "bytes"
+                }
+              ]
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "parameters",
+              "type": "bytes"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "unlockCollateral"
+        }
+      ],
+      "devdoc": {
+        "kind": "dev",
+        "methods": {
+          "loadFromPosition((bytes3,address,uint256,bytes),uint256,bytes)": {
+            "details": "Assets may not literally be coming from a position."
+          }
+        },
+        "version": 1
+      },
+      "userdoc": {
+        "kind": "user",
+        "methods": {
+          "loadFromPosition((bytes3,address,uint256,bytes),uint256,bytes)": {
+            "notice": "Transfer asset and increment account balance. Pulls asset from sender or uses msg.value."
+          },
+          "loadFromUser((bytes3,address,uint256,bytes),uint256,bytes)": {
+            "notice": "Transfer asset and increment account balance. Pulls asset from sender or uses msg.value."
+          },
+          "unloadToPosition(address,(bytes3,address,uint256,bytes),uint256,bool,bytes)": {
+            "notice": "Transfer loan or collateral asset from account to Position MPC. Pushes."
+          },
+          "unloadToUser((bytes3,address,uint256,bytes),uint256,bytes)": {
+            "notice": "Transfer asset out and decrement account balance. Pushes asset to sender."
+          }
+        },
+        "version": 1
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":@openzeppelin/=lib/openzeppelin-contracts/",
+        ":@uniswap/=lib/",
+        ":ds-test/=lib/forge-std/lib/ds-test/src/",
+        ":erc4626-tests/=lib/openzeppelin-contracts/lib/erc4626-tests/",
+        ":forge-std/=lib/forge-std/src/",
+        ":openzeppelin-contracts/=lib/openzeppelin-contracts/",
+        ":tractor/=lib/tractor/",
+        ":v2-periphery/=lib/v2-periphery/contracts/",
+        ":v3-core/=lib/v3-core/contracts/",
+        ":v3-periphery/=lib/v3-periphery/contracts/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "metadata": {
+        "bytecodeHash": "ipfs"
+      },
+      "compilationTarget": {
+        "src/interfaces/IAccount.sol": "IAccount"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "lib/openzeppelin-contracts/contracts/access/IAccessControl.sol": {
+        "keccak256": "0x59ce320a585d7e1f163cd70390a0ef2ff9cec832e2aa544293a00692465a7a57",
+        "urls": [
+          "bzz-raw://bb2c137c343ef0c4c7ce7b18c1d108afdc9d315a04e48307288d2d05adcbde3a",
+          "dweb:/ipfs/QmUxhrAQM3MM3FF5j7AtcXLXguWCJBHJ14BRdVtuoQc8Fh"
+        ],
+        "license": "MIT"
+      },
+      "lib/openzeppelin-contracts/contracts/interfaces/IERC1271.sol": {
+        "keccak256": "0x0705a4b1b86d7b0bd8432118f226ba139c44b9dcaba0a6eafba2dd7d0639c544",
+        "urls": [
+          "bzz-raw://c45b821ef9e882e57c256697a152e108f0f2ad6997609af8904cae99c9bd422e",
+          "dweb:/ipfs/QmRKCJW6jjzR5UYZcLpGnhEJ75UVbH6EHkEa49sWx2SKng"
+        ],
+        "license": "MIT"
+      },
+      "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol": {
+        "keccak256": "0x00c839ff53d07d19db2e7cfa1e5133f9ee90a8d64b0e2e57f50446a2d1a3a0e0",
+        "urls": [
+          "bzz-raw://3dac621d015a68a5251b1e5d41dda0faf252699bf6e8bcf46a958b29964d9dd1",
+          "dweb:/ipfs/QmP9axjgZv4cezAhALoTemM62sdLtMDJ9MGTxECnNwHgSJ"
+        ],
+        "license": "MIT"
+      },
+      "lib/openzeppelin-contracts/contracts/utils/Strings.sol": {
+        "keccak256": "0x2626d8ab3dfdad0fad630c212ad146d59473d0f48b771784c61a7c1dbbea1f3f",
+        "urls": [
+          "bzz-raw://d7c144532f1e7c76ac95fb6a8f617c1f740d7a73442a907eb60910e99dfa1fbf",
+          "dweb:/ipfs/QmZsGyooD6emxB8JCuugRjnRYS2MPZEL586uuV7dgC8Jng"
+        ],
+        "license": "MIT"
+      },
+      "lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol": {
+        "keccak256": "0x54ee424bfc83ce63b2a918b9a1efb5090a0fb68dbd1de3b10bc667776885dd4f",
+        "urls": [
+          "bzz-raw://9c8245bd91b51a6e411db1a68397e6d89ea76d28fd3fff2b5986ebd860c43aca",
+          "dweb:/ipfs/QmUBfM8dUuxABn9ctfZWqierQbbux6NuhvSmQuSdrSEdch"
+        ],
+        "license": "MIT"
+      },
+      "lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol": {
+        "keccak256": "0x948d8b2d18f38141ec78c5229d770d950ebc781ed3f44cc9e3ccbb9fded5846a",
+        "urls": [
+          "bzz-raw://7311ac950ed2d81f3ccf1784a926efbfc82a86dcb5c98d41eb3792c0cac63a2f",
+          "dweb:/ipfs/QmRRwCUHewkPmehx8QRYENFoWyLNx8UEZGULxWYUeSZdTS"
+        ],
+        "license": "MIT"
+      },
+      "lib/openzeppelin-contracts/contracts/utils/cryptography/SignatureChecker.sol": {
+        "keccak256": "0x9c33a3c8766f83b5cb436757cc66cb55c15f9732485a79b290b7f3ad473cc879",
+        "urls": [
+          "bzz-raw://13d2d01cba0309288dde95066a5293e7688dd628d3d91ab60f83e3e536c7145a",
+          "dweb:/ipfs/QmYQajquUVjsM9m4hXWicomSWBmbNUvGDMsQLSC6SGgFBM"
+        ],
+        "license": "MIT"
+      },
+      "lib/openzeppelin-contracts/contracts/utils/math/Math.sol": {
+        "keccak256": "0x5d9242699672087b2f423dfab23a3b8326448f58da4e38cd9e4ba6a3e7e153a2",
+        "urls": [
+          "bzz-raw://aa2d66521307fbe5942f90c0fed06bf9269e2a083b5d0d57861da938e83fa8b4",
+          "dweb:/ipfs/QmPAJDLtTqWX6XTekr5WZEPgNPYReADj1Z4wbt3YPWmB1b"
+        ],
+        "license": "MIT"
+      },
+      "lib/openzeppelin-contracts/contracts/utils/math/SignedMath.sol": {
+        "keccak256": "0xf92515413956f529d95977adc9b0567d583c6203fc31ab1c23824c35187e3ddc",
+        "urls": [
+          "bzz-raw://c50fcc459e49a9858b6d8ad5f911295cb7c9ab57567845a250bf0153f84a95c7",
+          "dweb:/ipfs/QmcEW85JRzvDkQggxiBBLVAasXWdkhEysqypj9EaB6H2g6"
+        ],
+        "license": "MIT"
+      },
+      "lib/tractor/Tractor.sol": {
+        "keccak256": "0x1052c901d309f9774f2146851da6b0e8ae5caac5671b45a169c717a6a0bf3296",
+        "urls": [
+          "bzz-raw://e6ce9704b9710cc74ac18849f312465a1220b47219c85deadb18b410b81ad854",
+          "dweb:/ipfs/QmRkLo543PG7uq9iMuvkRZP2YaHZU3mPySXh6wNG7jDQqT"
+        ],
+        "license": "MIT"
+      },
+      "src/interfaces/IAccount.sol": {
+        "keccak256": "0x46a8ce45ef74c4d55bb1763a7e2caf5d26d2c92530efeb08c06561d6093e71f4",
+        "urls": [
+          "bzz-raw://9ab61fa7733e7848e4935f76ecbe480ebde2a33d8a05796879ed9c1d5782dcb8",
+          "dweb:/ipfs/QmbRLafzabN53ZMrehYugA48juKNdHZGD42iMawQAPAeTm"
+        ],
+        "license": "UNLICENSED"
+      },
+      "src/interfaces/IAssessor.sol": {
+        "keccak256": "0xdf95173a2ab3117b0d1cd0c2cba1caaa003d151233cf59f251d93c37d6b6a803",
+        "urls": [
+          "bzz-raw://d1fc274de410e9172ddcbe4e5c813639e87239aa441444aff53f3438cfd4ed99",
+          "dweb:/ipfs/QmeDuLYjSFzJKyXRCGfHB9P6zFHGuso1ttdMLA8wPZapQP"
+        ],
+        "license": "UNLICENSED"
+      },
+      "src/interfaces/IOracle.sol": {
+        "keccak256": "0xf616bc4e30f20a391be3ab1229792c59b92fe537fc14fdd8244c8d60480b4a4d",
+        "urls": [
+          "bzz-raw://887154e13016933d887f3f640a8772c7907849ada264b7095756be1ffcf412b8",
+          "dweb:/ipfs/QmdWQFAmNGQKkQnhSw6qVyMayizFXbRxjfKkZHRXPjR3ZM"
+        ],
+        "license": "UNLICENSED"
+      },
+      "src/interfaces/IPosition.sol": {
+        "keccak256": "0xd01dbd0cdd06ac73b04dcf451ecb09fba44a8fa00cfb769d2b2ff6735d507117",
+        "urls": [
+          "bzz-raw://83eb2fca43c59c7b300aa7175ca2bc6e78d3d27256e45679a51455c1b4a72e16",
+          "dweb:/ipfs/QmSZc2gnSDG9nfJ8nLtwJGrjMX1kqEoSPT8YCLPyCHTz1v"
+        ],
+        "license": "UNLICENSED"
+      },
+      "src/libraries/C.sol": {
+        "keccak256": "0x20e1ca27397ff429097c7c88e84ec66ebbd3598c5e2fc411255c5ca9280368af",
+        "urls": [
+          "bzz-raw://652438db0a61dbb73b36f74408f65544fa7e5c8e6a3346f003c9ad893e421f01",
+          "dweb:/ipfs/QmV5wsspZokuZHcWqyeL4t6uSKNWNgEmyWmruJ6Gw419Wf"
+        ],
+        "license": "UNLICENSED"
+      },
+      "src/libraries/LibBookkeeper.sol": {
+        "keccak256": "0x1d991945b347c852252ac7278f28ab2ef55fe8c81e02474a75c4a5f38dc3d4e2",
+        "urls": [
+          "bzz-raw://ac17a2a5021f8807740ad73a2f7aab72dadb01af6e372838d7f6e9d531f20796",
+          "dweb:/ipfs/Qme6SALVDwu4WfUxPrEc1GvDUSk7Bvve8VgtYDzsoDYTsD"
+        ],
+        "license": "UNLICENSED"
+      },
+      "src/libraries/LibUtil.sol": {
+        "keccak256": "0xeffb44640d40d932294a546d9655b91b15b7781f9f8f0180858b0ee035f1a534",
+        "urls": [
+          "bzz-raw://5dee02324c23f95f48dac3b3407444a9694cf58d1d07d38e392c159ef4e79e4a",
+          "dweb:/ipfs/QmNNkk92JFpgpd6imRmdS7CDo7m4JxpxNMwZGZYPFu3CFF"
+        ],
+        "license": "UNLICENSED"
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "src/interfaces/IAccount.sol",
+    "id": 32387,
+    "exportedSymbols": {
+      "Asset": [
+        33171
+      ],
+      "IAccount": [
+        32386
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "40:4262:64",
+    "nodes": [
+      {
+        "id": 32287,
+        "nodeType": "PragmaDirective",
+        "src": "40:23:64",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          "0.8",
+          ".19"
+        ]
+      },
+      {
+        "id": 32289,
+        "nodeType": "ImportDirective",
+        "src": "127:48:64",
+        "nodes": [],
+        "absolutePath": "src/libraries/LibUtil.sol",
+        "file": "src/libraries/LibUtil.sol",
+        "nameLocation": "-1:-1:-1",
+        "scope": 32387,
+        "sourceUnit": 33300,
+        "symbolAliases": [
+          {
+            "foreign": {
+              "id": 32288,
+              "name": "Asset",
+              "nodeType": "Identifier",
+              "overloadedDeclarations": [],
+              "referencedDeclaration": 33171,
+              "src": "135:5:64",
+              "typeDescriptions": {}
+            },
+            "nameLocation": "-1:-1:-1"
+          }
+        ],
+        "unitAlias": ""
+      },
+      {
+        "id": 32386,
+        "nodeType": "ContractDefinition",
+        "src": "2642:1659:64",
+        "nodes": [
+          {
+            "id": 32301,
+            "nodeType": "FunctionDefinition",
+            "src": "2772:104:64",
+            "nodes": [],
+            "documentation": {
+              "id": 32291,
+              "nodeType": "StructuredDocumentation",
+              "src": "2667:100:64",
+              "text": "@notice Transfer asset and increment account balance. Pulls asset from sender or uses msg.value."
+            },
+            "functionSelector": "a3483286",
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "loadFromUser",
+            "nameLocation": "2781:12:64",
+            "parameters": {
+              "id": 32299,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32294,
+                  "mutability": "mutable",
+                  "name": "asset",
+                  "nameLocation": "2809:5:64",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32301,
+                  "src": "2794:20:64",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Asset_$33171_calldata_ptr",
+                    "typeString": "struct Asset"
+                  },
+                  "typeName": {
+                    "id": 32293,
+                    "nodeType": "UserDefinedTypeName",
+                    "pathNode": {
+                      "id": 32292,
+                      "name": "Asset",
+                      "nameLocations": [
+                        "2794:5:64"
+                      ],
+                      "nodeType": "IdentifierPath",
+                      "referencedDeclaration": 33171,
+                      "src": "2794:5:64"
+                    },
+                    "referencedDeclaration": 33171,
+                    "src": "2794:5:64",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_Asset_$33171_storage_ptr",
+                      "typeString": "struct Asset"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32296,
+                  "mutability": "mutable",
+                  "name": "amount",
+                  "nameLocation": "2824:6:64",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32301,
+                  "src": "2816:14:64",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 32295,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "2816:7:64",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32298,
+                  "mutability": "mutable",
+                  "name": "parameters",
+                  "nameLocation": "2847:10:64",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32301,
+                  "src": "2832:25:64",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_calldata_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 32297,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "2832:5:64",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "2793:65:64"
+            },
+            "returnParameters": {
+              "id": 32300,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "2875:0:64"
+            },
+            "scope": 32386,
+            "stateMutability": "payable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "id": 32312,
+            "nodeType": "FunctionDefinition",
+            "src": "3051:108:64",
+            "nodes": [],
+            "documentation": {
+              "id": 32302,
+              "nodeType": "StructuredDocumentation",
+              "src": "2881:165:64",
+              "text": "@notice Transfer asset and increment account balance. Pulls asset from sender or uses msg.value.\n @dev Assets may not literally be coming from a position."
+            },
+            "functionSelector": "cf75b15f",
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "loadFromPosition",
+            "nameLocation": "3060:16:64",
+            "parameters": {
+              "id": 32310,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32305,
+                  "mutability": "mutable",
+                  "name": "asset",
+                  "nameLocation": "3092:5:64",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32312,
+                  "src": "3077:20:64",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Asset_$33171_calldata_ptr",
+                    "typeString": "struct Asset"
+                  },
+                  "typeName": {
+                    "id": 32304,
+                    "nodeType": "UserDefinedTypeName",
+                    "pathNode": {
+                      "id": 32303,
+                      "name": "Asset",
+                      "nameLocations": [
+                        "3077:5:64"
+                      ],
+                      "nodeType": "IdentifierPath",
+                      "referencedDeclaration": 33171,
+                      "src": "3077:5:64"
+                    },
+                    "referencedDeclaration": 33171,
+                    "src": "3077:5:64",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_Asset_$33171_storage_ptr",
+                      "typeString": "struct Asset"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32307,
+                  "mutability": "mutable",
+                  "name": "amount",
+                  "nameLocation": "3107:6:64",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32312,
+                  "src": "3099:14:64",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 32306,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "3099:7:64",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32309,
+                  "mutability": "mutable",
+                  "name": "parameters",
+                  "nameLocation": "3130:10:64",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32312,
+                  "src": "3115:25:64",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_calldata_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 32308,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "3115:5:64",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "3076:65:64"
+            },
+            "returnParameters": {
+              "id": 32311,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "3158:0:64"
+            },
+            "scope": 32386,
+            "stateMutability": "payable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "id": 32323,
+            "nodeType": "FunctionDefinition",
+            "src": "3254:96:64",
+            "nodes": [],
+            "documentation": {
+              "id": 32313,
+              "nodeType": "StructuredDocumentation",
+              "src": "3164:85:64",
+              "text": "@notice Transfer asset out and decrement account balance. Pushes asset to sender."
+            },
+            "functionSelector": "7e7537ba",
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "unloadToUser",
+            "nameLocation": "3263:12:64",
+            "parameters": {
+              "id": 32321,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32316,
+                  "mutability": "mutable",
+                  "name": "asset",
+                  "nameLocation": "3291:5:64",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32323,
+                  "src": "3276:20:64",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Asset_$33171_calldata_ptr",
+                    "typeString": "struct Asset"
+                  },
+                  "typeName": {
+                    "id": 32315,
+                    "nodeType": "UserDefinedTypeName",
+                    "pathNode": {
+                      "id": 32314,
+                      "name": "Asset",
+                      "nameLocations": [
+                        "3276:5:64"
+                      ],
+                      "nodeType": "IdentifierPath",
+                      "referencedDeclaration": 33171,
+                      "src": "3276:5:64"
+                    },
+                    "referencedDeclaration": 33171,
+                    "src": "3276:5:64",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_Asset_$33171_storage_ptr",
+                      "typeString": "struct Asset"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32318,
+                  "mutability": "mutable",
+                  "name": "amount",
+                  "nameLocation": "3306:6:64",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32323,
+                  "src": "3298:14:64",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 32317,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "3298:7:64",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32320,
+                  "mutability": "mutable",
+                  "name": "parameters",
+                  "nameLocation": "3329:10:64",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32323,
+                  "src": "3314:25:64",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_calldata_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 32319,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "3314:5:64",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "3275:65:64"
+            },
+            "returnParameters": {
+              "id": 32322,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "3349:0:64"
+            },
+            "scope": 32386,
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "id": 32338,
+            "nodeType": "FunctionDefinition",
+            "src": "3443:183:64",
+            "nodes": [],
+            "documentation": {
+              "id": 32324,
+              "nodeType": "StructuredDocumentation",
+              "src": "3355:83:64",
+              "text": "@notice Transfer loan or collateral asset from account to Position MPC. Pushes."
+            },
+            "functionSelector": "ba337dae",
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "unloadToPosition",
+            "nameLocation": "3452:16:64",
+            "parameters": {
+              "id": 32336,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32326,
+                  "mutability": "mutable",
+                  "name": "position",
+                  "nameLocation": "3486:8:64",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32338,
+                  "src": "3478:16:64",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 32325,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "3478:7:64",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32329,
+                  "mutability": "mutable",
+                  "name": "asset",
+                  "nameLocation": "3519:5:64",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32338,
+                  "src": "3504:20:64",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Asset_$33171_calldata_ptr",
+                    "typeString": "struct Asset"
+                  },
+                  "typeName": {
+                    "id": 32328,
+                    "nodeType": "UserDefinedTypeName",
+                    "pathNode": {
+                      "id": 32327,
+                      "name": "Asset",
+                      "nameLocations": [
+                        "3504:5:64"
+                      ],
+                      "nodeType": "IdentifierPath",
+                      "referencedDeclaration": 33171,
+                      "src": "3504:5:64"
+                    },
+                    "referencedDeclaration": 33171,
+                    "src": "3504:5:64",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_Asset_$33171_storage_ptr",
+                      "typeString": "struct Asset"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32331,
+                  "mutability": "mutable",
+                  "name": "amount",
+                  "nameLocation": "3542:6:64",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32338,
+                  "src": "3534:14:64",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 32330,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "3534:7:64",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32333,
+                  "mutability": "mutable",
+                  "name": "isLockedColl",
+                  "nameLocation": "3563:12:64",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32338,
+                  "src": "3558:17:64",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 32332,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "3558:4:64",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32335,
+                  "mutability": "mutable",
+                  "name": "parameters",
+                  "nameLocation": "3600:10:64",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32338,
+                  "src": "3585:25:64",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_calldata_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 32334,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "3585:5:64",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "3468:148:64"
+            },
+            "returnParameters": {
+              "id": 32337,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "3625:0:64"
+            },
+            "scope": 32386,
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "id": 32348,
+            "nodeType": "FunctionDefinition",
+            "src": "3632:98:64",
+            "nodes": [],
+            "functionSelector": "e1141cc2",
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "lockCollateral",
+            "nameLocation": "3641:14:64",
+            "parameters": {
+              "id": 32346,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32341,
+                  "mutability": "mutable",
+                  "name": "asset",
+                  "nameLocation": "3671:5:64",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32348,
+                  "src": "3656:20:64",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Asset_$33171_calldata_ptr",
+                    "typeString": "struct Asset"
+                  },
+                  "typeName": {
+                    "id": 32340,
+                    "nodeType": "UserDefinedTypeName",
+                    "pathNode": {
+                      "id": 32339,
+                      "name": "Asset",
+                      "nameLocations": [
+                        "3656:5:64"
+                      ],
+                      "nodeType": "IdentifierPath",
+                      "referencedDeclaration": 33171,
+                      "src": "3656:5:64"
+                    },
+                    "referencedDeclaration": 33171,
+                    "src": "3656:5:64",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_Asset_$33171_storage_ptr",
+                      "typeString": "struct Asset"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32343,
+                  "mutability": "mutable",
+                  "name": "amount",
+                  "nameLocation": "3686:6:64",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32348,
+                  "src": "3678:14:64",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 32342,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "3678:7:64",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32345,
+                  "mutability": "mutable",
+                  "name": "parameters",
+                  "nameLocation": "3709:10:64",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32348,
+                  "src": "3694:25:64",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_calldata_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 32344,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "3694:5:64",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "3655:65:64"
+            },
+            "returnParameters": {
+              "id": 32347,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "3729:0:64"
+            },
+            "scope": 32386,
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "id": 32358,
+            "nodeType": "FunctionDefinition",
+            "src": "3735:100:64",
+            "nodes": [],
+            "functionSelector": "dfecf966",
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "unlockCollateral",
+            "nameLocation": "3744:16:64",
+            "parameters": {
+              "id": 32356,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32351,
+                  "mutability": "mutable",
+                  "name": "asset",
+                  "nameLocation": "3776:5:64",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32358,
+                  "src": "3761:20:64",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Asset_$33171_calldata_ptr",
+                    "typeString": "struct Asset"
+                  },
+                  "typeName": {
+                    "id": 32350,
+                    "nodeType": "UserDefinedTypeName",
+                    "pathNode": {
+                      "id": 32349,
+                      "name": "Asset",
+                      "nameLocations": [
+                        "3761:5:64"
+                      ],
+                      "nodeType": "IdentifierPath",
+                      "referencedDeclaration": 33171,
+                      "src": "3761:5:64"
+                    },
+                    "referencedDeclaration": 33171,
+                    "src": "3761:5:64",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_Asset_$33171_storage_ptr",
+                      "typeString": "struct Asset"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32353,
+                  "mutability": "mutable",
+                  "name": "amount",
+                  "nameLocation": "3791:6:64",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32358,
+                  "src": "3783:14:64",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 32352,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "3783:7:64",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32355,
+                  "mutability": "mutable",
+                  "name": "parameters",
+                  "nameLocation": "3814:10:64",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32358,
+                  "src": "3799:25:64",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_calldata_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 32354,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "3799:5:64",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "3760:65:64"
+            },
+            "returnParameters": {
+              "id": 32357,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "3834:0:64"
+            },
+            "scope": 32386,
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "id": 32365,
+            "nodeType": "FunctionDefinition",
+            "src": "4007:77:64",
+            "nodes": [],
+            "functionSelector": "b102bfbe",
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "getOwner",
+            "nameLocation": "4016:8:64",
+            "parameters": {
+              "id": 32361,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32360,
+                  "mutability": "mutable",
+                  "name": "parameters",
+                  "nameLocation": "4040:10:64",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32365,
+                  "src": "4025:25:64",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_calldata_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 32359,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "4025:5:64",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "4024:27:64"
+            },
+            "returnParameters": {
+              "id": 32364,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32363,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nameLocation": "-1:-1:-1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32365,
+                  "src": "4075:7:64",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 32362,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "4075:7:64",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "4074:9:64"
+            },
+            "scope": 32386,
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "id": 32375,
+            "nodeType": "FunctionDefinition",
+            "src": "4090:101:64",
+            "nodes": [],
+            "functionSelector": "e78ae3fd",
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "getBalance",
+            "nameLocation": "4099:10:64",
+            "parameters": {
+              "id": 32371,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32368,
+                  "mutability": "mutable",
+                  "name": "asset",
+                  "nameLocation": "4125:5:64",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32375,
+                  "src": "4110:20:64",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Asset_$33171_calldata_ptr",
+                    "typeString": "struct Asset"
+                  },
+                  "typeName": {
+                    "id": 32367,
+                    "nodeType": "UserDefinedTypeName",
+                    "pathNode": {
+                      "id": 32366,
+                      "name": "Asset",
+                      "nameLocations": [
+                        "4110:5:64"
+                      ],
+                      "nodeType": "IdentifierPath",
+                      "referencedDeclaration": 33171,
+                      "src": "4110:5:64"
+                    },
+                    "referencedDeclaration": 33171,
+                    "src": "4110:5:64",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_Asset_$33171_storage_ptr",
+                      "typeString": "struct Asset"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32370,
+                  "mutability": "mutable",
+                  "name": "parameters",
+                  "nameLocation": "4147:10:64",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32375,
+                  "src": "4132:25:64",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_calldata_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 32369,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "4132:5:64",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "4109:49:64"
+            },
+            "returnParameters": {
+              "id": 32374,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32373,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nameLocation": "-1:-1:-1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32375,
+                  "src": "4182:7:64",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 32372,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "4182:7:64",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "4181:9:64"
+            },
+            "scope": 32386,
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "id": 32385,
+            "nodeType": "FunctionDefinition",
+            "src": "4197:102:64",
+            "nodes": [],
+            "functionSelector": "f55e8480",
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "canHandleAsset",
+            "nameLocation": "4206:14:64",
+            "parameters": {
+              "id": 32381,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32378,
+                  "mutability": "mutable",
+                  "name": "asset",
+                  "nameLocation": "4236:5:64",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32385,
+                  "src": "4221:20:64",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_struct$_Asset_$33171_calldata_ptr",
+                    "typeString": "struct Asset"
+                  },
+                  "typeName": {
+                    "id": 32377,
+                    "nodeType": "UserDefinedTypeName",
+                    "pathNode": {
+                      "id": 32376,
+                      "name": "Asset",
+                      "nameLocations": [
+                        "4221:5:64"
+                      ],
+                      "nodeType": "IdentifierPath",
+                      "referencedDeclaration": 33171,
+                      "src": "4221:5:64"
+                    },
+                    "referencedDeclaration": 33171,
+                    "src": "4221:5:64",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_struct$_Asset_$33171_storage_ptr",
+                      "typeString": "struct Asset"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 32380,
+                  "mutability": "mutable",
+                  "name": "parameters",
+                  "nameLocation": "4258:10:64",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32385,
+                  "src": "4243:25:64",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_calldata_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 32379,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "4243:5:64",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "4220:49:64"
+            },
+            "returnParameters": {
+              "id": 32384,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 32383,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nameLocation": "-1:-1:-1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 32385,
+                  "src": "4293:4:64",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 32382,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "4293:4:64",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "4292:6:64"
+            },
+            "scope": 32386,
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "abstract": false,
+        "baseContracts": [],
+        "canonicalName": "IAccount",
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "documentation": {
+          "id": 32290,
+          "nodeType": "StructuredDocumentation",
+          "src": "177:86:64",
+          "text": " Accounts are used to hold user capital to back outstanding unfilled orders."
+        },
+        "fullyImplemented": false,
+        "linearizedBaseContracts": [
+          32386
+        ],
+        "name": "IAccount",
+        "nameLocation": "2652:8:64",
+        "scope": 32387,
+        "usedErrors": []
+      }
+    ],
+    "license": "UNLICENSED"
+  },
+  "id": 64
+}
