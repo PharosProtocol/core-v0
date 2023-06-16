@@ -58,7 +58,7 @@ contract UniswapV3OracleTest is Test, Module {
         });
         bytes memory parameters = abi.encode(params);
 
-        // Will fail if POOL_INIT_CODE_HASH does not match chain deployed pool creation code hash.
+        // Will fail if POOL_INIT_CODE_HASH does not match chain deployed pool creation bytecode hash.
         // correct hash here: https://github.com/Uniswap/v3-sdk/issues/113
         // oracleModule.verifyParameters(WETH_ASSET, parameters);
 

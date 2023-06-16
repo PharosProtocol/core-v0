@@ -12,7 +12,6 @@ import {Module} from "src/modules/Module.sol";
 
 import "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
-// import {SwapCallbackData} from "lib/v3-periphery/contracts/SwapRouter.sol";
 struct SwapCallbackData {
     bytes path;
     address payer;

@@ -66,8 +66,6 @@ contract UniV3HoldFactory is Position {
         bytes exitPath;
     }
 
-    address public constant UNI_V3_FACTORY = address(0x1F98431c8aD98523631AE4a59f267346ea31F984);
-    address public constant UNI_V3_ROUTER = address(0xE592427A0AEce92De3Edee1F18E0157C05861564);
 
     // Factory parameters shared for all positions.
     // NOTE sharing params here increases simplicity but costs position customizability. how much of a burden is it to
@@ -111,7 +109,7 @@ contract UniV3HoldFactory is Position {
         SwapCallbackData memory swapCallbackData = abi.decode(_data, (SwapCallbackData));
         require(swapCallbackData.payer == address(this), "USTCBIP");
         (address tokenIn, address tokenOut, uint24 fee) = swapCallbackData.path.decodeFirstPool(); // Token order is directionality?
-        CallbackValidation.verifyCallback(UNI_V3_FACTORY, tokenIn, tokenOut, fee); // requires sender == pool
+        CallbackValidation.verifyCallback(C.UNI_V3_FACTORY, tokenIn, tokenOut, fee); // requires sender == pool
 
         // Uniswap V3 gas optimization is just pushing gas, along with complexity, onto protocol users. <3
         uint256 amountToPay;
@@ -132,10 +130,10 @@ contract UniV3HoldFactory is Position {
     function _deploy(Asset calldata asset, uint256 amount, bytes calldata parameters) internal override {
         Parameters memory params = abi.decode(parameters, (Parameters));
         // verifyAssetAllowed(asset); // NOTE should check that asset is match to path.
-        ISwapRouter router = ISwapRouter(UNI_V3_ROUTER);
+        ISwapRouter router = ISwapRouter(C.UNI_V3_ROUTER);
 
         require(asset.standard == ERC20_STANDARD, "UniV3Hold: asset must be ERC20");
-        IERC20(asset.addr).approve(UNI_V3_ROUTER, amount); // NOTE front running?
+        IERC20(asset.addr).approve(C.UNI_V3_ROUTER, amount); // NOTE front running?
 
         // NOTE can use ExactInput instead to support single hop trades w/o worry for path.
         // ISwapRouter.ExactInputSingleParams memory swapParams = ISwapRouter.ExactInputSingleParams({
@@ -179,11 +177,11 @@ contract UniV3HoldFactory is Position {
         amountHeld = 0;
 
         // Approve ERC20s.
-        IERC20(heldAsset).approve(UNI_V3_ROUTER, transferAmount); // NOTE front running?
+        IERC20(heldAsset).approve(C.UNI_V3_ROUTER, transferAmount); // NOTE front running?
 
         // TODO: can add recipient in certain scenarios to save an ERC20 transfer.
         {
-            ISwapRouter router = ISwapRouter(UNI_V3_ROUTER);
+            ISwapRouter router = ISwapRouter(C.UNI_V3_ROUTER);
             ISwapRouter.ExactInputParams memory swapParams = ISwapRouter.ExactInputParams({
                 path: params.exitPath,
                 recipient: address(this), // position address

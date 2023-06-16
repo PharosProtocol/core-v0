@@ -10,8 +10,8 @@ There are 4 layers to consider when understanding a Module. From highest level t
 1. Module Category - Defined by which standardized *interface* a module implements  
 2. Module Type - Defined by the *solidity implementation* of a module
 3. Module Instance - Defined by the *parameter bytes*, which are immutable across the lifetime of the instance
-4. Module State - Set and altered by Type *functions*
-    
+4. Module State - Set and altered by *functions*
+
 Each Module Category may have many Types implemented and each Type may have many Instances which will in turn manage their
 own state.
 Each Type must adhere to the protocol-defined interface. Implementation specific data can be passed through an arbitrary 
@@ -21,6 +21,13 @@ Two Instances of the same type are distinguished only by their `parameters` byte
 
 Standard interfaces may also require non-state changing arguments to ensure delivery of the minimum set of valid data to operate
 a Module of that Category. ? you can guarantee parity between different components of an agreement - i.e. loanAsset and loanOracle ?
+
+### Module Categories
+- Account
+- Assessor
+- Oracle
+- Liquidator
+- Position
 
 ## Design Invariants
 - No module has any special access to Bookkeeper beyond what an EOA has. No module can compel Bookkeeper to move assets.
