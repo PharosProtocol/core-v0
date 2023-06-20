@@ -238,9 +238,4 @@ contract Bookkeeper is Tractor {
         signBlueprint(signedBlueprint.blueprintHash);
         // publishBlueprint(signedBlueprint); // These verifiable blueprints will be used to interact with positions.
     }
-
-    // NOTE why is this not public by EIP712 OZ impl default? What are the implications of exposing it here?
-    function getTypedDataHash(bytes32 structHash) external view returns (bytes32) {
-        return _hashTypedDataV4(structHash);
-    }
 }
