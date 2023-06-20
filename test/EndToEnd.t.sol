@@ -306,8 +306,16 @@ contract EndToEndTest is TestUtils {
         view
         returns (SignedBlueprint memory)
     {
-        bytes32 blueprintHash = bookkeeper.getTypedDataHash(keccak256(abi.encode(blueprint)));
+        bytes32 blueprintHash = bookkeeper.getBlueprintHash(blueprint);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, blueprintHash);
+
+        // console.log("blueprint raw hash: ");
+        // console.logBytes32(keccak256(abi.encode(blueprint)));
+        // console.log("blueprint full hash: ");
+        // console.logBytes32(blueprintHash);
+        // console.log("signature: ");
+        // console.logBytes(abi.encodePacked(r, s, v));
+
         return
             SignedBlueprint({blueprint: blueprint, blueprintHash: blueprintHash, signature: abi.encodePacked(r, s, v)});
     }
