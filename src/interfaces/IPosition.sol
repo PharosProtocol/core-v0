@@ -20,11 +20,11 @@ interface IPosition is IAccessControl {
     function close(address sender, Agreement memory agreement, bool distribute, bytes calldata parameters)
         external
         returns (uint256);
+    /// @notice Get current exitable value of the position, denoted in loan asset.
+    function getCloseAmount(bytes calldata parameters) external view returns (uint256);
     /// @notice Transfer the position to a new controller. Used for liquidations.
     /// @dev Do not set admin role to prevent liquidator from pushing the position back into the protocol.
     function transferContract(address controller) external;
-    /// @notice Get current exitable value of the position, denoted in loan asset.
-    function getCloseAmount(bytes calldata parameters) external view returns (uint256);
 
     function canHandleAsset(Asset calldata asset, bytes calldata parameters) external pure returns (bool);
     /// @notice Pass through function to allow the position to interact with other contracts after liquidation.

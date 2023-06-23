@@ -56,7 +56,7 @@ contract HoldFactory is Position {
 
     // Public Helpers.
 
-    function getCloseAmount(bytes calldata) external view override returns (uint256) {
+    function _getCloseAmount(bytes calldata) internal view override returns (uint256) {
         return amountHeld;
     }
 

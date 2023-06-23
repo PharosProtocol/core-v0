@@ -233,7 +233,7 @@ contract UniV3HoldFactory is Position {
     // Public Helpers.
 
     // TODO fix this to be useable on chain efficiently
-    function getCloseAmount(bytes calldata parameters) external view override returns (uint256) {
+    function _getCloseAmount(bytes calldata parameters) internal view override returns (uint256) {
         Parameters memory params = abi.decode(parameters, (Parameters));
         // (,address finalAssetAddr,) = params.exitPath.decodeFirstPool();
         // require(asset.addr == finalAssetAddr); // by this point it is too late to be checking honestly.

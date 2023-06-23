@@ -2,6 +2,8 @@
 
 pragma solidity 0.8.19;
 
+import "forge-std/console.sol";
+
 import {C} from "src/libraries/C.sol";
 import {Liquidator} from "../Liquidator.sol";
 import "src/libraries/LibUtil.sol";
@@ -29,7 +31,7 @@ abstract contract InstantErc20 is Liquidator {
         if (closePosition) {
             positionAmount = position.close(sender, agreement, false, agreement.position.parameters);
         } else {
-            // NOTE security - what happens to erc20 transfer if amount is 0?
+            // SECURITY - what happens to erc20 transfer if amount is 0?
             positionAmount = position.getCloseAmount(agreement.position.parameters);
             (bool success,) = IPosition(agreement.position.addr).passThrough(
                 payable(address(Utils)),
@@ -45,17 +47,22 @@ abstract contract InstantErc20 is Liquidator {
             require(success, "Failed to send loan asset to position");
         }
 
+        console.log("here3");
+
         // Split loan asset in position between lender and borrower. Lender gets priority.
+        // We can assume position holds at minimum the lender amount, due to close() logic.
         uint256 lenderAmount =
             agreement.loanAmount + IAssessor(agreement.assessor.addr).getCost(agreement, positionAmount);
         if (lenderAmount > 0) {
-            loadFromPosition(position, agreement.lenderAccount, agreement.loanAsset, lenderAmount);
+            _loadFromPosition(position, agreement.lenderAccount, agreement.loanAsset, lenderAmount);
         }
 
         // Might be profitable for borrower or not.
         if (positionAmount > lenderAmount) {
-            loadFromPosition(position, agreement.borrowerAccount, agreement.loanAsset, positionAmount - lenderAmount);
+            _loadFromPosition(position, agreement.borrowerAccount, agreement.loanAsset, positionAmount - lenderAmount);
         }
+
+        console.log("here2");
 
         // Collateral asset is split between liquidator and borrower. Priority to liquidator.
         uint256 rewardCollAmount = getRewardCollAmount(agreement);
@@ -63,10 +70,12 @@ abstract contract InstantErc20 is Liquidator {
 
         // Spare collateral goes back to borrower.
         if (agreement.collAmount > rewardCollAmount) {
-            loadFromPosition(
+            _loadFromPosition(
                 position, agreement.borrowerAccount, agreement.collAsset, agreement.collAmount - rewardCollAmount
             );
         }
+
+        console.log("here1");
 
         // Reward goes direct to liquidator.
         if (rewardCollAmount > 0) {
@@ -81,6 +90,8 @@ abstract contract InstantErc20 is Liquidator {
             require(success, "Failed to send collateral asset to liquidator");
         }
 
+        console.log("here");
+
         position.transferContract(sender);
 
         emit Liquidated(agreement.position.addr, sender);
@@ -90,20 +101,20 @@ abstract contract InstantErc20 is Liquidator {
     //      bookkeeper report Asset(s) and Loaded amount(s) at kick time?  Trusted bookkeeper sideload reduces # of
     //      asset transfers by 1 per asset.
     /// @notice Load assets from position to an account.
-    function loadFromPosition(IPosition position, ModuleReference memory account, Asset memory asset, uint256 amount)
+    function _loadFromPosition(IPosition position, ModuleReference memory account, Asset memory asset, uint256 amount)
         private
     {
         (bool success,) = position.passThrough(
             payable(asset.addr), abi.encodeWithSelector(IERC20.approve.selector, account.addr, amount), false
         );
         require(success, "Failed to approve position ERC20 spend");
-        // SECURITY why does anyone involved in the agreement care if liquidator uses loadFromPosition vs
+        // SECURITY why does anyone involved in the agreement care if liquidator uses _loadFromPosition vs
         //          loadFromUser? It is basically passing up on ownership of account assets. A hostile liquidator
         //          implementation could then essentially siphon off assets in an account without loss by lender
         //          or borrower.
         (success,) = position.passThrough(
             payable(account.addr),
-            abi.encodeWithSelector(IAccount.loadFromUser.selector, asset, amount, account.parameters),
+            abi.encodeWithSelector(IAccount.loadFromPosition.selector, asset, amount, account.parameters),
             false
         );
         require(success, "Failed to load asset from position to account");

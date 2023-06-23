@@ -15,6 +15,7 @@ import {MockPosition} from "test/mocks/MockPosition.sol";
 
 import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
+import {IPosition} from "src/interfaces/IPosition.sol";
 import "src/libraries/LibUtil.sol";
 import {C} from "src/libraries/C.sol";
 import {Asset, AssetStandard, ETH_STANDARD, ERC20_STANDARD} from "src/libraries/LibUtil.sol";
@@ -23,7 +24,7 @@ import {StandardAssessor} from "src/modules/assessor/implementations/StandardAss
 
 contract StandardAssessorTest is Test {
     StandardAssessor public assessorModule;
-    MockPosition public position;
+    IPosition public position;
 
     constructor() {}
 
@@ -44,7 +45,12 @@ contract StandardAssessorTest is Test {
         uint256 currentValueRatio,
         uint256 timePassed
     ) private returns (uint256) {
-        position = new MockPosition(address(0), loanAmount * currentValueRatio / C.RATIO_FACTOR);
+        Asset memory mockAsset;
+        MockPosition positionFactory = new MockPosition(address(0));
+        vm.prank(address(0));
+        position = IPosition(positionFactory.createPosition());
+        vm.prank(address(0));
+        position.deploy(mockAsset, loanAmount * currentValueRatio / C.RATIO_FACTOR, "");
 
         Agreement memory agreement;
         agreement.loanAmount = loanAmount;

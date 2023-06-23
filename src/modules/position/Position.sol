@@ -49,7 +49,11 @@ abstract contract Position is IPosition, CloneFactory, Module {
         virtual
         returns (uint256);
 
-    // function _transferLoanAsset(address payable to, Asset memory asset, uint256 amount) internal virtual;
+    function getCloseAmount(bytes calldata parameters) external view override proxyExecution returns (uint256) {
+        return _getCloseAmount(parameters);
+    }
+
+    function _getCloseAmount(bytes calldata parameters) internal view virtual returns (uint256);
 
     // AUDIT Hello auditors, pls gather around. This feels risky.
     function transferContract(address controller) external override proxyExecution onlyRole(C.ADMIN_ROLE) {

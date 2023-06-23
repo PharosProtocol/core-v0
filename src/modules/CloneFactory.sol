@@ -39,12 +39,12 @@ abstract contract CloneFactory is AccessControl, Initializable {
     event PositionCreated(address position);
 
     modifier implementationExecution() {
-        require(address(this) == FACTORY_ADDRESS);
+        require(address(this) == FACTORY_ADDRESS, "execution not allowed in proxy contract");
         _;
     }
 
     modifier proxyExecution() {
-        require(address(this) != FACTORY_ADDRESS);
+        require(address(this) != FACTORY_ADDRESS, "execution not allowed in implementation contract");
         _;
     }
 

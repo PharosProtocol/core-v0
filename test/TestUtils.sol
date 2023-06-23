@@ -23,6 +23,15 @@ contract TestUtils is Test {
         vm.prank(addr);
         IWETH9(C.WETH).deposit{value: amount}();
     }
+
+    // Override forge deal to handle WETH.
+    function dealErc20(address token, address to, uint256 give, bool adjust) internal {
+        if (token == C.WETH) {
+            wethDeal(to, give);
+        } else {
+            deal(token, to, give, adjust);
+        }
+    }
 }
 
 contract HandlerUtils is TestUtils {
