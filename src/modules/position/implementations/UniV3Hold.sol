@@ -66,7 +66,6 @@ contract UniV3HoldFactory is Position {
         bytes exitPath;
     }
 
-
     // Factory parameters shared for all positions.
     // NOTE sharing params here increases simplicity but costs position customizability. how much of a burden is it to
     //      have very large parameters set in each order? that will probably dictate how we want to handle this.
@@ -244,6 +243,10 @@ contract UniV3HoldFactory is Position {
     function amountOutMin(Parameters memory params) private view returns (uint256) {
         return LibUniswapV3.getPathTWAP(params.exitPath, amountHeld, TWAP_TIME)
             * (C.RATIO_FACTOR - STEP_SLIPPAGE_RATIO * params.exitPath.numPools()) / C.RATIO_FACTOR;
+    }
+
+    function validParameters(bytes calldata parameters) private view returns (bool) {
+        Parameters memory params = abi.decode(parameters, (Parameters));
     }
 
     // function AssetParameters(Asset asset) private view {

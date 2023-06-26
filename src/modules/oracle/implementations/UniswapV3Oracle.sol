@@ -35,7 +35,7 @@ contract UniswapV3Oracle is Oracle {
         Parameters memory params = abi.decode(parameters, (Parameters));
         (address assetAddr,,) = params.pathToUsd.decodeFirstPool();
         if (asset.standard == ETH_STANDARD) {
-            require(assetAddr == C.WETH, "Uniswap V3 Oracle: eth asset mismatch");
+            require(assetAddr == C.WETH, "Uniswap V3 Oracle: getValue eth asset mismatch");
         } else {
             require(asset.addr == assetAddr, "Uniswap V3 Oracle: getValue asset mismatch");
         }
@@ -50,11 +50,11 @@ contract UniswapV3Oracle is Oracle {
         returns (uint256)
     {
         Parameters memory params = abi.decode(parameters, (Parameters));
-        (address assetAddr,,) = params.pathToUsd.decodeFirstPool();
+        (address assetAddr,,) = params.pathFromUsd.decodeFirstPool();
         if (asset.standard == ETH_STANDARD) {
-            require(assetAddr == C.WETH, "Uniswap V3 Oracle: eth asset mismatch");
+            require(assetAddr == C.WETH, "Uniswap V3 Oracle: getAmount eth asset mismatch");
         } else {
-            require(asset.addr == assetAddr, "Uniswap V3 Oracle: getValue asset mismatch");
+            require(asset.addr == assetAddr, "Uniswap V3 Oracle: getAmount asset mismatch");
         }
         return LibUniswapV3.getPathTWAP(params.pathFromUsd, value, params.twapTime);
     }

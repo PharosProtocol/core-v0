@@ -23,6 +23,7 @@ import {UniswapV3Oracle} from "src/modules/oracle/implementations/UniswapV3Oracl
 import {StaticUsdcPriceOracle} from "src/modules/oracle/implementations/StaticValue.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
 import {UniV3HoldFactory} from "src/modules/position/implementations/UniV3Hold.sol";
+import {WalletFactory} from "src/modules/position/implementations/Wallet.sol";
 
 import {Bookkeeper} from "src/Bookkeeper.sol";
 import {IndexPair, ModuleReference, BorrowerConfig, Order, Fill, Agreement} from "src/libraries/LibBookkeeper.sol";
@@ -38,7 +39,8 @@ contract EndToEndTest is TestUtils {
     InstantCloseTakeCollateral public liquidatorModule;
     UniswapV3Oracle public uniOracleModule;
     StaticUsdcPriceOracle public staticUsdcPriceOracle;
-    UniV3HoldFactory public factory;
+    UniV3HoldFactory public uniV3HoldFactory;
+    WalletFactory public walletFactory;
 
     // Mirrors OZ EIP712 impl.
     bytes32 SIG_DOMAIN_SEPARATOR;
@@ -62,7 +64,8 @@ contract EndToEndTest is TestUtils {
 
     function setUp() public {
         vm.recordLogs();
-        vm.createSelectFork(vm.rpcUrl("mainnet"), 17186176);
+        // vm.createSelectFork(vm.rpcUrl("mainnet"), 17186176);
+        vm.createSelectFork(vm.rpcUrl("goerli"), 9243930);
 
         // Deploy Bookkeeper and module contracts.
         bookkeeper = new Bookkeeper();
@@ -71,7 +74,8 @@ contract EndToEndTest is TestUtils {
         liquidatorModule = new InstantCloseTakeCollateral(address(bookkeeper));
         uniOracleModule = new UniswapV3Oracle();
         staticUsdcPriceOracle = new StaticUsdcPriceOracle();
-        factory = new UniV3HoldFactory(address(bookkeeper));
+        uniV3HoldFactory = new UniV3HoldFactory(address(bookkeeper));
+        walletFactory = new WalletFactory(address(bookkeeper));
     }
 
     // Using USDC as collateral, borrow ETH and trade it into a leveraged long PEPE position.
@@ -108,7 +112,7 @@ contract EndToEndTest is TestUtils {
 
         assertEq(accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 8e18);
         assertLt(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000e6);
-        assertGt(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 2_000e6);
+        assertGt(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 0);
 
         (SignedBlueprint memory agreementSignedBlueprint, Agreement memory agreement) = retrieveAgreementFromLogs();
 
@@ -122,14 +126,21 @@ contract EndToEndTest is TestUtils {
         // console.log("exitAmount: %s", exitAmount);
 
         // Approve position to use funds to fulfil obligation to lender. Borrower loses money :(
+        wethDeal(borrower, 12e18);
+        deal(USDC_ASSET.addr, borrower, 5_000e6, true);
         vm.prank(borrower);
-        // IERC20(C.WETH).approve(agreement.position.addr, 1e18 / 2);
-        IERC20(C.WETH).approve(agreement.position.addr, 1e18 / 2);
+        IERC20(C.USDC).approve(agreement.position.addr, 5_000e6 / 2);
+        vm.prank(borrower);
+        IERC20(C.WETH).approve(agreement.position.addr, 12e18 / 2);
         vm.prank(borrower);
         bookkeeper.exitPosition(agreementSignedBlueprint);
 
-        assertGe(accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 10e18);
-        assertEq(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000e6);
+        assertGe(
+            accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 10e18, "lender act funds missing"
+        );
+        assertEq(
+            accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5000e6, "borrow act funds missing"
+        );
 
         console.log("done");
     }
@@ -185,8 +196,9 @@ contract EndToEndTest is TestUtils {
         // Approve position to use funds to fulfil obligation to lender. Borrower loses money :(
         vm.deal(liquidator, 2e18);
         wethDeal(liquidator, 12e18);
+        deal(USDC_ASSET.addr, liquidator, 5_000e6, true);
         vm.prank(liquidator);
-        // IERC20(C.WETH).approve(address(liquidatorModule), 1e18 / 2);
+        IERC20(C.USDC).approve(address(liquidatorModule), 5_000e6);
         // NOTE that the liquidator has to approve the position to spend their assets. meaning liquidators likely will not be willing to liquidate unverified positions.
         IERC20(C.WETH).approve(address(agreement.position.addr), 33361424965364218); // exact amount determined from prev runs
         vm.prank(liquidator);
@@ -228,32 +240,38 @@ contract EndToEndTest is TestUtils {
         });
         ModuleReference memory liquidator = ModuleReference({addr: address(liquidatorModule), parameters: ""});
         // Solidity array syntax is so bad D:
-        uint256[] memory minLoanAmounts = new uint256[](1);
+        uint256[] memory minLoanAmounts = new uint256[](2);
         minLoanAmounts[0] = 1e18;
+        minLoanAmounts[1] = 1000e6;
         Asset[] memory loanAssets = new Asset[](1);
         loanAssets[0] = WETH_ASSET;
         Asset[] memory collAssets = new Asset[](1);
         collAssets[0] = USDC_ASSET;
         address[] memory takers = new address[](0);
-        ModuleReference[] memory loanOracles = new ModuleReference[](1);
+        ModuleReference[] memory loanOracles = new ModuleReference[](4);
+        // loanOracles[0] = ModuleReference({
+        //     addr: address(uniOracleModule),
+        //     parameters: abi.encode(
+        //         UniswapV3Oracle.Parameters({
+        //             pathFromUsd: abi.encodePacked(C.USDC, uint24(500), C.WETH),
+        //             pathToUsd: abi.encodePacked(C.WETH, uint24(500), C.USDC),
+        //             stepSlippageRatio: C.RATIO_FACTOR / 1000,
+        //             twapTime: 300
+        //         })
+        //         )
+        // });
         loanOracles[0] = ModuleReference({
-            addr: address(uniOracleModule),
-            parameters: abi.encode(
-                UniswapV3Oracle.Parameters({
-                    pathFromUsd: abi.encodePacked(C.USDC, uint24(500), C.WETH),
-                    pathToUsd: abi.encodePacked(C.WETH, uint24(500), C.USDC),
-                    stepSlippageRatio: C.RATIO_FACTOR / 1000,
-                    twapTime: 300
-                })
-                )
+            addr: address(staticUsdcPriceOracle),
+            parameters: abi.encode(StaticUsdcPriceOracle.Parameters({value: 2000e6, decimals: 18}))
         });
         ModuleReference[] memory collateralOracles = new ModuleReference[](1);
         collateralOracles[0] = ModuleReference({
             addr: address(staticUsdcPriceOracle),
-            parameters: abi.encode(StaticUsdcPriceOracle.Parameters({value: 1000000}))
+            parameters: abi.encode(StaticUsdcPriceOracle.Parameters({value: 1e6, decimals: 6}))
         });
         address[] memory factories = new address[](1);
-        factories[0] = address(factory);
+        // factories[0] = address(uniV3HoldFactory);
+        factories[0] = address(walletFactory);
 
         // Lender creates an offer.
         return Order({
@@ -277,14 +295,18 @@ contract EndToEndTest is TestUtils {
     }
 
     function createFill(SoloAccount.Parameters memory borrowerAccountParams) private view returns (Fill memory) {
+        // BorrowerConfig memory borrowerConfig = BorrowerConfig({
+        //     initCollateralRatio: C.RATIO_FACTOR / 2,
+        //     positionParameters: abi.encode(
+        //         UniV3HoldFactory.Parameters({
+        //             enterPath: abi.encodePacked(C.WETH, uint24(3000), SHIB),
+        //             exitPath: abi.encodePacked(SHIB, uint24(3000), C.WETH)
+        //         })
+        //     )
+        // });
         BorrowerConfig memory borrowerConfig = BorrowerConfig({
-            initCollateralRatio: C.RATIO_FACTOR / 2,
-            positionParameters: abi.encode(
-                UniV3HoldFactory.Parameters({
-                    enterPath: abi.encodePacked(C.WETH, uint24(3000), SHIB),
-                    exitPath: abi.encodePacked(SHIB, uint24(3000), C.WETH)
-                })
-                )
+            initCollateralRatio: C.RATIO_FACTOR * 11 / 10, // 110%
+            positionParameters: abi.encode(WalletFactory.Parameters({recipient: borrowerAccountParams.owner}))
         });
 
         return Fill({

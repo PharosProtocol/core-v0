@@ -93,6 +93,7 @@ contract Bookkeeper is Tractor {
             collateralValue = loanValue * order.borrowerConfig.initCollateralRatio / C.RATIO_FACTOR;
             agreement.position.parameters = order.borrowerConfig.positionParameters;
         }
+        console.log("agreement coll value: %s", collateralValue);
         agreement.collAmount = IOracle(agreement.collateralOracle.addr).getAmount(
             agreement.collAsset, collateralValue, agreement.collateralOracle.parameters
         );
@@ -124,6 +125,7 @@ contract Bookkeeper is Tractor {
             agreement.lenderAccount.parameters
         );
         // NOTE lots of gas savings if collateral can be kept in borrower account until absolutely necessary.
+        console.log("locking %s of %s as collateral", agreement.collAmount, agreement.collAsset.addr);
         IAccount(agreement.borrowerAccount.addr).lockCollateral(
             agreement.collAsset, agreement.collAmount, agreement.borrowerAccount.parameters
         );
