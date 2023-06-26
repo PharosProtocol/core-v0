@@ -13,19 +13,20 @@ import {Asset} from "src/libraries/LibUtil.sol";
 contract StaticUsdcPriceOracle is Oracle {
     struct Parameters {
         uint256 value; // decimals = 6
+        uint256 decimals;
     }
 
     /// @dev ignore amount parameter
     function getValue(Asset calldata, uint256 amount, bytes calldata parameters) external pure returns (uint256) {
         Parameters memory params = abi.decode(parameters, (Parameters));
         // require(asset.addr == params.valueAsset);
-        return amount * params.value; // rounding?
+        return amount * params.value * 1e6 / (10 ** params.decimals); // rounding?
     }
 
     function getAmount(Asset calldata, uint256 value, bytes calldata parameters) external pure returns (uint256) {
         Parameters memory params = abi.decode(parameters, (Parameters));
         // require(asset.addr == params.valueAsset, "StaticPriceOracle: asset mismatch");
-        return value / params.value; // rounding?
+        return value * (10 ** params.decimals) / params.value / 1e6; // rounding?
     }
 
     function canHandleAsset(Asset calldata, bytes calldata) external pure override returns (bool) {
