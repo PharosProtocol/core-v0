@@ -20,6 +20,7 @@ import "src/modules/position/implementations/Wallet.sol";
 // cast wallet new [PATH_TO_A_DIRECTORY]
 // to deploy, run:
 // forge script script/deploy.s.sol:DeployScript --keystore $DEFAULT_KEYSTORE_PATH --sender $DEFAULT_KEYSTORE_ADDR --rpc-url $GOERLI_RPC_URL --broadcast -vv
+// forge script script/deploy.s.sol:DeployScript --keystore $DEFAULT_KEYSTORE_PATH --sender $DEFAULT_KEYSTORE_ADDR --rpc-url $SEPOLIA_RPC_URL --broadcast -vv
 // if etherscan verification desired append:
 // --verify --etherscan-api-key $ETHERSCAN_TOKEN
 // Contract address can be seen in output json file.
