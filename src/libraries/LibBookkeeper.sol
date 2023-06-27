@@ -87,7 +87,7 @@ struct Agreement {
 library LibBookkeeper {
     /// @notice Is the position defined by an agreement up for liquidation and not yet kicked
     /// @dev liquidation based on CR or duration limit
-    function isLiquidatable(Agreement memory agreement) public view returns (bool) {
+    function isLiquidatable(Agreement memory agreement) internal view returns (bool) {
         IPosition position = IPosition(agreement.position.addr);
         // if (positionValue == 0) return false;
 

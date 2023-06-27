@@ -114,7 +114,7 @@ contract Bookkeeper is Tractor {
 
     // NOTE this function succinctly represents a lot of the inefficiency of a module system design.
     function createFundEnterPosition(Agreement memory agreement) private {
-        (bool success, bytes memory data) = agreement.position.addr.call(abi.encodeWithSignature("createPosition()"));
+        (bool success, bytes memory data) = agreement.factory.call(abi.encodeWithSignature("createPosition()"));
         require(success, "BKFCP");
         agreement.position.addr = abi.decode(data, (address));
         IAccount(agreement.lenderAccount.addr).unloadToPosition(
@@ -151,7 +151,7 @@ contract Bookkeeper is Tractor {
         agreement.collateralOracle = order.collateralOracles[fill.collateralOracleIdx];
         // NOTE confusion here (and everywhere) on position address vs factory address. Naming fix?
         agreement.factory = order.factories[fill.factoryIdx];
-        agreement.position.addr = order.factories[fill.factoryIdx];
+        // agreement.position.addr = order.factories[fill.factoryIdx];
 
         require(fill.loanAmount >= order.minLoanAmounts[fill.loanAssetIdx], "Bookkeeper: fill loan amount too small");
         agreement.loanAmount = fill.loanAmount;

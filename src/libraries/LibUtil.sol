@@ -33,13 +33,13 @@ struct Asset {
 
 library Utils {
     // NOTE is there an efficiency loss when calldata is passed in here as memory?
-    function isEth(Asset memory asset) public pure returns (bool) {
+    function isEth(Asset memory asset) internal pure returns (bool) {
         return asset.standard == ETH_STANDARD;
     }
 
     /// @notice checks if address contains a deployed contract.
     /// @dev if the address is currently executing its constructor it will return true here. Do not use for security.
-    function isDeployedContract(address addr) public view returns (bool) {
+    function isDeployedContract(address addr) internal view returns (bool) {
         uint32 size;
         assembly {
             size := extcodesize(addr)

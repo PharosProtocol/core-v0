@@ -12,6 +12,7 @@ import "src/modules/oracle/implementations/UniswapV3Oracle.sol";
 import "src/modules/assessor/implementations/StandardAssessor.sol";
 import "src/modules/liquidator/implementations/InstantCloseTakeCollateral.sol";
 import "src/modules/position/implementations/UniV3Hold.sol";
+import "src/modules/position/implementations/Wallet.sol";
 
 // To install forge/cast:
 // https://book.getfoundry.sh/getting-started/installation
@@ -36,10 +37,11 @@ contract DeployScript is Script {
         // LibBookkeeper libBookkeeper = new LibBookkeeper();
         Bookkeeper bookkeeper = new Bookkeeper();
         new SoloAccount(address(bookkeeper));
-        new StandardAssessor();
         new InstantCloseTakeCollateral(address(bookkeeper));
-        new StaticUsdcPriceOracle();
         new UniV3HoldFactory(address(bookkeeper));
+        new WalletFactory(address(bookkeeper));
+        new StandardAssessor();
+        new StaticUsdcPriceOracle();
         new UniswapV3Oracle();
 
         vm.stopBroadcast();

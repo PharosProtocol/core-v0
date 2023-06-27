@@ -182,6 +182,10 @@
     "type": "event"
   },
   {
+    "stateMutability": "nonpayable",
+    "type": "fallback"
+  },
+  {
     "inputs": [],
     "name": "BLUEPRINT_TYPEHASH",
     "outputs": [

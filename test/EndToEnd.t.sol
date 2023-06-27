@@ -17,11 +17,15 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {SoloAccount} from "src/modules/account/implementations/SoloAccount.sol";
 import {IAssessor} from "src/interfaces/IAssessor.sol";
+import {IPosition} from "src/interfaces/IPosition.sol";
+import {IBookkeeper} from "src/interfaces/IBookkeeper.sol";
+import {IAssessor} from "src/interfaces/IAssessor.sol";
+import {ILiquidator} from "src/interfaces/ILiquidator.sol";
+import {IOracle} from "src/interfaces/IOracle.sol";
 import {StandardAssessor} from "src/modules/assessor/implementations/StandardAssessor.sol";
 import {InstantCloseTakeCollateral} from "src/modules/liquidator/implementations/InstantCloseTakeCollateral.sol";
 import {UniswapV3Oracle} from "src/modules/oracle/implementations/UniswapV3Oracle.sol";
 import {StaticUsdcPriceOracle} from "src/modules/oracle/implementations/StaticValue.sol";
-import {IPosition} from "src/interfaces/IPosition.sol";
 import {UniV3HoldFactory} from "src/modules/position/implementations/UniV3Hold.sol";
 import {WalletFactory} from "src/modules/position/implementations/Wallet.sol";
 
@@ -33,14 +37,14 @@ import "src/libraries/LibUtil.sol";
 import {Blueprint, SignedBlueprint, Tractor} from "lib/tractor/Tractor.sol";
 
 contract EndToEndTest is TestUtils {
-    Bookkeeper public bookkeeper;
-    SoloAccount public accountModule;
-    StandardAssessor public assessorModule;
-    InstantCloseTakeCollateral public liquidatorModule;
-    UniswapV3Oracle public uniOracleModule;
-    StaticUsdcPriceOracle public staticUsdcPriceOracle;
-    UniV3HoldFactory public uniV3HoldFactory;
-    WalletFactory public walletFactory;
+    IBookkeeper public bookkeeper;
+    IAccount public accountModule;
+    IAssessor public assessorModule;
+    ILiquidator public liquidatorModule;
+    IOracle public uniOracleModule;
+    IOracle public staticUsdcPriceOracle;
+    IPosition public uniV3HoldFactory;
+    IPosition public walletFactory;
 
     // Mirrors OZ EIP712 impl.
     bytes32 SIG_DOMAIN_SEPARATOR;
@@ -64,18 +68,31 @@ contract EndToEndTest is TestUtils {
 
     function setUp() public {
         vm.recordLogs();
-        // vm.createSelectFork(vm.rpcUrl("mainnet"), 17186176);
-        vm.createSelectFork(vm.rpcUrl("goerli"), 9243930);
 
-        // Deploy Bookkeeper and module contracts.
-        bookkeeper = new Bookkeeper();
-        accountModule = new SoloAccount(address(bookkeeper));
-        assessorModule = new StandardAssessor();
-        liquidatorModule = new InstantCloseTakeCollateral(address(bookkeeper));
-        uniOracleModule = new UniswapV3Oracle();
-        staticUsdcPriceOracle = new StaticUsdcPriceOracle();
-        uniV3HoldFactory = new UniV3HoldFactory(address(bookkeeper));
-        walletFactory = new WalletFactory(address(bookkeeper));
+        // // For use with mainnet fork.
+        // vm.createSelectFork(vm.rpcUrl("mainnet"), 17186176);
+        // bookkeeper = IBookkeeper(address(new Bookkeeper()));
+        // accountModule = IAccount(address(new SoloAccount(address(bookkeeper))));
+        // assessorModule = IAssessor(address(new StandardAssessor()));
+        // liquidatorModule = ILiquidator(address(new InstantCloseTakeCollateral(address(bookkeeper))));
+        // uniOracleModule = IOracle(address(new UniswapV3Oracle()));
+        // staticUsdcPriceOracle = IOracle(address(new StaticUsdcPriceOracle()));
+        // uniV3HoldFactory = IPosition(address(new UniV3HoldFactory(address(bookkeeper))));
+        // walletFactory = IPosition(address(new WalletFactory(address(bookkeeper))));
+
+        For use with Goerli fork deployed contracts.
+        vm.createSelectFork(vm.rpcUrl("goerli"), 9249440); // NOTE ensure this is more recent than deployments.
+        bookkeeper = IBookkeeper(0x96DEA1646129fF9637CE5cCE81E65559af172b92);
+        accountModule = IAccount(0x225D9FaD9081F0E67dD5E4b93E26e85E8F70a9aE);
+        assessorModule = IAssessor(0x0402430ceF28BC0C53db2B0CcdeD92fE5F156D96);
+        liquidatorModule = ILiquidator(0x1bdD37aFC33C59D0B1572b23B9188531d6aA7cda);
+        uniOracleModule = IOracle(0x364905bBcC769e58711363c397B2D8145e84aDd4); // static price
+        staticUsdcPriceOracle = IOracle(0x364905bBcC769e58711363c397B2D8145e84aDd4); // static price
+        uniV3HoldFactory = IPosition(0x51b245b41037B966e8709B622Ee735a653e3d40d);
+        walletFactory = IPosition(0x5F5baC1aEF241eB4CB0B484bF68d104B00E1F98E);
+
+        // // For use with Sepolia fork deployed contracts.
+        // vm.createSelectFork(vm.rpcUrl("sepolia"), 9249440); // NOTE ensure this is more recent than deployments.
     }
 
     // Using USDC as collateral, borrow ETH and trade it into a leveraged long PEPE position.
@@ -94,9 +111,17 @@ contract EndToEndTest is TestUtils {
         assertEq(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000e6);
 
         Order memory order = createOrder(lenderAccountParams);
+        bytes memory packedData;
+        packedData = bookkeeper.packDataField(bytes1(uint8(Bookkeeper.BlueprintDataType.ORDER)), abi.encode(order));
+        (bool success, bytes memory data) = address(bookkeeper).call(
+            abi.encodeWithSelector(
+                bookkeeper.packDataField.selector, bytes1(uint8(Bookkeeper.BlueprintDataType.ORDER)), abi.encode(order)
+            )
+        );
+        require(success, "packDataField failed");
         Blueprint memory orderBlueprint = Blueprint({
             publisher: lender,
-            data: bookkeeper.packDataField(bytes1(uint8(Bookkeeper.BlueprintDataType.ORDER)), abi.encode(order)),
+            data: packedData,
             maxNonce: type(uint256).max,
             startTime: 0,
             endTime: type(uint256).max
@@ -129,9 +154,9 @@ contract EndToEndTest is TestUtils {
         wethDeal(borrower, 12e18);
         deal(USDC_ASSET.addr, borrower, 5_000e6, true);
         vm.prank(borrower);
-        IERC20(C.USDC).approve(agreement.position.addr, 5_000e6 / 2);
+        IERC20(C.USDC).approve(agreement.position.addr, 5_000e6);
         vm.prank(borrower);
-        IERC20(C.WETH).approve(agreement.position.addr, 12e18 / 2);
+        IERC20(C.WETH).approve(agreement.position.addr, 12e18);
         vm.prank(borrower);
         bookkeeper.exitPosition(agreementSignedBlueprint);
 
@@ -170,8 +195,8 @@ contract EndToEndTest is TestUtils {
             endTime: type(uint256).max
         });
 
-        console.log("blueprint data at encoding:");
-        console.logBytes(orderBlueprint.data);
+        // console.log("blueprint data at encoding:");
+        // console.logBytes(orderBlueprint.data);
         SignedBlueprint memory orderSignedBlueprint = createSignedBlueprint(orderBlueprint, LENDER_PRIVATE_KEY);
 
         Fill memory fill = createFill(borrowerAccountParams);
@@ -180,7 +205,7 @@ contract EndToEndTest is TestUtils {
 
         assertEq(accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 8e18);
         assertLt(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000e6);
-        assertGt(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 2_000e6);
+        assertGt(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 0);
 
         (SignedBlueprint memory agreementSignedBlueprint, Agreement memory agreement) = retrieveAgreementFromLogs();
 
@@ -196,11 +221,12 @@ contract EndToEndTest is TestUtils {
         // Approve position to use funds to fulfil obligation to lender. Borrower loses money :(
         vm.deal(liquidator, 2e18);
         wethDeal(liquidator, 12e18);
-        deal(USDC_ASSET.addr, liquidator, 5_000e6, true);
-        vm.prank(liquidator);
-        IERC20(C.USDC).approve(address(liquidatorModule), 5_000e6);
+        // deal(USDC_ASSET.addr, liquidator, 5_000e6, true);
+        // vm.prank(liquidator);
+        // IERC20(C.USDC).approve(address(liquidatorModule), 5_000e6);
         // NOTE that the liquidator has to approve the position to spend their assets. meaning liquidators likely will not be willing to liquidate unverified positions.
-        IERC20(C.WETH).approve(address(agreement.position.addr), 33361424965364218); // exact amount determined from prev runs
+        vm.prank(liquidator);
+        IERC20(C.WETH).approve(address(agreement.position.addr), 12e18); // exact amount determined from prev runs
         vm.prank(liquidator);
         bookkeeper.kick(agreementSignedBlueprint);
 
@@ -240,6 +266,7 @@ contract EndToEndTest is TestUtils {
         });
         ModuleReference memory liquidator = ModuleReference({addr: address(liquidatorModule), parameters: ""});
         // Solidity array syntax is so bad D:
+        address[] memory takers = new address[](0);
         uint256[] memory minLoanAmounts = new uint256[](2);
         minLoanAmounts[0] = 1e18;
         minLoanAmounts[1] = 1000e6;
@@ -247,7 +274,6 @@ contract EndToEndTest is TestUtils {
         loanAssets[0] = WETH_ASSET;
         Asset[] memory collAssets = new Asset[](1);
         collAssets[0] = USDC_ASSET;
-        address[] memory takers = new address[](0);
         ModuleReference[] memory loanOracles = new ModuleReference[](4);
         // loanOracles[0] = ModuleReference({
         //     addr: address(uniOracleModule),

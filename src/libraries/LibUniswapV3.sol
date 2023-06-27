@@ -35,7 +35,7 @@ library LibUniswapV3 {
 
     /// Get the TWAP of the pool across interval. token1/token0.
     function getTWAP(address pool, uint256 amount, address tokenIn, address tokenOut, uint32 twapTime)
-        public
+        internal
         view
         returns (uint256)
     {

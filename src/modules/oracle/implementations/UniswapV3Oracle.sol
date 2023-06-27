@@ -50,7 +50,7 @@ contract UniswapV3Oracle is Oracle {
         returns (uint256)
     {
         Parameters memory params = abi.decode(parameters, (Parameters));
-        (address assetAddr,,) = params.pathFromUsd.decodeFirstPool();
+        (address assetAddr,,) = params.pathToUsd.decodeFirstPool();
         if (asset.standard == ETH_STANDARD) {
             require(assetAddr == C.WETH, "Uniswap V3 Oracle: getAmount eth asset mismatch");
         } else {
