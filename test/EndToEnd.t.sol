@@ -80,19 +80,27 @@ contract EndToEndTest is TestUtils {
         // uniV3HoldFactory = IPosition(address(new UniV3HoldFactory(address(bookkeeper))));
         // walletFactory = IPosition(address(new WalletFactory(address(bookkeeper))));
 
-        For use with Goerli fork deployed contracts.
-        vm.createSelectFork(vm.rpcUrl("goerli"), 9249440); // NOTE ensure this is more recent than deployments.
-        bookkeeper = IBookkeeper(0x96DEA1646129fF9637CE5cCE81E65559af172b92);
-        accountModule = IAccount(0x225D9FaD9081F0E67dD5E4b93E26e85E8F70a9aE);
-        assessorModule = IAssessor(0x0402430ceF28BC0C53db2B0CcdeD92fE5F156D96);
-        liquidatorModule = ILiquidator(0x1bdD37aFC33C59D0B1572b23B9188531d6aA7cda);
-        uniOracleModule = IOracle(0x364905bBcC769e58711363c397B2D8145e84aDd4); // static price
-        staticUsdcPriceOracle = IOracle(0x364905bBcC769e58711363c397B2D8145e84aDd4); // static price
-        uniV3HoldFactory = IPosition(0x51b245b41037B966e8709B622Ee735a653e3d40d);
-        walletFactory = IPosition(0x5F5baC1aEF241eB4CB0B484bF68d104B00E1F98E);
+        // For use with Goerli fork deployed contracts.
+        // vm.createSelectFork(vm.rpcUrl("goerli"), 9249440); // NOTE ensure this is more recent than deployments.
+        // bookkeeper = IBookkeeper(0x96DEA1646129fF9637CE5cCE81E65559af172b92);
+        // accountModule = IAccount(0x225D9FaD9081F0E67dD5E4b93E26e85E8F70a9aE);
+        // assessorModule = IAssessor(0x0402430ceF28BC0C53db2B0CcdeD92fE5F156D96);
+        // liquidatorModule = ILiquidator(0x1bdD37aFC33C59D0B1572b23B9188531d6aA7cda);
+        // uniOracleModule = IOracle(); // static price
+        // staticUsdcPriceOracle = IOracle(0x364905bBcC769e58711363c397B2D8145e84aDd4); // static price
+        // uniV3HoldFactory = IPosition();
+        // walletFactory = IPosition(0x5F5baC1aEF241eB4CB0B484bF68d104B00E1F98E);
 
-        // // For use with Sepolia fork deployed contracts.
-        // vm.createSelectFork(vm.rpcUrl("sepolia"), 9249440); // NOTE ensure this is more recent than deployments.
+        // For use with Sepolia fork deployed contracts.
+        vm.createSelectFork(vm.rpcUrl("sepolia"), 3778941); // NOTE ensure this is more recent than deployments.
+        bookkeeper = IBookkeeper(0x256C8E484948bb56Ce01820838513406BA0e64C4);
+        accountModule = IAccount(0x8AE9Eb55879c3d0592a1EAB71137681a88617Fd2);
+        assessorModule = IAssessor(0xcAB83590842b67473f631DAcBC6695c91409D8cA);
+        liquidatorModule = ILiquidator(0xFAA75eB93ED9512eea6957a27096152d2e2dC5D2);
+        // uniOracleModule = IOracle(); // static price
+        staticUsdcPriceOracle = IOracle(0x49689E214e32cFa6d5D6f89811e58955d7eDC7c6); // static price
+        // uniV3HoldFactory = IPosition();
+        walletFactory = IPosition(0x96f33FaDC8a5B7C3421a1DFD7238eA5571DDDD49);
     }
 
     // Using USDC as collateral, borrow ETH and trade it into a leveraged long PEPE position.
