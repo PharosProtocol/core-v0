@@ -17,9 +17,9 @@ library C {
     // address internal constant USDC = address(0x32dBd8db20Bfe5506104119EdCC89bc3D8C5c3Ee);
     // address internal constant WETH = address(0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6);
 
-    // // SEPOLIA ADDRESSES
-    // address internal constant USDC = address(0x8267cF9254734C6Eb452a7bb9AAF97B392258b21);
-    // address internal constant WETH = address(0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9);
+    // SEPOLIA ADDRESSES
+    address internal constant USDC = address(0x6f14C02Fc1F78322cFd7d707aB90f18baD3B54f5);
+    address internal constant WETH = address(0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9);
 
     bytes32 internal constant BOOKKEEPER_ROLE = keccak256("BOOKKEEPER_ROLE");
     bytes32 internal constant ADMIN_ROLE = 0x00;

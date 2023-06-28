@@ -1,6 +1,6 @@
 # Modules
 
-The Module system is what enables Modulus to be permisionless and customizable. The entire system can be thought of as a 
+The Module system is what enables Modulus to be permissionless and customizable. The entire system can be thought of as a 
 large number of small contracts that plug into a common orderbook via standardized and versioned interfaces. The benefits 
 of the Module system comes at the cost of complexity and minor additional inefficiency to the system. The module system
 also indirectly increases system security by distributing capital and risk across many contracts and implementations.
