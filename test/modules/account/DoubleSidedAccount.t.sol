@@ -14,7 +14,7 @@ import {TestUtils} from "test/TestUtils.sol";
 import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 import {C} from "src/libraries/C.sol";
-import {Asset, AssetStandard, ETH_STANDARD, ERC20_STANDARD} from "src/libraries/LibUtil.sol";
+import {Asset, AssetStandard, ETH_STANDARD, ERC20_STANDARD} from "src/libraries/LibUtils.sol";
 import {SoloAccount} from "src/modules/account/implementations/SoloAccount.sol";
 
 contract AccountTest is TestUtils {
@@ -68,7 +68,7 @@ contract AccountTest is TestUtils {
         accountModule.loadFromUser(ASSETS[0], 11e18, parameters);
 
         // Fail to add ERC20 because asset not approved.
-        vm.expectRevert("safeErc20TransferFrom failed");
+        vm.expectRevert("UtilsPublic.safeErc20TransferFrom failed");
         accountModule.loadFromUser(ASSETS[1], 1e18, parameters);
 
         // Approve ERC20s.
@@ -76,7 +76,7 @@ contract AccountTest is TestUtils {
         IERC20(ASSETS[1].addr).approve(address(accountModule), 999e18);
 
         // Fail to add ERC20 because balance too low.
-        vm.expectRevert("safeErc20TransferFrom failed");
+        vm.expectRevert("UtilsPublic.safeErc20TransferFrom failed");
         accountModule.loadFromUser(ASSETS[1], 11e18, parameters);
 
         // Add WETH.

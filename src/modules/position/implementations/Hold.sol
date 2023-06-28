@@ -5,7 +5,7 @@ pragma solidity 0.8.19;
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
 import {C} from "src/libraries/C.sol";
 import {Position} from "src/modules/position/Position.sol";
-import {Asset, ETH_STANDARD, ERC20_STANDARD} from "src/libraries/LibUtil.sol";
+import {Asset, ETH_STANDARD, ERC20_STANDARD} from "src/libraries/LibUtils.sol";
 import {Module} from "src/modules/Module.sol";
 
 /*

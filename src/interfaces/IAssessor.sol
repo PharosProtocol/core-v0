@@ -3,7 +3,7 @@
 pragma solidity 0.8.19;
 
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
-import {Asset} from "src/libraries/LibUtil.sol";
+import {Asset} from "src/libraries/LibUtils.sol";
 
 /**
  * Assessors are used to determine the cost a borrower must pay for a loan.

@@ -20,7 +20,7 @@ import {IPosition} from "src/interfaces/IPosition.sol";
 import {ILiquidator} from "src/interfaces/ILiquidator.sol";
 import {C} from "src/libraries/C.sol";
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
-import {Asset, ERC20_STANDARD} from "src/libraries/LibUtil.sol";
+import {Asset, ERC20_STANDARD} from "src/libraries/LibUtils.sol";
 import {SoloAccount} from "src/modules/account/implementations/SoloAccount.sol";
 import {InstantCloseTakeCollateral} from "src/modules/liquidator/implementations/InstantCloseTakeCollateral.sol";
 import {MockAssessor} from "test/mocks/MockAssessor.sol";

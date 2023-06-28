@@ -3,7 +3,7 @@
 pragma solidity 0.8.19;
 
 import {Oracle} from "../Oracle.sol";
-import {Asset} from "src/libraries/LibUtil.sol";
+import {Asset} from "src/libraries/LibUtils.sol";
 
 /*
  * This is a contract that represents one method of computing asset prices.

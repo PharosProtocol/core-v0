@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.19;
 
-import "src/libraries/LibUtil.sol";
-import {Asset} from "src/libraries/LibUtil.sol";
+import {Asset} from "src/libraries/LibUtils.sol";
+import {LibUtilsPublic} from "src/libraries/LibUtilsPublic.sol";
 import {Position} from "src/modules/position/Position.sol";
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
 import {IAssessor} from "src/interfaces/IAssessor.sol";
@@ -33,7 +33,9 @@ contract MockPosition is Position {
         if (lenderOwed > currentAmount) {
             // Lender is owed more than the position is worth.
             // Sender pays the difference.
-            Utils.safeErc20TransferFrom(agreement.loanAsset.addr, sender, address(this), lenderOwed - currentAmount);
+            LibUtilsPublic.safeErc20TransferFrom(
+                agreement.loanAsset.addr, sender, address(this), lenderOwed - currentAmount
+            );
         }
 
         require(distribute == false, "MockPosition: distribute not supported");

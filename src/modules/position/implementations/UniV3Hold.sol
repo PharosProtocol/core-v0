@@ -30,7 +30,8 @@ import {IUniswapV3Factory} from "lib/v3-core/contracts/interfaces/IUniswapV3Fact
 import {CallbackValidation} from "lib/v3-periphery/contracts/libraries/CallbackValidation.sol";
 
 import {LibUniswapV3} from "src/libraries/LibUniswapV3.sol";
-import "src/libraries/LibUtil.sol";
+import {Asset, ERC20_STANDARD} from "src/libraries/LibUtils.sol";
+import {LibUtilsPublic} from "src/libraries/LibUtilsPublic.sol";
 
 // import {SwapCallbackData} from "lib/v3-periphery/contracts/SwapRouter.sol";
 struct SwapCallbackData {
@@ -122,7 +123,7 @@ contract UniV3HoldFactory is Position {
             revert("USTCBZAMS");
         }
 
-        Utils.safeErc20Transfer(tokenIn, address(msg.sender), amountToPay);
+        LibUtilsPublic.safeErc20Transfer(tokenIn, address(msg.sender), amountToPay);
     }
 
     /// @dev assumes assets are already in Position.
@@ -204,7 +205,9 @@ contract UniV3HoldFactory is Position {
                 // borrowerAmount = 0;
                 // Lender is owed more than the position is worth.
                 // Lender gets all of the position and sender pays the difference.
-                Utils.safeErc20TransferFrom(agreement.loanAsset.addr, sender, address(this), lenderOwed - closedAmount);
+                LibUtilsPublic.safeErc20TransferFrom(
+                    agreement.loanAsset.addr, sender, address(this), lenderOwed - closedAmount
+                );
             }
         }
 

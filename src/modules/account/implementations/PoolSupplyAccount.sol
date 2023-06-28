@@ -5,11 +5,11 @@ pragma solidity 0.8.19;
 import {C} from "src/libraries/C.sol";
 import {IBookkeeper} from "src/interfaces/IBookkeeper.sol";
 import {Order} from "src/libraries/LibBookkeeper.sol";
-import {Asset, ERC20_STANDARD} from "src/libraries/LibUtil.sol";
+import {Asset, ERC20_STANDARD} from "src/libraries/LibUtils.sol";
 import {CloneFactory} from "src/modules/CloneFactory.sol";
 import {Account} from "../Account.sol";
 import {IWETH9} from "src/interfaces/external/IWETH9.sol";
-import "src/libraries/LibUtil.sol";
+import {LibUtilsPublic} from "src/libraries/LibUtilsPublic.sol";
 
 /**
  * PoolAccount is one possible implementation of how an account can be implemented to pool user assets.
@@ -125,7 +125,7 @@ contract PoolSupplyAccount is Account {
             IWETH9(C.WETH).deposit{value: msg.value}();
         } else {
             // NOTE SECURITY fee on transfer erc20s.
-            Utils.safeErc20TransferFrom(asset.addr, msg.sender, address(this), amount);
+            LibUtilsPublic.safeErc20TransferFrom(asset.addr, msg.sender, address(this), amount);
         }
     }
 
@@ -146,7 +146,7 @@ contract PoolSupplyAccount is Account {
             IWETH9(C.WETH).deposit{value: msg.value}();
         } else {
             // SECURITY fee on transfer erc20s.
-            Utils.safeErc20TransferFrom(asset.addr, msg.sender, address(this), amount);
+            LibUtilsPublic.safeErc20TransferFrom(asset.addr, msg.sender, address(this), amount);
         }
     }
 
@@ -192,7 +192,7 @@ contract PoolSupplyAccount is Account {
         _updateUtilizationAndSum(assetHash);
 
         // SECURITY fee on transfer erc20s.
-        Utils.safeErc20Transfer(asset.addr, params.user, amount);
+        LibUtilsPublic.safeErc20Transfer(asset.addr, params.user, amount);
     }
 
     /// @dev Not configured to handle borrowing (locked assets).
@@ -209,7 +209,7 @@ contract PoolSupplyAccount is Account {
         _updateUtilizationAndSum(assetHash);
 
         // SECURITY fee on transfer erc20s.
-        Utils.safeErc20Transfer(asset.addr, position, amount);
+        LibUtilsPublic.safeErc20Transfer(asset.addr, position, amount);
     }
 
     // Without wasting gas on ERC20 transfer, lock assets here. In normal case (healthy position close) no transfers

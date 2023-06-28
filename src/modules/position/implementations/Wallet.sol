@@ -13,7 +13,8 @@ import {Agreement} from "src/libraries/LibBookkeeper.sol";
 
 import "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
-import "src/libraries/LibUtil.sol";
+import {Asset, ERC20_STANDARD} from "src/libraries/LibUtils.sol";
+import {LibUtilsPublic} from "src/libraries/LibUtilsPublic.sol";
 
 contract WalletFactory is Position {
     struct Parameters {
@@ -33,7 +34,7 @@ contract WalletFactory is Position {
     function _deploy(Asset calldata asset, uint256 amount, bytes calldata parameters) internal override {
         Parameters memory params = abi.decode(parameters, (Parameters));
         amountDistributed = amount;
-        Utils.safeErc20Transfer(asset.addr, params.recipient, amountDistributed);
+        LibUtilsPublic.safeErc20Transfer(asset.addr, params.recipient, amountDistributed);
     }
 
     function _close(address sender, Agreement calldata agreement, bool distribute, bytes calldata)
@@ -45,7 +46,7 @@ contract WalletFactory is Position {
         uint256 lenderOwed =
             agreement.loanAmount + IAssessor(agreement.assessor.addr).getCost(agreement, amountDistributed);
         // Borrower must have pre-approved use of erc20.
-        Utils.safeErc20TransferFrom(agreement.loanAsset.addr, sender, address(this), lenderOwed);
+        LibUtilsPublic.safeErc20TransferFrom(agreement.loanAsset.addr, sender, address(this), lenderOwed);
 
         if (distribute) {
             IERC20(agreement.loanAsset.addr).approve(agreement.lenderAccount.addr, lenderOwed);

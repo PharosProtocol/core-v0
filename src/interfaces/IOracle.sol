@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.19;
 
-import {Asset} from "src/libraries/LibUtil.sol";
+import {Asset} from "src/libraries/LibUtils.sol";
 
 /**
  * Oracles are used to assess the value of assets.

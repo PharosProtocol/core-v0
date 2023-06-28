@@ -4,10 +4,13 @@ pragma solidity 0.8.19;
 
 import "forge-std/console.sol";
 
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 import {C} from "src/libraries/C.sol";
+import {Asset, ERC20_STANDARD} from "src/libraries/LibUtils.sol";
+import {LibUtilsPublic} from "src/libraries/LibUtilsPublic.sol";
 import {Liquidator} from "../Liquidator.sol";
-import "src/libraries/LibUtil.sol";
-import {Agreement} from "src/libraries/LibBookkeeper.sol";
+import {Agreement, ModuleReference} from "src/libraries/LibBookkeeper.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
 import {IAssessor} from "src/interfaces/IAssessor.sol";
 import {IAccount} from "src/interfaces/IAccount.sol";
@@ -34,9 +37,9 @@ abstract contract InstantErc20 is Liquidator {
             // SECURITY - what happens to erc20 transfer if amount is 0?
             positionAmount = position.getCloseAmount(agreement.position.parameters);
             (bool success,) = IPosition(agreement.position.addr).passThrough(
-                payable(address(Utils)),
+                payable(address(LibUtilsPublic)),
                 abi.encodeWithSelector(
-                    Utils.safeErc20TransferFrom.selector,
+                    LibUtilsPublic.safeErc20TransferFrom.selector,
                     agreement.loanAsset.addr,
                     sender,
                     agreement.position.addr,
@@ -79,11 +82,11 @@ abstract contract InstantErc20 is Liquidator {
 
         // Reward goes direct to liquidator.
         if (rewardCollAmount > 0) {
-            // d4e3bdb6: safeErc20Transfer(address,address,uint256)
+            // d4e3bdb6: LibUtilsPublic.safeErc20Transfer(address,address,uint256)
             (bool success,) = IPosition(agreement.position.addr).passThrough(
-                payable(address(Utils)),
+                payable(address(LibUtilsPublic)),
                 abi.encodeWithSelector(
-                    Utils.safeErc20Transfer.selector, agreement.collAsset.addr, sender, rewardCollAmount
+                    LibUtilsPublic.safeErc20Transfer.selector, agreement.collAsset.addr, sender, rewardCollAmount
                 ),
                 true
             );

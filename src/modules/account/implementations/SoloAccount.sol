@@ -5,10 +5,10 @@ pragma solidity 0.8.19;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {C} from "src/libraries/C.sol";
-import {Asset, ERC20_STANDARD} from "src/libraries/LibUtil.sol";
 import {Account} from "../Account.sol";
 import {IWETH9} from "src/interfaces/external/IWETH9.sol";
-import "src/libraries/LibUtil.sol";
+import {Asset, ERC20_STANDARD, LibUtils} from "src/libraries/LibUtils.sol";
+import {LibUtilsPublic} from "src/libraries/LibUtilsPublic.sol";
 
 // SECURITY although unlikely, in the extreme situation of bad debt it is possible that a position never closes and
 //          returns assets to the account. Although *if* a position does close it will always close with the amount

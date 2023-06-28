@@ -9,7 +9,7 @@ import {IUniswapV3Pool} from "lib/v3-core/contracts/interfaces/IUniswapV3Pool.so
 import {PoolAddress} from "lib/v3-periphery/contracts/libraries/PoolAddress.sol";
 import {OracleLibrary} from "lib/v3-periphery/contracts/libraries/OracleLibrary.sol";
 import {Path} from "lib/v3-periphery/contracts/libraries/path.sol";
-import {Utils} from "src/libraries/LibUtil.sol";
+import "src/libraries/LibUtils.sol";
 
 // NOTE: Could really use another set of eyes on this. So much potential for arithmetic errors.
 
@@ -26,7 +26,7 @@ library LibUniswapV3 {
             address pool = PoolAddress.computeAddress(C.UNI_V3_FACTORY, PoolAddress.getPoolKey(tokenIn, tokenOut, fee));
             console.log("pool: %s", pool);
             // Computation depends on PoolAddress.POOL_INIT_CODE_HASH. Default value in Uni repo may not be correct.
-            require(Utils.isDeployedContract(pool), "Invalid pool, no contract at address");
+            require(LibUtils.isDeployedContract(pool), "Invalid pool, no contract at address");
             amount = getTWAP(pool, amount, tokenIn, tokenOut, twapTime);
             path = path.skipToken();
         }

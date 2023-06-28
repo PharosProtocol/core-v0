@@ -33,7 +33,7 @@ import {Bookkeeper} from "src/Bookkeeper.sol";
 import {IndexPair, ModuleReference, BorrowerConfig, Order, Fill, Agreement} from "src/libraries/LibBookkeeper.sol";
 
 import "src/libraries/C.sol";
-import "src/libraries/LibUtil.sol";
+import "src/libraries/LibUtils.sol";
 import {Blueprint, SignedBlueprint, Tractor} from "lib/tractor/Tractor.sol";
 
 contract EndToEndTest is TestUtils {
