@@ -43,21 +43,27 @@ contract SoloAccount is Account {
 
     function _load(Asset calldata asset, uint256 amount, bytes calldata parameters) private {
         Parameters memory params = abi.decode(parameters, (Parameters));
-        unlockedBalances[_getId(params.owner, params.salt)][keccak256(abi.encode(asset))] += amount;
+        bytes32 id = _getId(params.owner, params.salt);
+        bytes32 assetHash = keccak256(abi.encode(asset));
+        unlockedBalances[id][assetHash] =
+            LibUtils.addWithMsg(unlockedBalances[id][assetHash], amount, "_load: balance too large");
 
         if (msg.value > 0 && asset.addr == C.WETH) {
             assert(msg.value == amount);
             IWETH9(C.WETH).deposit{value: msg.value}();
         } else {
-            Utils.safeErc20TransferFrom(asset.addr, msg.sender, address(this), amount);
+            LibUtilsPublic.safeErc20TransferFrom(asset.addr, msg.sender, address(this), amount);
         }
     }
 
     function _unloadToUser(Asset calldata asset, uint256 amount, bytes calldata parameters) internal override {
         Parameters memory params = abi.decode(parameters, (Parameters));
         require(msg.sender == params.owner, "unload: not owner");
-        unlockedBalances[_getId(params.owner, params.salt)][keccak256(abi.encode(asset))] -= amount;
-        Utils.safeErc20Transfer(asset.addr, msg.sender, amount);
+        bytes32 id = _getId(params.owner, params.salt);
+        bytes32 assetHash = keccak256(abi.encode(asset));
+        unlockedBalances[id][assetHash] =
+            LibUtils.subWithMsg(unlockedBalances[id][assetHash], amount, "_unloadToUser: balance too low");
+        LibUtilsPublic.safeErc20Transfer(asset.addr, msg.sender, amount);
     }
 
     // NOTE this asset knowledge could be removed entirely from unlockedBalances. This function logic would live in positions,
@@ -76,10 +82,12 @@ contract SoloAccount is Account {
 
         bytes32 id = _getId(params.owner, params.salt);
         if (!isLockedColl) {
-            unlockedBalances[id][keccak256(abi.encode(asset))] -= amount;
+            bytes32 assetHash = keccak256(abi.encode(asset));
+            unlockedBalances[id][assetHash] =
+                LibUtils.subWithMsg(unlockedBalances[id][assetHash], amount, "_unloadToPosition: balance too low");
         }
         // AUDIT any method to take out of other users locked balance?
-        Utils.safeErc20Transfer(asset.addr, position, amount);
+        LibUtilsPublic.safeErc20Transfer(asset.addr, position, amount);
     }
 
     // Without wasting gas on ERC20 transfer, lock assets here. In normal case (healthy position close) no transfers
@@ -92,7 +100,9 @@ contract SoloAccount is Account {
         Parameters memory params = abi.decode(parameters, (Parameters));
 
         bytes32 id = _getId(params.owner, params.salt);
-        unlockedBalances[id][keccak256(abi.encode(asset))] -= amount;
+        bytes32 assetHash = keccak256(abi.encode(asset));
+        unlockedBalances[id][assetHash] =
+            LibUtils.subWithMsg(unlockedBalances[id][assetHash], amount, "_lockCollateral: balance too low");
     }
 
     function _unlockCollateral(Asset calldata asset, uint256 amount, bytes calldata parameters)
@@ -103,7 +113,9 @@ contract SoloAccount is Account {
         Parameters memory params = abi.decode(parameters, (Parameters));
 
         bytes32 id = _getId(params.owner, params.salt);
-        unlockedBalances[id][keccak256(abi.encode(asset))] += amount;
+        bytes32 assetHash = keccak256(abi.encode(asset));
+        unlockedBalances[id][assetHash] =
+            LibUtils.addWithMsg(unlockedBalances[id][assetHash], amount, "_unlockCollateral: balance too large");
     }
 
     function getOwner(bytes calldata parameters) external pure override returns (address) {
