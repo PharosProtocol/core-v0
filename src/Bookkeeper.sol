@@ -96,6 +96,7 @@ contract Bookkeeper is Tractor {
         agreement.collAmount = IOracle(agreement.collateralOracle.addr).getAmount(
             agreement.collAsset, collateralValue, agreement.collateralOracle.parameters
         );
+        console.log("agreement coll amount: %s", agreement.collAmount);
         // Set Position data that cannot be computed off chain by caller.
         agreement.deploymentTime = block.timestamp;
 

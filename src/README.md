@@ -17,4 +17,3 @@ https://fravoll.github.io/solidity-patterns/pull_over_push.html
 - Question: when is it ok to use types smaller than uint256? Such as int256 or uint128? also, when is it preferred?
 
 - what if a module or position is also the borrower/lender?
-
