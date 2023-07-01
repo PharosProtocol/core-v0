@@ -76,8 +76,8 @@ contract Bookkeeper is Tractor {
 
         Agreement memory agreement = agreementFromOrder(fill, order);
 
-        uint256 loanValue = IOracle(agreement.loanOracle.addr).getValue(
-            agreement.loanAsset, agreement.loanAmount, agreement.loanOracle.parameters
+        uint256 loanValue = IOracle(agreement.loanOracle.addr).getResistantValue(
+            agreement.loanAmount, agreement.loanOracle.parameters
         );
         uint256 collateralValue;
 
@@ -93,8 +93,8 @@ contract Bookkeeper is Tractor {
             agreement.position.parameters = order.borrowerConfig.positionParameters;
         }
         console.log("agreement coll value: %s", collateralValue);
-        agreement.collAmount = IOracle(agreement.collateralOracle.addr).getAmount(
-            agreement.collAsset, collateralValue, agreement.collateralOracle.parameters
+        agreement.collAmount = IOracle(agreement.collateralOracle.addr).getResistantAmount(
+            collateralValue, agreement.collateralOracle.parameters
         );
         console.log("agreement coll amount: %s", agreement.collAmount);
         // Set Position data that cannot be computed off chain by caller.
@@ -144,6 +144,7 @@ contract Bookkeeper is Tractor {
         agreement.maxDuration = order.maxDuration;
         agreement.assessor = order.assessor;
         agreement.liquidator = order.liquidator;
+        agreement.minCollateralRatio = order.minCollateralRatio;
 
         agreement.loanAsset = order.loanAssets[fill.loanAssetIdx];
         agreement.loanOracle = order.loanOracles[fill.loanOracleIdx];

@@ -39,11 +39,11 @@ contract DeployScript is Script {
         Bookkeeper bookkeeper = new Bookkeeper();
         new SoloAccount(address(bookkeeper));
         new InstantCloseTakeCollateral(address(bookkeeper));
-        new UniV3HoldFactory(address(bookkeeper));
+        // new UniV3HoldFactory(address(bookkeeper));
         new WalletFactory(address(bookkeeper));
         new StandardAssessor();
-        new StaticUsdcPriceOracle();
-        new UniswapV3Oracle();
+        new StaticPriceOracle();
+        // new UniswapV3Oracle();
 
         vm.stopBroadcast();
     }
