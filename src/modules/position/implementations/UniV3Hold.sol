@@ -73,7 +73,7 @@ contract UniV3HoldFactory is Position {
     //      Also, setting them here prevents a position creator from setting them in a hostile fashion.
     uint32 private constant TWAP_TIME = 300; // https://oracle.euler.finance
     uint256 private constant DEADLINE_OFFSET = 180;
-    uint256 private constant STEP_SLIPPAGE_RATIO = C.RATIO_FACTOR / 1000; // 0.5% slippage
+    uint256 private constant STEP_SLIPPAGE_RATIO = C.RATIO_FACTOR / 200; // 0.5% slippage
 
     // Position state
     uint256 private amountHeld;
