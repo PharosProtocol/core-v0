@@ -7,23 +7,29 @@ import {Asset} from "src/libraries/LibUtils.sol";
 /**
  * Oracles are used to assess the value of assets.
  * Each Type of an Oracle is permissionlessly deployed as an independent contract and represents one computation
- * method for valuing assets. Each instance of an Oracle Type is defined by an arbitrary set of parameters.
+ * method for valuing assets. Each instance of an Oracle Type is defined by an arbitrary set of parameters and
+ * values a single type of asset, defined by the parameters.
  * Each Oracle Type implementation must implement the functionality of the standard Oracle Interface defined here.
  * Implementations may also offer additional non-essential functionality beyond the standard interface.
  */
 
+// NOTE use ETH as reference asset. but doesn't have to be ETH.
+
 interface IOracle {
-    /// @notice returns the USD value of an asset.
+    /// @notice manipulation-resistant approximate ETH value of an amount of an asset. Used to determine fill terms.
+    function getResistantValue(uint256 amount, bytes calldata parameters) external view returns (uint256 ethAmount);
+
+    /// @notice instantaneous ETH value of an amount of an asset. Used to determine liquidations.
     /// @dev reverts if asset not compatible with parameters.
-    function getValue(Asset calldata asset, uint256 amount, bytes calldata parameters)
-        external
-        view
-        returns (uint256);
-    /// @notice returns the amount of asset equivalent to the given USD value.
+    function getSpotValue(uint256 amount, bytes calldata parameters) external view returns (uint256 ethAmount);
+
+    /// @notice instantaneous amount of an asset equivalent to given eth amount.
     /// @dev reverts if asset not compatible with parameters.
-    function getAmount(Asset calldata asset, uint256 value, bytes calldata parameters)
-        external
-        view
-        returns (uint256);
+    function getResistantAmount(uint256 ethAmount, bytes calldata parameters) external view returns (uint256);
+
     function canHandleAsset(Asset calldata asset, bytes calldata parameters) external view returns (bool);
+
+    // // NOTE
+    // // Is it possible to use arbitrary reference asset, as long as both oracles have the same reference asset?
+    // function referenceAsset(bytes calldata parameters) external view returns (Asset memory asset);
 }
