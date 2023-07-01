@@ -2,6 +2,7 @@
 
 pragma solidity 0.8.19;
 
+import {C} from "src/libraries/C.sol";
 import {Oracle} from "../Oracle.sol";
 import {Asset} from "src/libraries/LibUtils.sol";
 
@@ -10,26 +11,30 @@ import {Asset} from "src/libraries/LibUtils.sol";
  * Its computation will differ for each set of parameters provided.
  * Modulus will interact directly with the clone using only the standard functions.
  */
-contract StaticUsdcPriceOracle is Oracle {
+contract StaticPriceOracle is Oracle {
     struct Parameters {
-        uint256 value; // decimals = 6
-        uint256 decimals;
+        uint256 ratio; // amount of token / 1e18 eth
     }
 
-    /// @dev ignore amount parameter
-    function getValue(Asset calldata, uint256 amount, bytes calldata parameters) external pure returns (uint256) {
-        Parameters memory params = abi.decode(parameters, (Parameters));
-        // require(asset.addr == params.valueAsset);
-        return amount * params.value / (10 ** params.decimals); // rounding?
+    function getResistantValue(uint256 amount, bytes calldata parameters) external pure returns (uint256) {
+        return _value(amount, parameters);
     }
 
-    function getAmount(Asset calldata, uint256 value, bytes calldata parameters) external pure returns (uint256) {
+    function getSpotValue(uint256 amount, bytes calldata parameters) external pure returns (uint256) {
+        return _value(amount, parameters);
+    }
+
+    function getResistantAmount(uint256 ethAmount, bytes calldata parameters) external pure returns (uint256) {
         Parameters memory params = abi.decode(parameters, (Parameters));
-        // require(asset.addr == params.valueAsset, "StaticPriceOracle: asset mismatch");
-        return value * (10 ** params.decimals) / params.value; // rounding?
+        return ethAmount * params.ratio / (10 ** C.ETH_DECIMALS); // AUDIT rounding?
     }
 
     function canHandleAsset(Asset calldata, bytes calldata) external pure override returns (bool) {
         return true;
+    }
+
+    function _value(uint256 amount, bytes calldata parameters) private pure returns (uint256) {
+        Parameters memory params = abi.decode(parameters, (Parameters));
+        return amount * (10 ** C.ETH_DECIMALS) / params.ratio; // AUDIT rounding?
     }
 }
