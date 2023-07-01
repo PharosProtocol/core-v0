@@ -25,7 +25,7 @@ import {IOracle} from "src/interfaces/IOracle.sol";
 import {StandardAssessor} from "src/modules/assessor/implementations/StandardAssessor.sol";
 import {InstantCloseTakeCollateral} from "src/modules/liquidator/implementations/InstantCloseTakeCollateral.sol";
 import {UniswapV3Oracle} from "src/modules/oracle/implementations/UniswapV3Oracle.sol";
-import {StaticUsdcPriceOracle} from "src/modules/oracle/implementations/StaticValue.sol";
+import {StaticPriceOracle} from "src/modules/oracle/implementations/StaticValue.sol";
 import {UniV3HoldFactory} from "src/modules/position/implementations/UniV3Hold.sol";
 import {WalletFactory} from "src/modules/position/implementations/Wallet.sol";
 
@@ -42,7 +42,7 @@ contract EndToEndTest is TestUtils {
     IAssessor public assessorModule;
     ILiquidator public liquidatorModule;
     IOracle public uniOracleModule;
-    IOracle public staticUsdcPriceOracle;
+    IOracle public staticPriceOracle;
     IPosition public uniV3HoldFactory;
     IPosition public walletFactory;
 
@@ -55,8 +55,8 @@ contract EndToEndTest is TestUtils {
     address SHIB = 0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE; // WETH:SHIB 0.3% pool 0x2F62f2B4c5fcd7570a709DeC05D68EA19c82A9ec
 
     // Asset ETH_ASSET = Asset({standard: ETH_STANDARD, addr: address(0), id: 0, data: ""});
-    Asset WETH_ASSET = Asset({standard: ERC20_STANDARD, addr: C.WETH, id: 0, data: ""});
-    Asset USDC_ASSET = Asset({standard: ERC20_STANDARD, addr: C.USDC, id: 0, data: ""});
+    Asset WETH_ASSET = Asset({standard: ERC20_STANDARD, addr: C.WETH, decimals: 18, id: 0, data: ""});
+    Asset USDC_ASSET = Asset({standard: ERC20_STANDARD, addr: C.USDC, decimals: C.USDC_DECIMALS, id: 0, data: ""});
 
     uint256 LENDER_PRIVATE_KEY = 111;
     uint256 BORROWER_PRIVATE_KEY = 222;
@@ -70,9 +70,9 @@ contract EndToEndTest is TestUtils {
 
     function setUp() public {
         vm.recordLogs();
-        // vm.createSelectFork(vm.rpcUrl("mainnet"), 17186176);
+        vm.createSelectFork(vm.rpcUrl("mainnet"), 17186176);
         // vm.createSelectFork(vm.rpcUrl("goerli"), ); // NOTE ensure this is more recent than deployments.
-        vm.createSelectFork(vm.rpcUrl("sepolia"), 3784874); // NOTE ensure this is more recent than deployments.
+        // vm.createSelectFork(vm.rpcUrl("sepolia"), 3784874); // NOTE ensure this is more recent than deployments.
 
         USDC_DECIMALS = 6;
         // USDC_DECIMALS = 18;
@@ -82,7 +82,7 @@ contract EndToEndTest is TestUtils {
         accountModule = IAccount(address(new SoloAccount(address(bookkeeper))));
         assessorModule = IAssessor(address(new StandardAssessor()));
         liquidatorModule = ILiquidator(address(new InstantCloseTakeCollateral(address(bookkeeper))));
-        staticUsdcPriceOracle = IOracle(address(new StaticUsdcPriceOracle()));
+        staticPriceOracle = IOracle(address(new StaticPriceOracle()));
         walletFactory = IPosition(address(new WalletFactory(address(bookkeeper))));
         // uniOracleModule = IOracle(address(new UniswapV3Oracle()));
         // uniV3HoldFactory = IPosition(address(new UniV3HoldFactory(address(bookkeeper))));
@@ -92,7 +92,7 @@ contract EndToEndTest is TestUtils {
         // accountModule = IAccount();
         // assessorModule = IAssessor();
         // liquidatorModule = ILiquidator();
-        // staticUsdcPriceOracle = IOracle(); // static price
+        // staticPriceOracle = IOracle(); // static price
         // walletFactory = IPosition();
         // uniOracleModule = IOracle(); // static prices
         // uniV3HoldFactory = IPosition();
@@ -275,43 +275,44 @@ contract EndToEndTest is TestUtils {
         loanAssets[0] = WETH_ASSET;
         Asset[] memory collAssets = new Asset[](1);
         collAssets[0] = USDC_ASSET;
-        ModuleReference[] memory loanOracles = new ModuleReference[](4);
+        ModuleReference[] memory loanOracles = new ModuleReference[](1);
         // loanOracles[0] = ModuleReference({
         //     addr: address(uniOracleModule),
         //     parameters: abi.encode(
         //         UniswapV3Oracle.Parameters({
-        //             pathFromUsd: abi.encodePacked(C.USDC, uint24(500), C.WETH),
-        //             pathToUsd: abi.encodePacked(C.WETH, uint24(500), C.USDC),
-        //             stepSlippageRatio: C.RATIO_FACTOR / 1000,
+        //             pathFromEth: abi.encodePacked(C.USDC, uint24(500), C.WETH),
+        //             pathToEth: abi.encodePacked(C.WETH, uint24(500), C.USDC),
         //             twapTime: 300
         //         })
         //         )
         // });
         loanOracles[0] = ModuleReference({
-            addr: address(staticUsdcPriceOracle),
-            parameters: abi.encode(StaticUsdcPriceOracle.Parameters({value: 2000 * (10 ** USDC_DECIMALS), decimals: 18}))
+            addr: address(staticPriceOracle),
+            parameters: abi.encode(StaticPriceOracle.Parameters({ratio: 1 * (10 ** C.ETH_DECIMALS)}))
         });
         console.log(
-            "usd value of 4 eth: %s", staticUsdcPriceOracle.getValue(loanAssets[0], 4e18, loanOracles[0].parameters)
+            "eth value of 1000 eth: %s",
+            staticPriceOracle.getSpotValue(1000 * (10 ** C.ETH_DECIMALS), loanOracles[0].parameters)
         );
         console.log(
-            "eth amount for $6000: %s",
-            IOracle(loanOracles[0].addr).getAmount(loanAssets[0], 6000e18, loanOracles[0].parameters)
+            "eth amount for 60 eth: %s",
+            IOracle(loanOracles[0].addr).getResistantAmount(60 * (10 ** C.ETH_DECIMALS), loanOracles[0].parameters)
         );
+
         ModuleReference[] memory collateralOracles = new ModuleReference[](1);
         collateralOracles[0] = ModuleReference({
-            addr: address(staticUsdcPriceOracle),
-            parameters: abi.encode(
-                StaticUsdcPriceOracle.Parameters({value: 1 * (10 ** USDC_DECIMALS), decimals: USDC_DECIMALS})
-                )
+            addr: address(staticPriceOracle),
+            parameters: abi.encode(StaticPriceOracle.Parameters({ratio: 2000 * (10 ** USDC_DECIMALS)}))
         });
         console.log(
-            "usd value of 4 usdc: %s",
-            staticUsdcPriceOracle.getValue(loanAssets[0], 4e18, collateralOracles[0].parameters)
+            "eth value of 1000 usdc: %s",
+            staticPriceOracle.getSpotValue(1000 * (10 ** USDC_DECIMALS), collateralOracles[0].parameters)
         );
         console.log(
-            "usdc amount for $6000: %s",
-            IOracle(loanOracles[0].addr).getAmount(loanAssets[0], 6000e18, collateralOracles[0].parameters)
+            "usdc amount for 60 eth: %s",
+            IOracle(loanOracles[0].addr).getResistantAmount(
+                60 * (10 ** C.ETH_DECIMALS), collateralOracles[0].parameters
+            )
         );
         address[] memory factories = new address[](1);
         // factories[0] = address(uniV3HoldFactory);

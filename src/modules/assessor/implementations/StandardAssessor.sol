@@ -20,7 +20,8 @@ contract StandardAssessor is Assessor {
         uint256 profitShareRatio;
     }
 
-    /// @notice Return the cost of a loan, quantified in the Loan Asset.
+    /// @notice Return the cost of a loan, quantified in the Loan Asset. This simplifies compatibility matrix.
+    // NOTE this will not be compatible if borrowing a non-divisible asset.
     function getCost(Agreement calldata agreement, uint256 currentAmount) external view override returns (uint256) {
         Parameters memory params = abi.decode(agreement.assessor.parameters, (Parameters));
         uint256 originationFee = agreement.loanAmount * params.originationFeeRatio / C.RATIO_FACTOR;

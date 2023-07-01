@@ -26,12 +26,12 @@ contract InstantCloseTakeValueRatio is InstantErc20 {
 
     function getRewardCollAmount(Agreement memory agreement) public view override returns (uint256 rewardCollAmount) {
         Parameters memory params = abi.decode(agreement.liquidator.parameters, (Parameters));
-        uint256 loanValue = IOracle(agreement.loanOracle.addr).getValue(
-            agreement.loanAsset, agreement.loanAmount, agreement.loanOracle.parameters
+        uint256 loanValue = IOracle(agreement.loanOracle.addr).getResistantValue(
+            agreement.loanAmount, agreement.loanOracle.parameters
         );
         uint256 rewardValue = loanValue * params.loanValueRatio / C.RATIO_FACTOR;
-        return IOracle(agreement.collateralOracle.addr).getAmount(
-            agreement.loanAsset, rewardValue, agreement.collateralOracle.parameters
+        return IOracle(agreement.collateralOracle.addr).getResistantAmount(
+            rewardValue, agreement.collateralOracle.parameters
         );
     }
 }

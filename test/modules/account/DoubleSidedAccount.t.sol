@@ -27,8 +27,8 @@ contract AccountTest is TestUtils {
 
     constructor() {
         // ASSETS.push(Asset({standard: ETH_STANDARD, addr: address(0), id: 0, data: ""})); // Tests expect 0 index to be ETH
-        ASSETS.push(Asset({standard: ERC20_STANDARD, addr: C.WETH, id: 0, data: ""})); // Tests expect 0 index to be WETH
-        ASSETS.push(Asset({standard: ERC20_STANDARD, addr: C.USDC, id: 0, data: ""})); // Tests expect 1 index to be an ERC20
+        ASSETS.push(Asset({standard: ERC20_STANDARD, addr: C.WETH, decimals: 18, id: 0, data: ""})); // Tests expect 0 index to be WETH
+        ASSETS.push(Asset({standard: ERC20_STANDARD, addr: C.USDC, decimals: C.USDC_DECIMALS, id: 0, data: ""})); // Tests expect 1 index to be an ERC20
     }
 
     // invoked before each test case is run
@@ -124,14 +124,14 @@ contract AccountTest is TestUtils {
         assertEq(accountModule.getBalance(ASSETS[1], parameters), 0);
 
         // Revert because account empty.
-        vm.expectRevert(stdError.arithmeticError);
+        vm.expectRevert("_unloadToUser: balance too low");
         accountModule.unloadToUser(ASSETS[0], 1, parameters);
-        vm.expectRevert(stdError.arithmeticError);
+        vm.expectRevert("_unloadToUser: balance too low");
         accountModule.unloadToUser(ASSETS[1], 1, parameters);
 
         // Revert because non-owned account.
         vm.stopPrank();
-        vm.prank(address(123)); // random addr
+        vm.prank(address(0)); // non msg.sender address
         vm.expectRevert("unload: not owner");
         accountModule.unloadToUser(ASSETS[0], 1, parameters);
     }
@@ -145,8 +145,8 @@ contract Handler is Test, HandlerUtils {
     // uint256[] public assetsOut;
 
     constructor() {
-        ASSETS.push(Asset({standard: ETH_STANDARD, addr: address(0), id: 0, data: ""}));
-        ASSETS.push(Asset({standard: ERC20_STANDARD, addr: C.USDC, id: 0, data: ""}));
+        ASSETS.push(Asset({standard: ETH_STANDARD, decimals: 18, addr: address(0), id: 0, data: ""}));
+        ASSETS.push(Asset({standard: ERC20_STANDARD, decimals: C.USDC_DECIMALS, addr: C.USDC, id: 0, data: ""}));
         assetBalances = new uint256[](ASSETS.length);
         accountModule = new SoloAccount(address(1));
     }
@@ -230,7 +230,7 @@ contract InvariantAccountTest is Test {
 
     function invariant_ExpectedCumulativeBalances() public {
         for (uint256 j; j < handler.assetsLength(); j++) {
-            (bytes3 standard, address addr,,) = handler.ASSETS(j);
+            (bytes3 standard, address addr,,,) = handler.ASSETS(j);
             if (standard == ETH_STANDARD) {
                 assertEq(address(handler.accountModule()).balance, handler.assetBalances(j));
             } else if (standard == ERC20_STANDARD) {

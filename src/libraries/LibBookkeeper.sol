@@ -104,11 +104,11 @@ library LibBookkeeper {
         }
         uint256 adjustedPositionAmount = exitAmount - cost;
         uint256 collateralRatio = C.RATIO_FACTOR
-            * IOracle(agreement.loanOracle.addr).getValue(
-                agreement.loanAsset, adjustedPositionAmount, agreement.loanOracle.parameters
+            * IOracle(agreement.loanOracle.addr).getSpotValue(
+                adjustedPositionAmount, agreement.loanOracle.parameters
             )
-            / IOracle(agreement.collateralOracle.addr).getValue(
-                agreement.loanAsset, agreement.collAmount, agreement.collateralOracle.parameters
+            / IOracle(agreement.collateralOracle.addr).getSpotValue(
+                agreement.collAmount, agreement.collateralOracle.parameters
             );
 
         if (collateralRatio < agreement.minCollateralRatio) {

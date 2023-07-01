@@ -23,10 +23,7 @@ contract HoldFactory is Position {
     // Position state
     uint256 private amountHeld;
 
-    constructor(address protocolAddr) Position(protocolAddr) {
-        // COMPATIBLE_LOAN_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
-        // COMPATIBLE_COLL_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
-    }
+    constructor(address protocolAddr) Position(protocolAddr) {}
 
     /// @notice Do nothing.
     /// @dev assumes assets have already been transferred to Position.

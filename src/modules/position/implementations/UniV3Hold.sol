@@ -73,7 +73,7 @@ contract UniV3HoldFactory is Position {
     //      Also, setting them here prevents a position creator from setting them in a hostile fashion.
     uint32 private constant TWAP_TIME = 300; // https://oracle.euler.finance
     uint256 private constant DEADLINE_OFFSET = 180;
-    uint256 private constant STEP_SLIPPAGE_RATIO = C.RATIO_FACTOR / 1000; // 0.1% slippage ?
+    uint256 private constant STEP_SLIPPAGE_RATIO = C.RATIO_FACTOR / 1000; // 0.5% slippage
 
     // Position state
     uint256 private amountHeld;
@@ -83,10 +83,7 @@ contract UniV3HoldFactory is Position {
 
     constructor(address protocolAddr) Position(protocolAddr) 
     // Component(compatibleLoanAssets, compatibleCollAssets)
-    {
-        // COMPATIBLE_LOAN_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
-        // COMPATIBLE_COLL_ASSETS.push(Asset({standard: ERC20_STANDARD, addr: address(0), id: 0, data: ""}));
-    }
+    {}
 
     function canHandleAsset(Asset calldata asset, bytes calldata parameters) external pure override returns (bool) {
         Parameters memory params = abi.decode(parameters, (Parameters));
