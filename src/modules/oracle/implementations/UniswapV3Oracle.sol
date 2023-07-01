@@ -12,10 +12,10 @@ import {BytesLib} from "lib/v3-periphery/contracts/libraries/BytesLib.sol";
 
 contract UniswapV3Oracle is Oracle {
     struct Parameters {
-        bytes pathFromUsd;
-        bytes pathToUsd;
-        uint256 stepSlippageRatio;
+        bytes pathFromEth;
+        bytes pathToEth;
         uint32 twapTime;
+        uint64 stepSlippage;
     }
 
     using Path for bytes;
@@ -23,40 +23,22 @@ contract UniswapV3Oracle is Oracle {
 
     constructor() {}
 
-    // uint256 private constant MAX_SLIPPAGE = C.RATIO_FACTOR / 10; // 10% slippage
-
-    /// @dev Does not account for slippage.
-    function getValue(Asset calldata asset, uint256 amount, bytes calldata parameters)
-        external
-        view
-        override
-        returns (uint256)
-    {
+    function getResistantValue(uint256 amount, bytes calldata parameters) external view returns (uint256 value) {
         Parameters memory params = abi.decode(parameters, (Parameters));
-        (address assetAddr,,) = params.pathToUsd.decodeFirstPool();
-        if (asset.standard == ETH_STANDARD) {
-            require(assetAddr == C.WETH, "Uniswap V3 Oracle: getValue eth asset mismatch");
-        } else {
-            require(asset.addr == assetAddr, "Uniswap V3 Oracle: getValue asset mismatch");
-        }
-        return LibUniswapV3.getPathTWAP(params.pathToUsd, amount, params.twapTime);
+        return LibUniswapV3.getPathTWAP(params.pathToEth, amount, params.twapTime)
+            * (C.RATIO_FACTOR - params.stepSlippage * params.pathToEth.numPools()) / C.RATIO_FACTOR;
     }
 
-    /// @dev value is amount of the accounting token.
-    function getAmount(Asset calldata asset, uint256 value, bytes calldata parameters)
-        external
-        view
-        override
-        returns (uint256)
-    {
+    function getSpotValue(uint256 amount, bytes calldata parameters) external view returns (uint256 value) {
         Parameters memory params = abi.decode(parameters, (Parameters));
-        (address assetAddr,,) = params.pathToUsd.decodeFirstPool();
-        if (asset.standard == ETH_STANDARD) {
-            require(assetAddr == C.WETH, "Uniswap V3 Oracle: getAmount eth asset mismatch");
-        } else {
-            require(asset.addr == assetAddr, "Uniswap V3 Oracle: getAmount asset mismatch");
-        }
-        return LibUniswapV3.getPathTWAP(params.pathFromUsd, value, params.twapTime);
+        return LibUniswapV3.getPathSpotPrice(params.pathToEth, amount)
+            * (C.RATIO_FACTOR - params.stepSlippage * params.pathToEth.numPools()) / C.RATIO_FACTOR;
+    }
+
+    function getResistantAmount(uint256 value, bytes calldata parameters) external view returns (uint256) {
+        Parameters memory params = abi.decode(parameters, (Parameters));
+        return LibUniswapV3.getPathTWAP(params.pathFromEth, value, params.twapTime)
+            * (C.RATIO_FACTOR - params.stepSlippage * params.pathFromEth.numPools()) / C.RATIO_FACTOR;
     }
 
     /// @notice verify that parameters are valid combination with this implementation. Users should be able to use
@@ -77,8 +59,8 @@ contract UniswapV3Oracle is Oracle {
             return false;
         }
 
-        if (assetAddr != params.pathToUsd.toAddress(0)) return false;
-        if (assetAddr != params.pathFromUsd.toAddress(params.pathFromUsd.length - 20)) return false;
+        if (assetAddr != params.pathToEth.toAddress(0)) return false;
+        if (assetAddr != params.pathFromEth.toAddress(params.pathFromEth.length - 20)) return false;
 
         return true;
     }

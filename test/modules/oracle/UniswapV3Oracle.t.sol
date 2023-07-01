@@ -2,40 +2,27 @@
 
 pragma solidity 0.8.19;
 
-/**
- * This is the standard set of tests used to verify an arbitrary Account implementation. It is not expected to be
- * comprehensive as each unique implementation will likely need its own unique tests.
- */
-
 import "forge-std/Test.sol";
 import {console} from "lib/forge-std/src/console.sol";
-import {HandlerUtils} from "test/TestUtils.sol";
-import {Module} from "src/modules/Module.sol";
 
+// import {FullMath} from "lib/v3-core/contracts/libraries/FullMath.sol";
 import "lib/v3-periphery/contracts/libraries/PoolAddress.sol";
 import {Path} from "lib/v3-periphery/contracts/libraries/path.sol";
-// import "lib/v3-core/contracts/UniswapV3Pool.sol";
-import {FullMath} from "lib/v3-core/contracts/libraries/FullMath.sol";
 
-// import {TestUtils} from "test/LibTestUtils.sol";
-
-import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-
-import "src/libraries/LibUtils.sol";
 import {C} from "src/libraries/C.sol";
+import {Module} from "src/modules/Module.sol";
 import {UniswapV3Oracle} from "src/modules/oracle/implementations/UniswapV3Oracle.sol";
 
 contract UniswapV3OracleTest is Test, Module {
     using Path for bytes;
 
     UniswapV3Oracle public oracleModule;
-    uint256 POOL_USDC_AT_BLOCK = 147_000_000e6;
-    uint256 POOL_WETH_AT_BLOCK = 80_000e18;
-    Asset WETH_ASSET = Asset({standard: ERC20_STANDARD, addr: address(C.WETH), decimals: 18, id: 0, data: ""});
 
     constructor() {}
 
     function POOL_INIT_CODE_HASH() external pure returns (bytes32) {
+        // Will fail if POOL_INIT_CODE_HASH does not match chain deployed pool creation bytecode hash.
+        // correct hash here: https://github.com/Uniswap/v3-sdk/issues/113
         return PoolAddress.POOL_INIT_CODE_HASH;
     }
 
@@ -54,13 +41,10 @@ contract UniswapV3OracleTest is Test, Module {
         UniswapV3Oracle.Parameters memory params = UniswapV3Oracle.Parameters({
             pathFromEth: abi.encodePacked(C.WETH, uint24(500), C.USDC), // addr, uint24, addr, uint24, addr ...
             pathToEth: abi.encodePacked(C.USDC, uint24(500), C.WETH),
-            twapTime: 300
+            twapTime: 300,
+            stepSlippage: uint64(C.RATIO_FACTOR / 200)
         });
         bytes memory parameters = abi.encode(params);
-
-        // Will fail if POOL_INIT_CODE_HASH does not match chain deployed pool creation bytecode hash.
-        // correct hash here: https://github.com/Uniswap/v3-sdk/issues/113
-        // oracleModule.verifyParameters(WETH_ASSET, parameters);
 
         // Nearest txn, but exact values are taken from running this code itself.
         // https://etherscan.io/tx/0xdbb4daef28e55f2d5f56de0aab299e5e488f13ba36313d38ab40914f99b63811
@@ -85,7 +69,8 @@ contract UniswapV3OracleTest is Test, Module {
         UniswapV3Oracle.Parameters memory params = UniswapV3Oracle.Parameters({
             pathFromEth: abi.encodePacked(C.WETH, uint24(500), C.USDC), // addr, uint24, addr, uint24, addr ...
             pathToEth: abi.encodePacked(C.USDC, uint24(500), C.WETH),
-            twapTime: 300
+            twapTime: 300,
+            stepSlippage: uint64(C.RATIO_FACTOR / 200)
         });
         bytes memory parameters = abi.encode(params);
 
@@ -93,11 +78,11 @@ contract UniswapV3OracleTest is Test, Module {
         uint256 spotValue = oracleModule.getSpotValue(baseAmount, parameters);
         uint256 newAmount = oracleModule.getResistantAmount(value, parameters);
 
-        uint256 expectedAmount = baseAmount * (C.RATIO_FACTOR - oracleModule.STEP_SLIPPAGE()) ** 2 / C.RATIO_FACTOR ** 2;
+        uint256 expectedAmount = baseAmount * (C.RATIO_FACTOR - params.stepSlippage) ** 2 / C.RATIO_FACTOR ** 2;
         // Matching rounding here is difficult. Uni internal rounding is different that Oracle application of slippage.
         // Use Uni math to match rounding. Fees are round up.
         // uint256 expectedAmount = FullMath.mulDivRoundingUp(
-        //     baseAmount, (C.RATIO_FACTOR - oracleModule.STEP_SLIPPAGE()) ** 2, C.RATIO_FACTOR ** 2
+        //     baseAmount, (C.RATIO_FACTOR - params.params.stepSlippage) ** 2, C.RATIO_FACTOR ** 2
         // );
 
         // AUDIT NOTE seems to no way to exctly match rounding.
