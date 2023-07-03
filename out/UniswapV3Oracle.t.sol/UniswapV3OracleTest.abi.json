@@ -434,6 +434,11 @@
                 "type": "address"
               },
               {
+                "internalType": "uint8",
+                "name": "decimals",
+                "type": "uint8"
+              },
+              {
                 "internalType": "uint256",
                 "name": "id",
                 "type": "uint256"
@@ -459,6 +464,11 @@
                 "internalType": "address",
                 "name": "addr",
                 "type": "address"
+              },
+              {
+                "internalType": "uint8",
+                "name": "decimals",
+                "type": "uint8"
               },
               {
                 "internalType": "uint256",
@@ -658,14 +668,14 @@
         "type": "uint256"
       }
     ],
-    "name": "testFuzz_GetCost",
+    "name": "testFuzz_UniV3Oracle",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
     "inputs": [],
-    "name": "testUnit",
+    "name": "test_UniV3Oracle",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

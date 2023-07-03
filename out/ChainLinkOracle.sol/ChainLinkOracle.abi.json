@@ -14,6 +14,11 @@
             "type": "address"
           },
           {
+            "internalType": "uint8",
+            "name": "decimals",
+            "type": "uint8"
+          },
+          {
             "internalType": "uint256",
             "name": "id",
             "type": "uint256"
@@ -48,35 +53,8 @@
   {
     "inputs": [
       {
-        "components": [
-          {
-            "internalType": "bytes3",
-            "name": "standard",
-            "type": "bytes3"
-          },
-          {
-            "internalType": "address",
-            "name": "addr",
-            "type": "address"
-          },
-          {
-            "internalType": "uint256",
-            "name": "id",
-            "type": "uint256"
-          },
-          {
-            "internalType": "bytes",
-            "name": "data",
-            "type": "bytes"
-          }
-        ],
-        "internalType": "struct Asset",
-        "name": "asset",
-        "type": "tuple"
-      },
-      {
         "internalType": "uint256",
-        "name": "value",
+        "name": "ethAmount",
         "type": "uint256"
       },
       {
@@ -85,7 +63,7 @@
         "type": "bytes"
       }
     ],
-    "name": "getAmount",
+    "name": "getResistantAmount",
     "outputs": [
       {
         "internalType": "uint256",
@@ -99,32 +77,29 @@
   {
     "inputs": [
       {
-        "components": [
-          {
-            "internalType": "bytes3",
-            "name": "standard",
-            "type": "bytes3"
-          },
-          {
-            "internalType": "address",
-            "name": "addr",
-            "type": "address"
-          },
-          {
-            "internalType": "uint256",
-            "name": "id",
-            "type": "uint256"
-          },
-          {
-            "internalType": "bytes",
-            "name": "data",
-            "type": "bytes"
-          }
-        ],
-        "internalType": "struct Asset",
-        "name": "asset",
-        "type": "tuple"
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
       },
+      {
+        "internalType": "bytes",
+        "name": "parameters",
+        "type": "bytes"
+      }
+    ],
+    "name": "getResistantValue",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "ethAmount",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
       {
         "internalType": "uint256",
         "name": "amount",
@@ -136,11 +111,11 @@
         "type": "bytes"
       }
     ],
-    "name": "getValue",
+    "name": "getSpotValue",
     "outputs": [
       {
         "internalType": "uint256",
-        "name": "",
+        "name": "ethAmount",
         "type": "uint256"
       }
     ],
@@ -174,6 +149,11 @@
                 "type": "address"
               },
               {
+                "internalType": "uint8",
+                "name": "decimals",
+                "type": "uint8"
+              },
+              {
                 "internalType": "uint256",
                 "name": "id",
                 "type": "uint256"
@@ -199,6 +179,11 @@
                 "internalType": "address",
                 "name": "addr",
                 "type": "address"
+              },
+              {
+                "internalType": "uint8",
+                "name": "decimals",
+                "type": "uint8"
               },
               {
                 "internalType": "uint256",

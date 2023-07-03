@@ -14,6 +14,11 @@
             "type": "address"
           },
           {
+            "internalType": "uint8",
+            "name": "decimals",
+            "type": "uint8"
+          },
+          {
             "internalType": "uint256",
             "name": "id",
             "type": "uint256"
@@ -58,6 +63,11 @@
             "internalType": "address",
             "name": "addr",
             "type": "address"
+          },
+          {
+            "internalType": "uint8",
+            "name": "decimals",
+            "type": "uint8"
           },
           {
             "internalType": "uint256",
@@ -125,6 +135,11 @@
             "type": "address"
           },
           {
+            "internalType": "uint8",
+            "name": "decimals",
+            "type": "uint8"
+          },
+          {
             "internalType": "uint256",
             "name": "id",
             "type": "uint256"
@@ -170,6 +185,11 @@
             "type": "address"
           },
           {
+            "internalType": "uint8",
+            "name": "decimals",
+            "type": "uint8"
+          },
+          {
             "internalType": "uint256",
             "name": "id",
             "type": "uint256"
@@ -213,6 +233,11 @@
             "internalType": "address",
             "name": "addr",
             "type": "address"
+          },
+          {
+            "internalType": "uint8",
+            "name": "decimals",
+            "type": "uint8"
           },
           {
             "internalType": "uint256",
@@ -265,6 +290,11 @@
             "type": "address"
           },
           {
+            "internalType": "uint8",
+            "name": "decimals",
+            "type": "uint8"
+          },
+          {
             "internalType": "uint256",
             "name": "id",
             "type": "uint256"
@@ -315,6 +345,11 @@
             "type": "address"
           },
           {
+            "internalType": "uint8",
+            "name": "decimals",
+            "type": "uint8"
+          },
+          {
             "internalType": "uint256",
             "name": "id",
             "type": "uint256"
@@ -358,6 +393,11 @@
             "internalType": "address",
             "name": "addr",
             "type": "address"
+          },
+          {
+            "internalType": "uint8",
+            "name": "decimals",
+            "type": "uint8"
           },
           {
             "internalType": "uint256",
