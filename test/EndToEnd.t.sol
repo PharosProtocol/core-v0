@@ -48,9 +48,7 @@ contract EndToEndTest is TestUtils {
 
     // Mirrors OZ EIP712 impl.
     bytes32 SIG_DOMAIN_SEPARATOR;
-
-    uint256 USDC_DECIMALS;
-
+    
     address PEPE = 0x6982508145454Ce325dDbE47a25d4ec3d2311933; // cardinality too low and i don't want to pay
     address SHIB = 0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE; // WETH:SHIB 0.3% pool 0x2F62f2B4c5fcd7570a709DeC05D68EA19c82A9ec
 
@@ -70,12 +68,9 @@ contract EndToEndTest is TestUtils {
 
     function setUp() public {
         vm.recordLogs();
-        vm.createSelectFork(vm.rpcUrl("mainnet"), 17186176);
+        // vm.createSelectFork(vm.rpcUrl("mainnet"), 17186176);
         // vm.createSelectFork(vm.rpcUrl("goerli"), ); // NOTE ensure this is more recent than deployments.
-        // vm.createSelectFork(vm.rpcUrl("sepolia"), 3784874); // NOTE ensure this is more recent than deployments.
-
-        USDC_DECIMALS = 6;
-        // USDC_DECIMALS = 18;
+        vm.createSelectFork(vm.rpcUrl("sepolia"), 3784874); // NOTE ensure this is more recent than deployments.
 
         // // For local deploy of contracts latest local changes.
         bookkeeper = IBookkeeper(address(new Bookkeeper()));
@@ -111,7 +106,9 @@ contract EndToEndTest is TestUtils {
         fundAccount(borrowerAccountParams);
 
         assertEq(accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 10e18);
-        assertEq(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000 * (10 ** USDC_DECIMALS));
+        assertEq(
+            accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000 * (10 ** C.USDC_DECIMALS)
+        );
 
         Order memory order = createOrder(lenderAccountParams);
         bytes memory packedData;
@@ -135,7 +132,9 @@ contract EndToEndTest is TestUtils {
         bookkeeper.fillOrder(fill, orderSignedBlueprint);
 
         assertEq(accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 8e18);
-        assertLt(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000 * (10 ** USDC_DECIMALS));
+        assertLt(
+            accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000 * (10 ** C.USDC_DECIMALS)
+        );
         assertGt(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 0);
 
         (SignedBlueprint memory agreementSignedBlueprint, Agreement memory agreement) = retrieveAgreementFromLogs();
@@ -151,9 +150,9 @@ contract EndToEndTest is TestUtils {
 
         // Approve position to use funds to fulfil obligation to lender. Borrower loses money :(
         wethDeal(borrower, 12e18);
-        deal(USDC_ASSET.addr, borrower, 5_000 * (10 ** USDC_DECIMALS), true);
+        deal(USDC_ASSET.addr, borrower, 5_000 * (10 ** C.USDC_DECIMALS), true);
         vm.prank(borrower);
-        IERC20(C.USDC).approve(agreement.position.addr, 5_000 * (10 ** USDC_DECIMALS));
+        IERC20(C.USDC).approve(agreement.position.addr, 5_000 * (10 ** C.USDC_DECIMALS));
         vm.prank(borrower);
         IERC20(C.WETH).approve(agreement.position.addr, 12e18);
         vm.prank(borrower);
@@ -164,7 +163,7 @@ contract EndToEndTest is TestUtils {
         );
         assertEq(
             accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
-            5000 * (10 ** USDC_DECIMALS),
+            5000 * (10 ** C.USDC_DECIMALS),
             "borrow act funds missing"
         );
 
@@ -185,7 +184,9 @@ contract EndToEndTest is TestUtils {
         fundAccount(borrowerAccountParams);
 
         assertEq(accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 10e18);
-        assertEq(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000 * (10 ** USDC_DECIMALS));
+        assertEq(
+            accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000 * (10 ** C.USDC_DECIMALS)
+        );
 
         Order memory order = createOrder(lenderAccountParams);
         Blueprint memory orderBlueprint = Blueprint({
@@ -205,7 +206,9 @@ contract EndToEndTest is TestUtils {
         bookkeeper.fillOrder(fill, orderSignedBlueprint);
 
         assertEq(accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 8e18);
-        assertLt(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000 * (10 ** USDC_DECIMALS));
+        assertLt(
+            accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000 * (10 ** C.USDC_DECIMALS)
+        );
         assertGt(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 0);
 
         (SignedBlueprint memory agreementSignedBlueprint, Agreement memory agreement) = retrieveAgreementFromLogs();
@@ -222,9 +225,9 @@ contract EndToEndTest is TestUtils {
         // Approve position to use funds to fulfil obligation to lender. Borrower loses money :(
         vm.deal(liquidator, 2e18);
         wethDeal(liquidator, 12e18);
-        // deal(USDC_ASSET.addr, liquidator, 5_000 * (10 ** USDC_DECIMALS), true);
+        // deal(USDC_ASSET.addr, liquidator, 5_000 * (10 ** C.USDC_DECIMALS), true);
         // vm.prank(liquidator);
-        // IERC20(C.USDC).approve(address(liquidatorModule), 5_000 * (10 ** USDC_DECIMALS));
+        // IERC20(C.USDC).approve(address(liquidatorModule), 5_000 * (10 ** C.USDC_DECIMALS));
         // NOTE that the liquidator has to approve the position to spend their assets. meaning liquidators likely will not be willing to liquidate unverified positions.
         vm.prank(liquidator);
         IERC20(C.WETH).approve(address(agreement.position.addr), 12e18); // exact amount determined from prev runs
@@ -232,7 +235,9 @@ contract EndToEndTest is TestUtils {
         bookkeeper.kick(agreementSignedBlueprint);
 
         assertGe(accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 10e18);
-        assertLt(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000 * (10 ** USDC_DECIMALS));
+        assertLt(
+            accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000 * (10 ** C.USDC_DECIMALS)
+        );
         assertGt(IERC20(USDC_ASSET.addr).balanceOf(liquidator), 0);
 
         console.log("done");
@@ -241,13 +246,13 @@ contract EndToEndTest is TestUtils {
     function fundAccount(SoloAccount.Parameters memory accountParams) private {
         vm.deal(accountParams.owner, 2e18);
         wethDeal(accountParams.owner, 12e18);
-        deal(USDC_ASSET.addr, accountParams.owner, 5_000 * (10 ** USDC_DECIMALS), true);
+        deal(USDC_ASSET.addr, accountParams.owner, 5_000 * (10 ** C.USDC_DECIMALS), true);
 
         vm.startPrank(accountParams.owner);
         IERC20(C.WETH).approve(address(accountModule), 10e18);
         accountModule.loadFromUser(WETH_ASSET, 10e18, abi.encode(accountParams));
-        IERC20(C.USDC).approve(address(accountModule), 5_000 * (10 ** USDC_DECIMALS));
-        accountModule.loadFromUser(USDC_ASSET, 5_000 * (10 ** USDC_DECIMALS), abi.encode(accountParams));
+        IERC20(C.USDC).approve(address(accountModule), 5_000 * (10 ** C.USDC_DECIMALS));
+        accountModule.loadFromUser(USDC_ASSET, 5_000 * (10 ** C.USDC_DECIMALS), abi.encode(accountParams));
         vm.stopPrank();
     }
 
@@ -270,7 +275,7 @@ contract EndToEndTest is TestUtils {
         address[] memory takers = new address[](0);
         uint256[] memory minLoanAmounts = new uint256[](2);
         minLoanAmounts[0] = 1e18;
-        minLoanAmounts[1] = 1000 * (10 ** USDC_DECIMALS);
+        minLoanAmounts[1] = 1000 * (10 ** C.USDC_DECIMALS);
         Asset[] memory loanAssets = new Asset[](1);
         loanAssets[0] = WETH_ASSET;
         Asset[] memory collAssets = new Asset[](1);
@@ -302,11 +307,11 @@ contract EndToEndTest is TestUtils {
         ModuleReference[] memory collateralOracles = new ModuleReference[](1);
         collateralOracles[0] = ModuleReference({
             addr: address(staticPriceOracle),
-            parameters: abi.encode(StaticPriceOracle.Parameters({ratio: 2000 * (10 ** USDC_DECIMALS)}))
+            parameters: abi.encode(StaticPriceOracle.Parameters({ratio: 2000 * (10 ** C.USDC_DECIMALS)}))
         });
         console.log(
             "eth value of 1000 usdc: %s",
-            staticPriceOracle.getSpotValue(1000 * (10 ** USDC_DECIMALS), collateralOracles[0].parameters)
+            staticPriceOracle.getSpotValue(1000 * (10 ** C.USDC_DECIMALS), collateralOracles[0].parameters)
         );
         console.log(
             "usdc amount for 60 eth: %s",

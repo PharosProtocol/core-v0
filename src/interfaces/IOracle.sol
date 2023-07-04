@@ -16,14 +16,14 @@ import {Asset} from "src/libraries/LibUtils.sol";
 // NOTE use ETH as reference asset. but doesn't have to be ETH.
 
 interface IOracle {
-    /// @notice manipulation-resistant approximate ETH value of an amount of an asset. Used to determine fill terms.
+    /// @notice manipulation-resistant approximate ETH amount of equivalent value. Used to determine fill terms.
     function getResistantValue(uint256 amount, bytes calldata parameters) external view returns (uint256 ethAmount);
 
-    /// @notice instantaneous ETH value of an amount of an asset. Used to determine liquidations.
+    /// @notice instantaneous ETH amount of equivalent value. Used to determine liquidations.
     /// @dev reverts if asset not compatible with parameters.
     function getSpotValue(uint256 amount, bytes calldata parameters) external view returns (uint256 ethAmount);
 
-    /// @notice instantaneous amount of an asset equivalent to given eth amount.
+    /// @notice instantaneous amount of asset equivalent to given eth amount.
     /// @dev reverts if asset not compatible with parameters.
     function getResistantAmount(uint256 ethAmount, bytes calldata parameters) external view returns (uint256);
 

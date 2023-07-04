@@ -13,7 +13,7 @@ import {Asset} from "src/libraries/LibUtils.sol";
  */
 contract StaticPriceOracle is Oracle {
     struct Parameters {
-        uint256 ratio; // amount of token / 1e18 eth
+        uint256 ratio; // amount of token / 1e18 wei
     }
 
     function getResistantValue(uint256 amount, bytes calldata parameters) external pure returns (uint256) {

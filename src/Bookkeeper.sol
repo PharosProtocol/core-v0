@@ -76,9 +76,8 @@ contract Bookkeeper is Tractor {
 
         Agreement memory agreement = agreementFromOrder(fill, order);
 
-        uint256 loanValue = IOracle(agreement.loanOracle.addr).getResistantValue(
-            agreement.loanAmount, agreement.loanOracle.parameters
-        );
+        uint256 loanValue =
+            IOracle(agreement.loanOracle.addr).getResistantValue(agreement.loanAmount, agreement.loanOracle.parameters);
         uint256 collateralValue;
 
         if (order.isOffer) {
@@ -240,5 +239,10 @@ contract Bookkeeper is Tractor {
         // NOTE: Security: Is is possible to intentionally manufacture a blueprint with different data that creates the same hash?
         signBlueprint(signedBlueprint.blueprintHash);
         // publishBlueprint(signedBlueprint); // These verifiable blueprints will be used to interact with positions.
+    }
+
+    // AUDIT what are the implications of deactivating the fallback function? Doing just for ease of use and testing.
+    fallback() external {
+        revert("Fallback function deactivated");
     }
 }
