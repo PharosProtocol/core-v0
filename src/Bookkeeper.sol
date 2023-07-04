@@ -38,8 +38,8 @@ contract Bookkeeper is Tractor {
         AGREEMENT
     }
 
-    string constant PROTOCOL_NAME = "pharos";
-    string constant PROTOCOL_VERSION = "1.0.0";
+    string public constant PROTOCOL_NAME = "pharos";
+    string public constant PROTOCOL_VERSION = "1.0.0";
 
     event OrderFilled(SignedBlueprint agreement, bytes32 orderBlueprintHash, address taker);
     event LiquidationKicked(address liquidator, address position);
@@ -207,26 +207,6 @@ contract Bookkeeper is Tractor {
 
         // Allow liquidator to react to kick.
         ILiquidator(agreement.liquidator.addr).receiveKick(msg.sender, agreement);
-    }
-
-    /// @notice sign and publish order on chain using EIP-1271 standard.
-    function signPublishOrder(Order calldata order, uint256 endTime) external {
-        require(
-            msg.sender == IAccount(order.account.addr).getOwner(order.account.parameters),
-            "Only account owner can publish associated order"
-        );
-        SignedBlueprint memory signedBlueprint;
-        signedBlueprint.blueprint = Blueprint({
-            publisher: msg.sender,
-            data: packDataField(bytes1(uint8(BlueprintDataType.ORDER)), abi.encode(order)),
-            maxNonce: type(uint256).max,
-            startTime: block.timestamp,
-            endTime: endTime
-        });
-        signedBlueprint.blueprintHash = getBlueprintHash(signedBlueprint.blueprint);
-        // signedBlueprint.signature = "";
-        signBlueprint(signedBlueprint.blueprintHash);
-        publishBlueprint(signedBlueprint);
     }
 
     function signAgreement(Agreement memory agreement) private returns (SignedBlueprint memory signedBlueprint) {

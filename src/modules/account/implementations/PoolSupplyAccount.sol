@@ -2,8 +2,12 @@
 
 pragma solidity 0.8.19;
 
+import {IERC1271} from "@openzeppelin/contracts/interfaces/IERC1271.sol";
+import {Blueprint, SignedBlueprint} from "lib/tractor/Tractor.sol";
+
 import {C} from "src/libraries/C.sol";
 import {IBookkeeper} from "src/interfaces/IBookkeeper.sol";
+import {Bookkeeper} from "src/bookkeeper.sol";
 import {Order} from "src/libraries/LibBookkeeper.sol";
 import {Asset, ERC20_STANDARD} from "src/libraries/LibUtils.sol";
 import {CloneFactory} from "src/modules/CloneFactory.sol";
@@ -47,16 +51,13 @@ import {LibUtilsPublic} from "src/libraries/LibUtilsPublic.sol";
 // IDEA improve math to enable full compounding of rewards.
 // IDEA Utilization could be shared between all assets in account, rather than per-asset.
 
-contract PoolSupplyAccount is Account {
+contract PoolSupplyAccount is Account, IERC1271 {
     struct Parameters {
         // bytes32 poolId; // A unique id for a pool.
         address user;
     }
 
-    // One order per pool account contract. One pool per address.
-    constructor(address bookkeeperAddr, Order memory order) Account(bookkeeperAddr) {
-        IBookkeeper(bookkeeperAddr).signPublishOrder(order, type(uint256).max);
-    }
+    mapping(bytes32 => bool) signedHashes;
 
     // Supply of pool can be (roughly) approximated as available + deployed. A reasonable order with reasonable assessor
     // will result in deployed always be equal or less than the amount that will be returned by closing positions. Thus
@@ -85,6 +86,25 @@ contract PoolSupplyAccount is Account {
     mapping(address => mapping(bytes32 => uint256)) private userContributions; // user => asset hash => balance
     mapping(address => mapping(bytes32 => uint256)) private userMarks; // user => asset hash => balance
     mapping(address => mapping(bytes32 => uint256)) userMarksLastUpdated;
+
+    // One order per pool account contract. One pool per address.
+    constructor(address bookkeeperAddr, Order[] memory orders) Account(bookkeeperAddr) {
+        IBookkeeper bookkeeper = IBookkeeper(bookkeeperAddr);
+        for (uint256 i; i < orders.length; i++) {
+            SignedBlueprint memory signedBlueprint;
+            signedBlueprint.blueprint = Blueprint({
+                publisher: address(this),
+                data: bookkeeper.packDataField(bytes1(uint8(Bookkeeper.BlueprintDataType.ORDER)), abi.encode(orders[i])),
+                maxNonce: type(uint256).max,
+                startTime: block.timestamp,
+                endTime: type(uint256).max
+            });
+            signedBlueprint.blueprintHash = bookkeeper.getBlueprintHash(signedBlueprint.blueprint);
+            signedBlueprint.signature = bytes("1");
+            signedHashes[signedBlueprint.blueprintHash] = true;
+            bookkeeper.publishBlueprint(signedBlueprint);
+        }
+    }
 
     /// @notice Get time weighted average utilization from startTime to now.
     function getTWAUtilization(Asset calldata asset, uint256 startTime, bytes calldata)
@@ -286,5 +306,11 @@ contract PoolSupplyAccount is Account {
         utilization = C.RATIO_FACTOR * deployed[assetHash] / (deployed[assetHash] + available[assetHash]);
 
         utilizationLastUpdated[assetHash] = block.timestamp;
+    }
+
+    // AUDIT  sanity check on this 1271 implementation. Particularly use of signature.
+    function isValidSignature(bytes32 hash, bytes memory signature) external view returns (bytes4 magicValue) {
+        if (keccak256(signature) == keccak256(bytes("1")) && signedHashes[hash]) return 0x1626ba7e;
+        return "";
     }
 }
