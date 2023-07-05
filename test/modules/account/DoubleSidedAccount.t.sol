@@ -14,7 +14,7 @@ import {TestUtils} from "test/TestUtils.sol";
 import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 import {C} from "src/libraries/C.sol";
-import {Asset, AssetStandard, ETH_STANDARD, ERC20_STANDARD} from "src/libraries/LibUtils.sol";
+import {Asset, ETH_STANDARD, ERC20_STANDARD} from "src/libraries/LibUtils.sol";
 import {SoloAccount} from "src/modules/account/implementations/SoloAccount.sol";
 
 contract AccountTest is TestUtils {
@@ -202,7 +202,7 @@ contract Handler is Test, HandlerUtils {
         return ASSETS[bound(assetIdx, 0, ASSETS.length - 1)];
     }
 
-    function assetsLength() external view returns (uint256) {
+    function ASSETSLength() external view returns (uint256) {
         return ASSETS.length;
     }
 }
@@ -229,7 +229,7 @@ contract InvariantAccountTest is Test {
     }
 
     function invariant_ExpectedCumulativeBalances() public {
-        for (uint256 j; j < handler.assetsLength(); j++) {
+        for (uint256 j; j < handler.ASSETSLength(); j++) {
             (bytes3 standard, address addr,,,) = handler.ASSETS(j);
             if (standard == ETH_STANDARD) {
                 assertEq(address(handler.accountModule()).balance, handler.assetBalances(j));

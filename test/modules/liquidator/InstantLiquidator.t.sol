@@ -111,12 +111,12 @@ contract InstantLiquidatorTest is TestUtils {
         agreement.position.addr = address(position);
 
         // Deal assets to position.
-        dealErc20(agreement.loanAsset.addr, address(position), positionAmount, true);
-        dealErc20(agreement.collAsset.addr, address(position), agreement.collAmount, true);
+        dealErc20(agreement.loanAsset.addr, address(position), positionAmount);
+        dealErc20(agreement.collAsset.addr, address(position), agreement.collAmount);
 
         // Deal excess cost to sender and approve position module to pull.
         if (loanAmount + cost > positionAmount) {
-            dealErc20(agreement.loanAsset.addr, msg.sender, loanAmount + cost - positionAmount, true);
+            dealErc20(agreement.loanAsset.addr, msg.sender, loanAmount + cost - positionAmount);
             vm.prank(msg.sender);
             IERC20(agreement.loanAsset.addr).approve(address(position), loanAmount + cost - positionAmount);
         }

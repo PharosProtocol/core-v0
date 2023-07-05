@@ -29,6 +29,13 @@ a Module of that Category. ? you can guarantee parity between different componen
 - Liquidator
 - Position
 
+### Module Parameters
+A module instance is defined by an address of a deployed Type implementation and a set of parameters. The parameters
+are encoded into the Order and Agreement as bytes and decoded inside of the module - only the module itself knows
+how to decode the parameters and can act on the encoded information. If data is needed externally it must be made
+accessible through callable functions. Every module Type will define its own parameter configuration inside of its
+contract. Parameter definitions are optional.
+
 ## Design Invariants
 - No module has any special access to Bookkeeper beyond what an EOA has. No module can compel Bookkeeper to move assets.
 - No module has any special access to other modules beyond what an EOA has. They cannot compel another module to move assets.

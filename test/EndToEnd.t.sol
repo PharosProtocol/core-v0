@@ -48,7 +48,7 @@ contract EndToEndTest is TestUtils {
 
     // Mirrors OZ EIP712 impl.
     bytes32 SIG_DOMAIN_SEPARATOR;
-    
+
     address PEPE = 0x6982508145454Ce325dDbE47a25d4ec3d2311933; // cardinality too low and i don't want to pay
     address SHIB = 0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE; // WETH:SHIB 0.3% pool 0x2F62f2B4c5fcd7570a709DeC05D68EA19c82A9ec
 
@@ -59,12 +59,13 @@ contract EndToEndTest is TestUtils {
     uint256 LENDER_PRIVATE_KEY = 111;
     uint256 BORROWER_PRIVATE_KEY = 222;
     uint256 LIQUIDATOR_PRIVATE_KEY = 333;
+    Asset[] ASSETS;
 
-    // Copy of event definitions.
-    event AssetAdded(address owner, bytes32 salt, Asset asset, uint256 amount);
-    event AssetRemoved(address owner, bytes32 salt, Asset asset, uint256 amount);
-
-    constructor() {}
+    constructor() {
+        // ASSETS.push(Asset({standard: ETH_STANDARD, addr: address(0), id: 0, data: ""})); // Tests expect 0 index to be ETH
+        ASSETS.push(Asset({standard: ERC20_STANDARD, addr: C.WETH, decimals: 18, id: 0, data: ""})); // Tests expect 0 index to be WETH
+        ASSETS.push(Asset({standard: ERC20_STANDARD, addr: C.USDC, decimals: C.USDC_DECIMALS, id: 0, data: ""})); // Tests expect 1 index to be an ERC20
+    }
 
     function setUp() public {
         vm.recordLogs();

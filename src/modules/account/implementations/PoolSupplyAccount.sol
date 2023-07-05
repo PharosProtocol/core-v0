@@ -216,11 +216,15 @@ contract PoolSupplyAccount is Account, IERC1271 {
     }
 
     /// @dev Not configured to handle borrowing (locked assets).
-    function _unloadToPosition(address position, Asset calldata asset, uint256 amount, bool, bytes calldata)
-        internal
-        override
-        onlyRole(C.BOOKKEEPER_ROLE)
-    {
+    function _unloadToPosition(
+        address position,
+        Asset calldata asset,
+        uint256 amount,
+        bool isLockedColl,
+        bytes calldata
+    ) internal override onlyRole(C.BOOKKEEPER_ROLE) {
+        require(isLockedColl == false, "PoolAccount: Not compatible with borrowing");
+
         bytes32 assetHash = keccak256(abi.encode(asset));
 
         available[assetHash] -= amount;

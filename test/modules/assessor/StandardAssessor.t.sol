@@ -18,7 +18,7 @@ import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.so
 import {IPosition} from "src/interfaces/IPosition.sol";
 import "src/libraries/LibUtils.sol";
 import {C} from "src/libraries/C.sol";
-import {Asset, AssetStandard, ETH_STANDARD, ERC20_STANDARD} from "src/libraries/LibUtils.sol";
+import {Asset, ETH_STANDARD, ERC20_STANDARD} from "src/libraries/LibUtils.sol";
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
 import {StandardAssessor} from "src/modules/assessor/implementations/StandardAssessor.sol";
 
