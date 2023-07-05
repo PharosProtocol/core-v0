@@ -92,9 +92,8 @@ contract Bookkeeper is Tractor {
             agreement.position.parameters = order.borrowerConfig.positionParameters;
         }
         console.log("agreement coll value: %s", collateralValue);
-        agreement.collAmount = IOracle(agreement.collateralOracle.addr).getResistantAmount(
-            collateralValue, agreement.collateralOracle.parameters
-        );
+        agreement.collAmount =
+            IOracle(agreement.collOracle.addr).getResistantAmount(collateralValue, agreement.collOracle.parameters);
         console.log("agreement coll amount: %s", agreement.collAmount);
         // Set Position data that cannot be computed off chain by caller.
         agreement.deploymentTime = block.timestamp;
@@ -148,7 +147,7 @@ contract Bookkeeper is Tractor {
         agreement.loanAsset = order.loanAssets[fill.loanAssetIdx];
         agreement.loanOracle = order.loanOracles[fill.loanOracleIdx];
         agreement.collAsset = order.collAssets[fill.collAssetIdx];
-        agreement.collateralOracle = order.collateralOracles[fill.collateralOracleIdx];
+        agreement.collOracle = order.collOracles[fill.collOracleIdx];
         // NOTE confusion here (and everywhere) on position address vs factory address. Naming fix?
         agreement.factory = order.factories[fill.factoryIdx];
         // agreement.position.addr = order.factories[fill.factoryIdx];
@@ -175,7 +174,28 @@ contract Bookkeeper is Tractor {
 
         // All asset management must be done within this call, else bk would need to have asset-specific knowledge.
         IPosition position = IPosition(agreement.position.addr);
-        position.close(msg.sender, agreement, true, agreement.position.parameters);
+        uint256 closedAmount = position.close(msg.sender, agreement);
+
+        (Asset memory costAsset, uint256 cost) = IAssessor(agreement.assessor.addr).getCost(agreement, closedAmount);
+
+        uint256 lenderOwed = agreement.loanAmount;
+        uint256 distributeValue;
+        // If cost asset is same erc20 as loan asset.
+        if (LibUtils.isValidLoanAssetAsCost(agreement.loanAsset, costAsset)) {
+            lenderOwed += cost;
+            distributeValue = msg.value;
+        } // If cost in eth but loan asset is not eth.
+        else if (costAsset.standard == ETH_STANDARD) {
+            require(msg.value == cost, "exitPosition: msg.value mismatch from Eth denoted cost");
+            IAccount(agreement.lenderAccount.addr).loadFromPosition{value: msg.value}(
+                costAsset, cost, agreement.lenderAccount.parameters
+            );
+        } else {
+            revert("exitPosition: isLiquidatable: invalid cost asset");
+        }
+        console.log("lender loan asset owed: %s", lenderOwed);
+
+        position.distribute{value: distributeValue}(msg.sender, lenderOwed, agreement);
 
         IAccount(agreement.borrowerAccount.addr).unlockCollateral(
             agreement.collAsset, agreement.collAmount, agreement.borrowerAccount.parameters

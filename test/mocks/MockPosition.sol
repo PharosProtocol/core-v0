@@ -2,10 +2,13 @@
 
 pragma solidity 0.8.19;
 
-import {Asset} from "src/libraries/LibUtils.sol";
+import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+
+import {Asset, ERC20_STANDARD, LibUtils} from "src/libraries/LibUtils.sol";
 import {LibUtilsPublic} from "src/libraries/LibUtilsPublic.sol";
 import {Position} from "src/modules/position/Position.sol";
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
+import {IAccount} from "src/interfaces/IAccount.sol";
 import {IAssessor} from "src/interfaces/IAssessor.sol";
 
 contract MockPosition is Position {
@@ -23,24 +26,48 @@ contract MockPosition is Position {
         return currentAmount;
     }
 
-    function _close(address sender, Agreement calldata agreement, bool distribute, bytes calldata)
+    function _close(address sender, Agreement calldata agreement)
         internal
+        view
         override
         returns (uint256 closedAmount)
     {
-        uint256 lenderOwed = agreement.loanAmount + IAssessor(agreement.assessor.addr).getCost(agreement, closedAmount);
+        (Asset memory costAsset,) = IAssessor(agreement.assessor.addr).getCost(agreement, closedAmount);
+        require(
+            LibUtils.isValidLoanAssetAsCost(agreement.loanAsset, costAsset),
+            "MockPosition, _close(): cost asset invalid"
+        );
 
-        if (lenderOwed > currentAmount) {
+        return currentAmount;
+    }
+
+    function _distribute(address sender, uint256 lenderAmount, Agreement calldata agreement) internal override {
+        IERC20 erc20 = IERC20(agreement.loanAsset.addr);
+        uint256 balance = erc20.balanceOf(address(this));
+
+        if (lenderAmount > balance) {
             // Lender is owed more than the position is worth.
             // Sender pays the difference.
             LibUtilsPublic.safeErc20TransferFrom(
-                agreement.loanAsset.addr, sender, address(this), lenderOwed - currentAmount
+                agreement.loanAsset.addr, sender, address(this), lenderAmount - balance
             );
+            balance += lenderAmount - balance;
         }
 
-        require(distribute == false, "MockPosition: distribute not supported");
+        if (lenderAmount > 0) {
+            erc20.approve(agreement.lenderAccount.addr, lenderAmount);
+            IAccount(agreement.lenderAccount.addr).loadFromPosition(
+                agreement.loanAsset, lenderAmount, agreement.lenderAccount.parameters
+            );
+            balance -= lenderAmount;
+        }
 
-        return currentAmount;
+        if (balance > 0) {
+            erc20.approve(agreement.borrowerAccount.addr, balance);
+            IAccount(agreement.borrowerAccount.addr).loadFromPosition(
+                agreement.loanAsset, balance, agreement.borrowerAccount.parameters
+            );
+        }
     }
 
     function canHandleAsset(Asset calldata, bytes calldata) external pure override returns (bool) {

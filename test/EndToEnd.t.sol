@@ -48,7 +48,7 @@ contract EndToEndTest is TestUtils {
 
     // Mirrors OZ EIP712 impl.
     bytes32 SIG_DOMAIN_SEPARATOR;
-    
+
     address PEPE = 0x6982508145454Ce325dDbE47a25d4ec3d2311933; // cardinality too low and i don't want to pay
     address SHIB = 0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE; // WETH:SHIB 0.3% pool 0x2F62f2B4c5fcd7570a709DeC05D68EA19c82A9ec
 
@@ -68,9 +68,9 @@ contract EndToEndTest is TestUtils {
 
     function setUp() public {
         vm.recordLogs();
-        // vm.createSelectFork(vm.rpcUrl("mainnet"), 17186176);
+        vm.createSelectFork(vm.rpcUrl("mainnet"), 17186176);
         // vm.createSelectFork(vm.rpcUrl("goerli"), ); // NOTE ensure this is more recent than deployments.
-        vm.createSelectFork(vm.rpcUrl("sepolia"), 3784874); // NOTE ensure this is more recent than deployments.
+        // vm.createSelectFork(vm.rpcUrl("sepolia"), 3784874); // NOTE ensure this is more recent than deployments.
 
         // // For local deploy of contracts latest local changes.
         bookkeeper = IBookkeeper(address(new Bookkeeper()));
@@ -214,8 +214,8 @@ contract EndToEndTest is TestUtils {
         (SignedBlueprint memory agreementSignedBlueprint, Agreement memory agreement) = retrieveAgreementFromLogs();
 
         // Move time and block forward arbitrarily.
-        vm.roll(block.number + (8 days / 12));
         vm.warp(block.timestamp + 8 days);
+        vm.roll(block.number + (8 days / 12));
 
         // Borrower exits position. Send cost in eth because on local fork no value of assets occurs but cost increases.
         // uint256 cost = IAssessor(agreement.assessor.addr).getCost(agreement);
@@ -260,17 +260,6 @@ contract EndToEndTest is TestUtils {
         // Set individual structs here for cleanliness and solidity ease.
         ModuleReference memory account =
             ModuleReference({addr: address(accountModule), parameters: abi.encode(accountParams)});
-        ModuleReference memory assessor = ModuleReference({
-            addr: address(assessorModule),
-            parameters: abi.encode(
-                StandardAssessor.Parameters({
-                    originationFeeRatio: C.RATIO_FACTOR / 100,
-                    interestRatio: C.RATIO_FACTOR / 1000000000,
-                    profitShareRatio: C.RATIO_FACTOR / 20
-                })
-                )
-        });
-        ModuleReference memory liquidator = ModuleReference({addr: address(liquidatorModule), parameters: ""});
         // Solidity array syntax is so bad D:
         address[] memory takers = new address[](0);
         uint256[] memory minLoanAmounts = new uint256[](2);
@@ -304,24 +293,35 @@ contract EndToEndTest is TestUtils {
             IOracle(loanOracles[0].addr).getResistantAmount(60 * (10 ** C.ETH_DECIMALS), loanOracles[0].parameters)
         );
 
-        ModuleReference[] memory collateralOracles = new ModuleReference[](1);
-        collateralOracles[0] = ModuleReference({
+        ModuleReference[] memory collOracles = new ModuleReference[](1);
+        collOracles[0] = ModuleReference({
             addr: address(staticPriceOracle),
             parameters: abi.encode(StaticPriceOracle.Parameters({ratio: 2000 * (10 ** C.USDC_DECIMALS)}))
         });
         console.log(
             "eth value of 1000 usdc: %s",
-            staticPriceOracle.getSpotValue(1000 * (10 ** C.USDC_DECIMALS), collateralOracles[0].parameters)
+            staticPriceOracle.getSpotValue(1000 * (10 ** C.USDC_DECIMALS), collOracles[0].parameters)
         );
         console.log(
             "usdc amount for 60 eth: %s",
-            IOracle(loanOracles[0].addr).getResistantAmount(
-                60 * (10 ** C.ETH_DECIMALS), collateralOracles[0].parameters
-            )
+            IOracle(loanOracles[0].addr).getResistantAmount(60 * (10 ** C.ETH_DECIMALS), collOracles[0].parameters)
         );
         address[] memory factories = new address[](1);
         // factories[0] = address(uniV3HoldFactory);
         factories[0] = address(walletFactory);
+
+        ModuleReference memory assessor = ModuleReference({
+            addr: address(assessorModule),
+            parameters: abi.encode(
+                StandardAssessor.Parameters({
+                    asset: loanAssets[0],
+                    originationFeeRatio: C.RATIO_FACTOR / 100,
+                    interestRatio: C.RATIO_FACTOR / 1000000000,
+                    profitShareRatio: C.RATIO_FACTOR / 20
+                })
+                )
+        });
+        ModuleReference memory liquidator = ModuleReference({addr: address(liquidatorModule), parameters: ""});
 
         // Lender creates an offer.
         return Order({
@@ -336,7 +336,7 @@ contract EndToEndTest is TestUtils {
             liquidator: liquidator,
             /* Allowlisted variables */
             loanOracles: loanOracles,
-            collateralOracles: collateralOracles,
+            collOracles: collOracles,
             // Lender would need to list parameters for all possible holdable tokens from all possible lent tokens. Instead just allow a whole factory.
             factories: factories,
             isOffer: true,
@@ -366,7 +366,7 @@ contract EndToEndTest is TestUtils {
             loanAssetIdx: 0,
             collAssetIdx: 0,
             loanOracleIdx: 0,
-            collateralOracleIdx: 0,
+            collOracleIdx: 0,
             factoryIdx: 0,
             isOfferFill: true,
             borrowerConfig: borrowerConfig

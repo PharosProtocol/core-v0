@@ -8,13 +8,20 @@ import {Assessor} from "src/modules/assessor/Assessor.sol";
 
 contract MockAssessor is Assessor {
     uint256 finalCost;
+    Asset instanceAsset;
 
-    constructor(uint256 cost) {
+    constructor(Asset memory asset, uint256 cost) {
+        instanceAsset = asset;
         finalCost = cost;
     }
 
-    function getCost(Agreement calldata, uint256) external view returns (uint256 amount) {
-        return finalCost;
+    function _getCost(Agreement calldata, uint256)
+        internal
+        view
+        override
+        returns (Asset memory asset, uint256 amount)
+    {
+        return (instanceAsset, finalCost);
     }
 
     function canHandleAsset(Asset calldata, bytes calldata) external pure returns (bool) {

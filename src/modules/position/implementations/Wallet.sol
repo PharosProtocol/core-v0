@@ -13,7 +13,7 @@ import {Agreement} from "src/libraries/LibBookkeeper.sol";
 
 import "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
-import {Asset, ERC20_STANDARD} from "src/libraries/LibUtils.sol";
+import {Asset, ERC20_STANDARD, LibUtils} from "src/libraries/LibUtils.sol";
 import {LibUtilsPublic} from "src/libraries/LibUtilsPublic.sol";
 
 contract WalletFactory is Position {
@@ -37,27 +37,40 @@ contract WalletFactory is Position {
         LibUtilsPublic.safeErc20Transfer(asset.addr, params.recipient, amountDistributed);
     }
 
-    function _close(address sender, Agreement calldata agreement, bool distribute, bytes calldata)
-        internal
-        override
-        returns (uint256 closedAmount)
-    {
-        // console.log(IERC20(params.exitPath
-        uint256 lenderOwed =
-            agreement.loanAmount + IAssessor(agreement.assessor.addr).getCost(agreement, amountDistributed);
-        // Borrower must have pre-approved use of erc20.
-        LibUtilsPublic.safeErc20TransferFrom(agreement.loanAsset.addr, sender, address(this), lenderOwed);
+    function _close(address sender, Agreement calldata agreement) internal override returns (uint256 closedAmount) {
+        Parameters memory params = abi.decode(agreement.position.parameters, (Parameters));
+        uint256 returnAmount = amountDistributed;
 
-        if (distribute) {
-            IERC20(agreement.loanAsset.addr).approve(agreement.lenderAccount.addr, lenderOwed);
-            // SECURITY account assets of non-involved parties are at risk if a position uses
-            //          loadFromUser rathe than loadFromPosition.
-            IAccount(agreement.lenderAccount.addr).loadFromPosition(
-                agreement.loanAsset, lenderOwed, agreement.lenderAccount.parameters
+        // Positions do not typically factor in a cost, but doing so here often saves an ERC20 transfer in distribute.
+        (Asset memory costAsset, uint256 cost) =
+            IAssessor(agreement.assessor.addr).getCost(agreement, amountDistributed);
+        if (LibUtils.isValidLoanAssetAsCost(agreement.loanAsset, costAsset)) {
+            returnAmount += cost;
+        }
+
+        // Borrower must have pre-approved use of erc20.
+        LibUtilsPublic.safeErc20TransferFrom(agreement.loanAsset.addr, sender, address(this), returnAmount);
+
+        return amountDistributed;
+    }
+
+    function _distribute(address sender, uint256 lenderAmount, Agreement calldata agreement) internal override {
+        IERC20 erc20 = IERC20(agreement.loanAsset.addr);
+        uint256 balance = erc20.balanceOf(address(this));
+
+        // If there are not enough assets to pay lender, pull missing from sender.
+        if (lenderAmount > balance) {
+            LibUtilsPublic.safeErc20TransferFrom(
+                agreement.loanAsset.addr, sender, address(this), lenderAmount - balance
             );
         }
-        // Collateral is still in borrower account and is unlocked by the bookkeeper.
-        return amountDistributed;
+
+        if (lenderAmount > 0) {
+            erc20.approve(agreement.lenderAccount.addr, lenderAmount);
+            IAccount(agreement.lenderAccount.addr).loadFromPosition(
+                agreement.loanAsset, lenderAmount, agreement.lenderAccount.parameters
+            );
+        }
     }
 
     // Public Helpers.

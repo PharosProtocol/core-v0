@@ -7,7 +7,7 @@ import "forge-std/console.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {C} from "src/libraries/C.sol";
-import {Asset, ERC20_STANDARD} from "src/libraries/LibUtils.sol";
+import {Asset, ETH_STANDARD, ERC20_STANDARD, LibUtils} from "src/libraries/LibUtils.sol";
 import {LibUtilsPublic} from "src/libraries/LibUtilsPublic.sol";
 import {Liquidator} from "../Liquidator.sol";
 import {Agreement, ModuleReference} from "src/libraries/LibBookkeeper.sol";
@@ -30,56 +30,13 @@ abstract contract InstantErc20 is Liquidator {
 
         IPosition position = IPosition(agreement.position.addr);
 
-        uint256 positionAmount;
-        if (closePosition) {
-            positionAmount = position.close(sender, agreement, false, agreement.position.parameters);
-        } else {
-            // SECURITY - what happens to erc20 transfer if amount is 0?
-            positionAmount = position.getCloseAmount(agreement.position.parameters);
-            (bool success,) = IPosition(agreement.position.addr).passThrough(
-                payable(address(LibUtilsPublic)),
-                abi.encodeWithSelector(
-                    LibUtilsPublic.safeErc20TransferFrom.selector,
-                    agreement.loanAsset.addr,
-                    sender,
-                    agreement.position.addr,
-                    positionAmount
-                ),
-                true
-            );
-            require(success, "Failed to send loan asset to position");
-        }
-
-        console.log("here3");
-
-        // Split loan asset in position between lender and borrower. Lender gets priority.
-        // We can assume position holds at minimum the lender amount, due to close() logic.
-        uint256 lenderAmount =
-            agreement.loanAmount + IAssessor(agreement.assessor.addr).getCost(agreement, positionAmount);
-        if (lenderAmount > 0) {
-            _loadFromPosition(position, agreement.lenderAccount, agreement.loanAsset, lenderAmount);
-        }
-
-        // Might be profitable for borrower or not.
-        if (positionAmount > lenderAmount) {
-            _loadFromPosition(position, agreement.borrowerAccount, agreement.loanAsset, positionAmount - lenderAmount);
-        }
-
-        console.log("here2");
+        /**
+         * Collateral Asset *
+         */
 
         // Collateral asset is split between liquidator and borrower. Priority to liquidator.
         uint256 rewardCollAmount = getRewardCollAmount(agreement);
         if (agreement.collAmount < rewardCollAmount) rewardCollAmount = agreement.collAmount;
-
-        // Spare collateral goes back to borrower.
-        if (agreement.collAmount > rewardCollAmount) {
-            _loadFromPosition(
-                position, agreement.borrowerAccount, agreement.collAsset, agreement.collAmount - rewardCollAmount
-            );
-        }
-
-        console.log("here1");
-
         // Reward goes direct to liquidator.
         if (rewardCollAmount > 0) {
             // d4e3bdb6: LibUtilsPublic.safeErc20Transfer(address,address,uint256)
@@ -92,8 +49,42 @@ abstract contract InstantErc20 is Liquidator {
             );
             require(success, "Failed to send collateral asset to liquidator");
         }
+        // Spare collateral goes back to borrower.
+        if (agreement.collAmount > rewardCollAmount) {
+            _loadFromPosition(
+                position, agreement.borrowerAccount, agreement.collAsset, agreement.collAmount - rewardCollAmount
+            );
+        }
 
-        console.log("here");
+        console.log("rewardCollAmount: %s", rewardCollAmount);
+
+        /**
+         * Loan Asset *
+         */
+
+        uint256 closeAmount;
+        if (closePosition) {
+            closeAmount = position.close(sender, agreement);
+        } else {
+            // SECURITY - what happens to erc20 transfer if amount is 0?
+            closeAmount = position.getCloseAmount(agreement.position.parameters);
+        }
+        // Split loan asset in position between lender and borrower. Lender gets priority.
+        (Asset memory costAsset, uint256 cost) = IAssessor(agreement.assessor.addr).getCost(agreement, closeAmount);
+        uint256 lenderOwed = agreement.loanAmount;
+        if (LibUtils.isValidLoanAssetAsCost(agreement.loanAsset, costAsset)) {
+            lenderOwed += cost;
+        } else if (costAsset.standard == ETH_STANDARD) {
+            require(msg.value == cost, "_liquidate: msg.value mismatch from Eth denoted cost");
+            IAccount(agreement.lenderAccount.addr).loadFromPosition{value: cost}(
+                costAsset, cost, agreement.lenderAccount.parameters
+            );
+        } // SECURITY are these else revert checks necessary?
+        else {
+            revert("exitPosition: isLiquidatable: invalid cost asset");
+        }
+        // Call distribute after handling collateral assets in case collateral asset is same as loan asset.
+        position.distribute(sender, lenderOwed, agreement);
 
         position.transferContract(sender);
 

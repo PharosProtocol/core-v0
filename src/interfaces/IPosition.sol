@@ -14,12 +14,15 @@ import {Asset} from "src/libraries/LibUtils.sol";
 interface IPosition is IAccessControl {
     /// @notice Deploy capital into the defined position.
     function deploy(Asset calldata asset, uint256 amount, bytes calldata parameters) external;
-    /// @notice Admin close position and optionally distribute assets back to agreement accounts.
-    /// @notice Distribute assets to appropriate Accounts/wallets. Give control to borrower.
-    /// @dev Guarantees enough asset to pay lender bc it will be taken from sender.
-    function close(address sender, Agreement memory agreement, bool distribute, bytes calldata parameters)
-        external
-        returns (uint256);
+
+    /// @notice Admin close position and leave assets in position MPC contract.
+    function close(address sender, Agreement calldata agreement) external returns (uint256);
+
+    /// @notice Distribute the loan asset to the lender and borrower. Assumes position has been closed already.
+    /// @notice Lender account receives set amount and borrower receives all remaining asset in contract.
+    /// @dev If there is not enough in contract to pay lender amount, take from sender wallet.
+    function distribute(address sender, uint256 lenderAmount, Agreement calldata agreement) external payable;
+
     /// @notice Get current exitable value of the position, denoted in loan asset.
     function getCloseAmount(bytes calldata parameters) external view returns (uint256);
     /// @notice Transfer the position to a new controller. Used for liquidations.

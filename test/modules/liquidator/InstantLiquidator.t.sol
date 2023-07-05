@@ -87,7 +87,7 @@ contract InstantLiquidatorTest is TestUtils {
         // revertMsg = string.concat(revertMsg, Strings.toHexString(uint256(C.ADMIN_ROLE), 32));
 
         // Set assessor and cost.
-        MockAssessor assessorContract = new MockAssessor(cost);
+        MockAssessor assessorContract = new MockAssessor(ASSETS[loanAssetIdx], cost);
         assessorModule = IAssessor(assessorContract);
 
         // Set position and value.
@@ -137,14 +137,30 @@ contract InstantLiquidatorTest is TestUtils {
         vm.prank(bookkeeperAddr);
         liquidatorModule.receiveKick(msg.sender, agreement);
 
+        assertEq(
+            IERC20(agreement.loanAsset.addr).balanceOf(agreement.position.addr),
+            0,
+            "position loan asset funds incorrect"
+        );
+        assertEq(
+            IERC20(agreement.collAsset.addr).balanceOf(agreement.position.addr),
+            0,
+            "position collateral asset funds incorrect"
+        );
+
         // Asset in expected locations.
-        // 1. Lender: loan asset, loan amount + cost (excess of position amount comes from liquidator)
-        // 2. Borrower: loan asset excess beyond loan amount and cost
-        // 3. Liquidator: collateral asset, all collateral amount
+        // 1. Liquidator: collateral asset, all collateral amount
+        // 2. Lender: loan asset, loan amount + cost (excess of position amount comes from liquidator)
+        // 3. Borrower: loan asset excess beyond loan amount and cost
         uint256 borrowerProfit;
         if (positionProfitable && positionDelta > cost) {
             borrowerProfit = positionDelta - cost;
         }
+        assertEq(
+            IERC20(agreement.collAsset.addr).balanceOf(msg.sender),
+            agreement.collAmount,
+            "liquidator sender funds incorrect"
+        );
         assertEq(
             accountModule.getBalance(agreement.loanAsset, agreement.lenderAccount.parameters),
             agreement.loanAmount + cost,
@@ -155,11 +171,11 @@ contract InstantLiquidatorTest is TestUtils {
             borrowerProfit,
             "borrower funds incorrect"
         );
-        assertEq(
-            IERC20(agreement.collAsset.addr).balanceOf(msg.sender),
-            agreement.collAmount,
-            "liquidator sender funds incorrect"
-        );
+        // assertEq(
+        //     accountModule.getBalance(agreement.loanAsset, agreement.borrowerAccount.parameters),
+        //     loanAssetIdx != collAssetIdx ? borrowerProfit : borrowerProfit,
+        //     "borrower funds incorrect"
+        // );
 
         // Control of position is sender.
         assertTrue(position.hasRole(C.ADMIN_ROLE, msg.sender));
