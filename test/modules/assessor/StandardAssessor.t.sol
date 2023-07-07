@@ -16,10 +16,9 @@ import {MockPosition} from "test/mocks/MockPosition.sol";
 import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 import {IPosition} from "src/interfaces/IPosition.sol";
-import "src/libraries/LibUtils.sol";
 import {C} from "src/libraries/C.sol";
-import {Asset, ETH_STANDARD, ERC20_STANDARD} from "src/libraries/LibUtils.sol";
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
+import {Asset, ETH_STANDARD, ERC20_STANDARD, ModuleReference} from "src/libraries/LibUtils.sol";
 import {StandardAssessor} from "src/modules/assessor/implementations/StandardAssessor.sol";
 
 contract StandardAssessorTest is Test {
@@ -44,7 +43,7 @@ contract StandardAssessorTest is Test {
         uint256 loanAmount,
         uint256 currentValueRatio,
         uint256 timePassed
-    ) private returns (uint256) {
+    ) private returns (Asset memory asset, uint256 cost) {
         Asset memory mockAsset;
         MockPosition positionFactory = new MockPosition(address(0));
         vm.prank(address(0));
@@ -60,12 +59,13 @@ contract StandardAssessorTest is Test {
         console.log("deploymentTime: %s", agreement.deploymentTime);
 
         StandardAssessor.Parameters memory parameters = StandardAssessor.Parameters({
+            asset: Asset({standard: ERC20_STANDARD, addr: C.WETH, decimals: 18, id: 0, data: ""}),
             originationFeeRatio: originationFeeRatio,
             interestRatio: interestRatio,
             profitShareRatio: profitShareRatio
         });
         agreement.assessor = ModuleReference({addr: address(assessorModule), parameters: abi.encode(parameters)});
-        return assessorModule.getCost(agreement, position.getCloseAmount(agreement.position.parameters));
+        (asset, cost) = assessorModule.getCost(agreement, position.getCloseAmount(agreement.position.parameters));
     }
 
     /// @notice manual defined test cases of getCost. Checks for correctness.
@@ -73,16 +73,18 @@ contract StandardAssessorTest is Test {
         uint256 loanAmount = 100e18;
         uint256 timePassed = 24 * 60 * 60;
 
+        Asset memory asset;
         uint256 cost;
 
-        cost = getCost(10 * C.RATIO_FACTOR / 100, 0, 0, loanAmount, 1, timePassed); // 10% origination fee
+        (asset, cost) = getCost(10 * C.RATIO_FACTOR / 100, 0, 0, loanAmount, 1, timePassed); // 10% origination fee
         assertEq(cost, loanAmount / 10); // certainly going to have rounding error here
-        cost = getCost(0, C.RATIO_FACTOR / 1_000_000, 0, loanAmount, 1, timePassed); // 0.0001% interest per second for 1 day
+        (asset, cost) = getCost(0, C.RATIO_FACTOR / 1_000_000, 0, loanAmount, 1, timePassed); // 0.0001% interest per second for 1 day
         assertEq(cost, loanAmount * timePassed / 1_000_000); // rounding errors?
-        cost = getCost(0, 0, 5 * C.RATIO_FACTOR / 100, loanAmount, 120 * C.RATIO_FACTOR / 100, timePassed); // 5% of 20% profit
+        (asset, cost) = getCost(0, 0, 5 * C.RATIO_FACTOR / 100, loanAmount, 120 * C.RATIO_FACTOR / 100, timePassed); // 5% of 20% profit
         assertEq(cost, loanAmount * 20 * 5 / 100 / 100); // rounding errors?
-        cost = getCost(0, 0, 5 * C.RATIO_FACTOR / 100, loanAmount, 90 * C.RATIO_FACTOR / 100, timePassed); // 5% of 10% loss
+        (asset, cost) = getCost(0, 0, 5 * C.RATIO_FACTOR / 100, loanAmount, 90 * C.RATIO_FACTOR / 100, timePassed); // 5% of 10% loss
         assertEq(cost, 0);
+        assertEq(asset.standard, ERC20_STANDARD);
     }
 
     /// @notice fuzz testing of getCost. Does not check for correctness.
@@ -101,7 +103,7 @@ contract StandardAssessorTest is Test {
         loanAmount = bound(loanAmount, 0, type(uint64).max);
         currentValueRatio = bound(currentValueRatio, 0, 3 * C.RATIO_FACTOR);
         timePassed = bound(timePassed, 0, 365 * 24 * 60 * 60);
-        uint256 cost =
+        (, uint256 cost) =
             getCost(originationFeeRatio, interestRatio, profitShareRatio, loanAmount, currentValueRatio, timePassed);
         uint256 currentValue = loanAmount * currentValueRatio / C.RATIO_FACTOR;
 
@@ -122,18 +124,14 @@ contract StandardAssessorTest is Test {
             scaleUpRatio = bound(scaleUpRatio, 0, C.RATIO_FACTOR) + C.RATIO_FACTOR;
             uint256 loanAmountBig = loanAmount * scaleUpRatio / C.RATIO_FACTOR;
             uint256 timePassedBig = timePassed * scaleUpRatio / C.RATIO_FACTOR;
-            assertLe(
-                cost,
-                getCost(
-                    originationFeeRatio, interestRatio, profitShareRatio, loanAmountBig, currentValueRatio, timePassed
-                )
+            (, uint256 newCost) = getCost(
+                originationFeeRatio, interestRatio, profitShareRatio, loanAmountBig, currentValueRatio, timePassed
             );
-            assertLe(
-                cost,
-                getCost(
-                    originationFeeRatio, interestRatio, profitShareRatio, loanAmount, currentValueRatio, timePassedBig
-                )
+            assertLe(cost, newCost);
+            (, newCost) = getCost(
+                originationFeeRatio, interestRatio, profitShareRatio, loanAmount, currentValueRatio, timePassedBig
             );
+            assertLe(cost, newCost);
         }
     }
 }

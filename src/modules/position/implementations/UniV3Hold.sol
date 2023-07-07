@@ -161,12 +161,8 @@ contract UniV3HoldFactory is Position {
     //       amount. then if they give themselves a bad deal they are the only one who loses. Alt Answer: Allow
     //       liquidator to pass through any function via callback, so long as they return enough assets to Modulend
     //       lender / borrower in end.
-    function _close(address sender, Agreement calldata agreement, bool distribute, bytes calldata parameters)
-        internal
-        override
-        returns (uint256 closedAmount)
-    {
-        Parameters memory params = abi.decode(parameters, (Parameters));
+    function _close(address, Agreement calldata agreement) internal override returns (uint256 closedAmount) {
+        Parameters memory params = abi.decode(agreement.position.parameters, (Parameters));
         // require(heldAsset.standard == ERC20_STANDARD, "UniV3Hold: exit asset must be ETH or ERC20");
         (address heldAsset,,) = params.exitPath.decodeFirstPool();
 
@@ -188,50 +184,46 @@ contract UniV3HoldFactory is Position {
             });
             closedAmount = router.exactInput(swapParams); // msg.sender from router pov is clone (Position) address
         }
+    }
 
-        // console.log(IERC20(params.exitPath
-        uint256 lenderOwed = agreement.loanAmount + IAssessor(agreement.assessor.addr).getCost(agreement, closedAmount);
-        console.log("lenderOwed: %s", lenderOwed);
-        uint256 borrowerAmount;
-        IERC20 loanAsset = IERC20(address(agreement.loanAsset.addr));
+    function _distribute(address sender, uint256 lenderAmount, Agreement calldata agreement)
+        internal
+        
+        override
+    {
+        IERC20 erc20 = IERC20(agreement.loanAsset.addr);
+        uint256 balance = erc20.balanceOf(address(this));
 
-        {
-            if (lenderOwed < closedAmount) {
-                borrowerAmount = closedAmount - lenderOwed;
-            } else {
-                // borrowerAmount = 0;
-                // Lender is owed more than the position is worth.
-                // Lender gets all of the position and sender pays the difference.
-                LibUtilsPublic.safeErc20TransferFrom(
-                    agreement.loanAsset.addr, sender, address(this), lenderOwed - closedAmount
-                );
-            }
+        // If there are not enough assets to pay lender, pull missing from sender.
+        if (lenderAmount > balance) {
+            LibUtilsPublic.safeErc20TransferFrom(
+                agreement.loanAsset.addr, sender, address(this), lenderAmount - balance
+            );
+            balance += lenderAmount - balance;
         }
 
-        if (distribute) {
-            if (lenderOwed > 0) {
-                loanAsset.approve(agreement.lenderAccount.addr, lenderOwed);
-                // SECURITY account assets of non-involved parties are at risk if a position uses
-                //          loadFromUser rathe than loadFromPosition.
-                IAccount(agreement.lenderAccount.addr).loadFromPosition(
-                    agreement.loanAsset, lenderOwed, agreement.lenderAccount.parameters
-                );
-            }
-
-            // Send borrower loan asset funds to their account. Requires compatibility btwn loan asset and borrow account.
-            if (borrowerAmount > 0) {
-                loanAsset.approve(agreement.borrowerAccount.addr, borrowerAmount);
-                IAccount(agreement.borrowerAccount.addr).loadFromPosition(
-                    agreement.loanAsset, borrowerAmount, agreement.borrowerAccount.parameters
-                );
-            }
-            // Collateral is still in borrower account and is unlocked by the bookkeeper.
+        if (lenderAmount > 0) {
+            // SECURITY account assets of non-involved parties are at risk if a position uses
+            //          loadFromUser rathe than loadFromPosition.
+            erc20.approve(agreement.lenderAccount.addr, lenderAmount);
+            IAccount(agreement.lenderAccount.addr).loadFromPosition(
+                agreement.loanAsset, lenderAmount, agreement.lenderAccount.parameters
+            );
+            balance -= lenderAmount;
         }
+
+        // Send borrower loan asset funds to their account. Requires compatibility btwn loan asset and borrow account.
+        if (balance > 0) {
+            erc20.approve(agreement.borrowerAccount.addr, balance);
+            IAccount(agreement.borrowerAccount.addr).loadFromPosition(
+                agreement.loanAsset, balance, agreement.borrowerAccount.parameters
+            );
+        }
+        // Collateral is still in borrower account and is unlocked by the bookkeeper.
     }
 
     // Public Helpers.
 
-    // TODO fix this to be useable on chain efficiently
     function _getCloseAmount(bytes calldata parameters) internal view override returns (uint256) {
         Parameters memory params = abi.decode(parameters, (Parameters));
         // (,address finalAssetAddr,) = params.exitPath.decodeFirstPool();

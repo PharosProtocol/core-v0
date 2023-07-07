@@ -7,6 +7,11 @@ import {Asset} from "src/libraries/LibUtils.sol";
 
 /**
  * Accounts are used to hold user capital to back outstanding unfilled orders.
+ *
+ * Implementation Restrictions:
+ *   - All accounts must be able to receive ETH and ERC20s on behalf of a user (defined via parameters).
+ *     This is necessary to enable payment and receipt of Assessor defined costs, which will always be denoted
+ *     in either ETH or ERC20.
  */
 
 // Accounts are responsible for abstracting complex assets, which brings in a lot more complexity. A position

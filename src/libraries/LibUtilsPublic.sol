@@ -4,6 +4,11 @@ pragma solidity 0.8.19;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+/*
+ * This util functions are public so that they can be called from decoded calldata. Specifically this pattern
+ * is used with position passthrough functions. 
+ */
+
 library LibUtilsPublic {
     // SECURITY NOTE: did not account for fee on transfer ERC20s. Either need to update logic or restrict to non-fee ERC20s.
     //                Probably easiest to do the later and treat fee-based erc20s as a different asset type.

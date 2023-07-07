@@ -53,5 +53,11 @@ library LibUtils {
             return l - r;
         }
     }
+
+    function isValidLoanAssetAsCost(Asset memory loanAsset, Asset memory costAsset) internal pure returns (bool) {
+        if (loanAsset.standard != ERC20_STANDARD) return false;
+        if (keccak256(abi.encode(loanAsset)) != keccak256(abi.encode(costAsset))) return false;
+        return true;
+    }
 }
  

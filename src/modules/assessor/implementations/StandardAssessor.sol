@@ -10,11 +10,13 @@ import {C} from "src/libraries/C.sol";
 
 /*
  * Example Assessor type that calculates cost using configurable origination fee, interest rate, and profit share ratio.
- * Cost is in loan asset.
+ * Cost denomination asset is configurable, but must be ETH or ERC20 asset.
+ * Cost asset must be the same as the loan asset.
  */
 
 contract StandardAssessor is Assessor {
     struct Parameters {
+        Asset asset;
         uint256 originationFeeRatio;
         uint256 interestRatio;
         uint256 profitShareRatio;
@@ -22,7 +24,12 @@ contract StandardAssessor is Assessor {
 
     /// @notice Return the cost of a loan, quantified in the Loan Asset. This simplifies compatibility matrix.
     // NOTE this will not be compatible if borrowing a non-divisible asset.
-    function getCost(Agreement calldata agreement, uint256 currentAmount) external view override returns (uint256) {
+    function _getCost(Agreement calldata agreement, uint256 currentAmount)
+        internal
+        view
+        override
+        returns (Asset memory asset, uint256 amount)
+    {
         Parameters memory params = abi.decode(agreement.assessor.parameters, (Parameters));
         uint256 originationFee = agreement.loanAmount * params.originationFeeRatio / C.RATIO_FACTOR;
         uint256 interest =
@@ -31,13 +38,16 @@ contract StandardAssessor is Assessor {
         uint256 profitShare =
             currentAmount > lenderAmount ? (currentAmount - lenderAmount) * params.profitShareRatio / C.RATIO_FACTOR : 0;
 
-        return originationFee + interest + profitShare;
+        return (params.asset, originationFee + interest + profitShare);
     }
 
     // Although the assessor is not moving assets around, this assessment only makes sense with divisible assets.
     // Collateral asset is irrelevant.
-    function canHandleAsset(Asset calldata asset, bytes calldata) external pure override returns (bool) {
-        if (asset.standard == ERC20_STANDARD) return true;
-        return false;
+    // Requires cost asset == loan asset.
+    function canHandleAsset(Asset calldata asset, bytes calldata parameters) external pure override returns (bool) {
+        Parameters memory params = abi.decode(parameters, (Parameters));
+        if (asset.standard != ERC20_STANDARD) return false;
+        if (keccak256(abi.encode(asset)) != keccak256(abi.encode(params.asset))) return false;
+        return true;
     }
 }

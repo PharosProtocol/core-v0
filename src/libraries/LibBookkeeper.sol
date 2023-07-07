@@ -3,7 +3,7 @@
 pragma solidity 0.8.19;
 
 import {C} from "src/libraries/C.sol";
-import "src/libraries/LibUtils.sol";
+import {Asset, ETH_STANDARD, LibUtils} from "src/libraries/LibUtils.sol";
 import "lib/tractor/Tractor.sol";
 import "src/interfaces/IPosition.sol";
 import {IOracle} from "src/interfaces/IOracle.sol";
@@ -32,7 +32,7 @@ struct Order {
     ModuleReference assessor;
     ModuleReference liquidator;
     ModuleReference[] loanOracles;
-    ModuleReference[] collateralOracles;
+    ModuleReference[] collOracles;
     address[] factories;
     // Sided config
     bool isOffer;
@@ -52,7 +52,7 @@ struct Fill {
     uint256 loanAssetIdx; // need to verify with the oracle
     uint256 collAssetIdx; // need to verify with the oracle
     uint256 loanOracleIdx;
-    uint256 collateralOracleIdx;
+    uint256 collOracleIdx;
     uint256 factoryIdx;
     // Sided config
     bool isOfferFill;
@@ -78,7 +78,7 @@ struct Agreement {
     ModuleReference assessor;
     ModuleReference liquidator;
     ModuleReference loanOracle;
-    ModuleReference collateralOracle;
+    ModuleReference collOracle;
     address factory;
     ModuleReference position; // addr set by bookkeeper.
     uint256 deploymentTime; // set by bookkeeper
@@ -98,18 +98,25 @@ library LibBookkeeper {
         //      assets at exit time
         // (position value - cost) / collateral value
         uint256 exitAmount = position.getCloseAmount(agreement.position.parameters);
-        uint256 cost = IAssessor(agreement.assessor.addr).getCost(agreement, exitAmount);
-        if (cost > exitAmount) {
-            return true;
+        (Asset memory costAsset, uint256 cost) = IAssessor(agreement.assessor.addr).getCost(agreement, exitAmount);
+
+        uint256 outstandingValue;
+        if (LibUtils.isValidLoanAssetAsCost(agreement.loanAsset, costAsset)) {
+            if (cost > exitAmount) return true;
+            outstandingValue =
+                IOracle(agreement.loanOracle.addr).getSpotValue(exitAmount - cost, agreement.loanOracle.parameters);
+        } else if (costAsset.standard == ETH_STANDARD) {
+            uint256 positionValue =
+                IOracle(agreement.loanOracle.addr).getSpotValue(exitAmount, agreement.loanOracle.parameters);
+            if (positionValue > cost) return true;
+            outstandingValue = positionValue - cost;
+        } else {
+            revert("isLiquidatable: invalid cost asset");
         }
-        uint256 adjustedPositionAmount = exitAmount - cost;
-        uint256 collateralRatio = C.RATIO_FACTOR
-            * IOracle(agreement.loanOracle.addr).getSpotValue(
-                adjustedPositionAmount, agreement.loanOracle.parameters
-            )
-            / IOracle(agreement.collateralOracle.addr).getSpotValue(
-                agreement.collAmount, agreement.collateralOracle.parameters
-            );
+        uint256 collValue =
+            IOracle(agreement.collOracle.addr).getSpotValue(agreement.collAmount, agreement.collOracle.parameters);
+
+        uint256 collateralRatio = C.RATIO_FACTOR * outstandingValue / collValue;
 
         if (collateralRatio < agreement.minCollateralRatio) {
             return true;

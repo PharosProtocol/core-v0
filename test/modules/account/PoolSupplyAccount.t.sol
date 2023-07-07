@@ -1,6 +1,6 @@
-// // SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: UNLICENSED
 
-// pragma solidity 0.8.19;
+pragma solidity 0.8.19;
 
 // /**
 //  * This is the standard set of tests used to verify an arbitrary Account implementation. It is not expected to be

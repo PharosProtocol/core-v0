@@ -39,4 +39,7 @@ abstract contract Module {
     /// @notice Perform any setup checks to ensure the module is compatible with agreement. Optional.
     /// @dev After agreement has been defined, should be able to verify off-chain to avoid gas cost.
     function initCheck(Agreement calldata agreement, bytes calldata parameters) external view {}
+
+    // // If an asset can be used with the exposed interface functions of the module instance.
+    // function isCompatibleAsset(Asset calldata asset, bytes calldata parameters) external view virtual;
 }

@@ -32,22 +32,31 @@ abstract contract Position is IPosition, CloneFactory, Module {
 
     function _deploy(Asset calldata asset, uint256 amount, bytes calldata parameters) internal virtual;
 
-    function close(address sender, Agreement calldata agreement, bool distribute, bytes calldata parameters)
+    function close(address sender, Agreement calldata agreement)
         external
         override
         proxyExecution
         onlyRole(C.ADMIN_ROLE)
         returns (uint256)
     {
-        return _close(sender, agreement, distribute, parameters);
+        return _close(sender, agreement);
+    }
+
+    function distribute(address sender, uint256 lenderAmount, Agreement calldata agreement)
+        external
+        payable
+        override
+        proxyExecution
+        onlyRole(C.ADMIN_ROLE)
+    {
+        return _distribute(sender, lenderAmount, agreement);
     }
 
     /// @notice Close position and distribute assets. Give borrower MPC control.
     /// @dev All asset management must be done within this call, else bk would need to have asset-specific knowledge.
-    function _close(address sender, Agreement calldata agreement, bool distribute, bytes calldata parameters)
-        internal
-        virtual
-        returns (uint256);
+    function _close(address sender, Agreement calldata agreement) internal virtual returns (uint256);
+
+    function _distribute(address sender, uint256 lenderAmount, Agreement calldata agreement) internal virtual;
 
     function getCloseAmount(bytes calldata parameters) external view override proxyExecution returns (uint256) {
         return _getCloseAmount(parameters);
