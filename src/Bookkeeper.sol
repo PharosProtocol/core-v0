@@ -4,16 +4,17 @@ pragma solidity 0.8.19;
 
 import "forge-std/console.sol";
 
-import "lib/tractor/Tractor.sol";
-import "src/libraries/LibUtils.sol";
+import {ReentrancyGuard} from "lib/openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
+import {Blueprint, SignedBlueprint, Tractor} from "lib/tractor/Tractor.sol";
 
-import {Order, Fill, Agreement, LibBookkeeper} from "src/libraries/LibBookkeeper.sol";
-import {C} from "src/libraries/C.sol";
-import "src/interfaces/IOracle.sol";
+import {IOracle} from "src/interfaces/IOracle.sol";
 import {IAccount} from "src/interfaces/IAccount.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
 import {ILiquidator} from "src/interfaces/ILiquidator.sol";
 import {IAssessor} from "src/interfaces/IAssessor.sol";
+import {C} from "src/libraries/C.sol";
+import {Order, Fill, Agreement, LibBookkeeper} from "src/libraries/LibBookkeeper.sol";
+import {Asset, LibUtils, ETH_STANDARD} from "src/libraries/LibUtils.sol";
 
 // NOTE bookkeeper will be far more difficult to update / fix / expand than any of the modules. For this reason
 //      simplicity should be aggressively pursued.
@@ -31,7 +32,7 @@ import {IAssessor} from "src/interfaces/IAssessor.sol";
  *  An Order can be created at no cost by signing a transaction with the signature of the Order. An Operator can
  *  create a compatible Position between two compatible Orders, which will be verified at Position creation.
  */
-contract Bookkeeper is Tractor {
+contract Bookkeeper is Tractor, ReentrancyGuard {
     enum BlueprintDataType {
         NULL,
         ORDER,
@@ -39,7 +40,7 @@ contract Bookkeeper is Tractor {
     }
 
     string public constant PROTOCOL_NAME = "pharos";
-    string public constant PROTOCOL_VERSION = "1.0.0";
+    string public constant PROTOCOL_VERSION = "0.1.0";
 
     event OrderFilled(SignedBlueprint agreement, bytes32 orderBlueprintHash, address taker);
     event LiquidationKicked(address liquidator, address position);
@@ -50,6 +51,7 @@ contract Bookkeeper is Tractor {
 
     function fillOrder(Fill calldata fill, SignedBlueprint calldata orderBlueprint)
         external
+        nonReentrant
         verifySignature(orderBlueprint)
     {
         // decode order blueprint data and ensure blueprint metadata is valid pairing with embedded data
@@ -74,7 +76,7 @@ contract Bookkeeper is Tractor {
             require(order.takers[fill.takerIdx] == msg.sender, "Bookkeeper: Invalid taker");
         }
 
-        Agreement memory agreement = agreementFromOrder(fill, order);
+        Agreement memory agreement = _agreementFromOrder(fill, order);
 
         uint256 loanValue =
             IOracle(agreement.loanOracle.addr).getResistantValue(agreement.loanAmount, agreement.loanOracle.parameters);
@@ -101,65 +103,20 @@ contract Bookkeeper is Tractor {
         // console.log("loanAmount: %s", agreement.loanAmount);
         // console.log("collAmount: %s", agreement.collAmount);
 
-        createFundEnterPosition(agreement);
+        _createFundEnterPosition(agreement);
 
         // console.log("agreement encoded:");
         // console.logBytes(abi.encode(agreement));
 
-        SignedBlueprint memory signedBlueprint = signAgreement(agreement);
+        SignedBlueprint memory signedBlueprint = _signAgreement(agreement);
         emit OrderFilled(signedBlueprint, orderBlueprint.blueprintHash, msg.sender);
-    }
-
-    // NOTE this function succinctly represents a lot of the inefficiency of a module system design.
-    function createFundEnterPosition(Agreement memory agreement) private {
-        (bool success, bytes memory data) = agreement.factory.call(abi.encodeWithSignature("createPosition()"));
-        require(success, "BKFCP");
-        agreement.position.addr = abi.decode(data, (address));
-        IAccount(agreement.lenderAccount.addr).unloadToPosition(
-            agreement.position.addr,
-            agreement.loanAsset,
-            agreement.loanAmount,
-            false,
-            agreement.lenderAccount.parameters
-        );
-        // NOTE lots of gas savings if collateral can be kept in borrower account until absolutely necessary.
-        console.log("locking %s of %s as collateral", agreement.collAmount, agreement.collAsset.addr);
-        IAccount(agreement.borrowerAccount.addr).lockCollateral(
-            agreement.collAsset, agreement.collAmount, agreement.borrowerAccount.parameters
-        );
-        IPosition(agreement.position.addr).deploy(
-            agreement.loanAsset, agreement.loanAmount, agreement.position.parameters
-        );
-    }
-
-    /// @dev assumes compatibility between match, offer, and request already verified.
-    function agreementFromOrder(Fill calldata fill, Order memory order)
-        private
-        pure
-        returns (Agreement memory agreement)
-    {
-        // NOTE this is prly not gas efficient bc of zero -> non-zero changes...
-        agreement.maxDuration = order.maxDuration;
-        agreement.assessor = order.assessor;
-        agreement.liquidator = order.liquidator;
-        agreement.minCollateralRatio = order.minCollateralRatio;
-
-        agreement.loanAsset = order.loanAssets[fill.loanAssetIdx];
-        agreement.loanOracle = order.loanOracles[fill.loanOracleIdx];
-        agreement.collAsset = order.collAssets[fill.collAssetIdx];
-        agreement.collOracle = order.collOracles[fill.collOracleIdx];
-        // NOTE confusion here (and everywhere) on position address vs factory address. Naming fix?
-        agreement.factory = order.factories[fill.factoryIdx];
-        // agreement.position.addr = order.factories[fill.factoryIdx];
-
-        require(fill.loanAmount >= order.minLoanAmounts[fill.loanAssetIdx], "Bookkeeper: fill loan amount too small");
-        agreement.loanAmount = fill.loanAmount;
     }
 
     // NOTE CEI?
     function exitPosition(SignedBlueprint calldata agreementBlueprint)
         external
         payable
+        nonReentrant
         verifySignature(agreementBlueprint)
     {
         (bytes1 blueprintDataType, bytes memory blueprintData) = unpackDataField(agreementBlueprint.blueprint.data);
@@ -205,7 +162,11 @@ contract Bookkeeper is Tractor {
         position.transferContract(msg.sender);
     }
 
-    function kick(SignedBlueprint calldata agreementBlueprint) external verifySignature(agreementBlueprint) {
+    function kick(SignedBlueprint calldata agreementBlueprint)
+        external
+        nonReentrant
+        verifySignature(agreementBlueprint)
+    {
         (, bytes memory blueprintData) = unpackDataField(agreementBlueprint.blueprint.data);
         // require(blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "BKKIBDT"); // decoding will fail
         Agreement memory agreement = abi.decode(blueprintData, (Agreement));
@@ -229,7 +190,55 @@ contract Bookkeeper is Tractor {
         ILiquidator(agreement.liquidator.addr).receiveKick(msg.sender, agreement);
     }
 
-    function signAgreement(Agreement memory agreement) private returns (SignedBlueprint memory signedBlueprint) {
+    // NOTE this function succinctly represents a lot of the inefficiency of a module system design.
+    function _createFundEnterPosition(Agreement memory agreement) private {
+        (bool success, bytes memory data) = agreement.factory.call(abi.encodeWithSignature("createPosition()"));
+        require(success, "BKFCP");
+        agreement.position.addr = abi.decode(data, (address));
+        IAccount(agreement.lenderAccount.addr).unloadToPosition(
+            agreement.position.addr,
+            agreement.loanAsset,
+            agreement.loanAmount,
+            false,
+            agreement.lenderAccount.parameters
+        );
+        // NOTE lots of gas savings if collateral can be kept in borrower account until absolutely necessary.
+        console.log("locking %s of %s as collateral", agreement.collAmount, agreement.collAsset.addr);
+        IAccount(agreement.borrowerAccount.addr).lockCollateral(
+            agreement.collAsset, agreement.collAmount, agreement.borrowerAccount.parameters
+        );
+        IPosition(agreement.position.addr).deploy(
+            agreement.loanAsset, agreement.loanAmount, agreement.position.parameters
+        );
+    }
+
+    /// @dev assumes compatibility between match, offer, and request already verified.
+    function _agreementFromOrder(Fill calldata fill, Order memory order)
+        private
+        pure
+        returns (Agreement memory agreement)
+    {
+        // NOTE MAKE CHECKS FOR VALIDITY
+
+        // NOTE this is prly not gas efficient bc of zero -> non-zero changes...
+        agreement.maxDuration = order.maxDuration;
+        agreement.assessor = order.assessor;
+        agreement.liquidator = order.liquidator;
+        agreement.minCollateralRatio = order.minCollateralRatio;
+
+        agreement.loanAsset = order.loanAssets[fill.loanAssetIdx];
+        agreement.loanOracle = order.loanOracles[fill.loanOracleIdx];
+        agreement.collAsset = order.collAssets[fill.collAssetIdx];
+        agreement.collOracle = order.collOracles[fill.collOracleIdx];
+        // NOTE confusion here (and everywhere) on position address vs factory address. Naming fix?
+        agreement.factory = order.factories[fill.factoryIdx];
+        // agreement.position.addr = order.factories[fill.factoryIdx];
+
+        require(fill.loanAmount >= order.minLoanAmounts[fill.loanAssetIdx], "Bookkeeper: fill loan amount too small");
+        agreement.loanAmount = fill.loanAmount;
+    }
+
+    function _signAgreement(Agreement memory agreement) private returns (SignedBlueprint memory signedBlueprint) {
         // Create blueprint to store signed Agreement off chain via events.
         signedBlueprint.blueprint.publisher = address(this);
         signedBlueprint.blueprint.data =
