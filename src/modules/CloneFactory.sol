@@ -62,7 +62,7 @@ abstract contract CloneFactory is AccessControl, Initializable {
      */
     function createPosition() external implementationExecution onlyRole(C.ADMIN_ROLE) returns (address addr) {
         addr = Clones.clone(address(this));
-        (bool success,) = addr.call(abi.encodeWithSignature("initialize()"));
+        (bool success, ) = addr.call(abi.encodeWithSignature("initialize()"));
         require(success, "createPosition: initialize fail");
         emit PositionCreated(addr);
     }

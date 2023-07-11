@@ -16,9 +16,10 @@ import {Asset} from "src/libraries/LibUtils.sol";
 interface IAssessor {
     /// @notice Returns the cost of a loan (not including principle) and the asset it is denoted in.
     /// @dev Asset must be ETH or ERC20.
-    function getCost(Agreement calldata agreement, uint256 currentAmount)
-        external
-        view
-        returns (Asset memory asset, uint256 amount);
+    function getCost(
+        Agreement calldata agreement,
+        uint256 currentAmount
+    ) external view returns (Asset memory asset, uint256 amount);
+
     function canHandleAsset(Asset calldata asset, bytes calldata parameters) external view returns (bool);
 }

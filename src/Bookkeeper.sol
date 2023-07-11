@@ -46,14 +46,14 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
     event LiquidationKicked(address liquidator, address position);
 
     constructor() Tractor(PROTOCOL_NAME, PROTOCOL_VERSION) {}
+
     // receive() external {}
     // fallback() external {}
 
-    function fillOrder(Fill calldata fill, SignedBlueprint calldata orderBlueprint)
-        external
-        nonReentrant
-        verifySignature(orderBlueprint)
-    {
+    function fillOrder(
+        Fill calldata fill,
+        SignedBlueprint calldata orderBlueprint
+    ) external nonReentrant verifySignature(orderBlueprint) {
         // decode order blueprint data and ensure blueprint metadata is valid pairing with embedded data
         (bytes1 blueprintDataType, bytes memory blueprintData) = unpackDataField(orderBlueprint.blueprint.data);
         require(uint8(blueprintDataType) == uint8(BlueprintDataType.ORDER), "BKDTMM");
@@ -78,24 +78,28 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
 
         Agreement memory agreement = _agreementFromOrder(fill, order);
 
-        uint256 loanValue =
-            IOracle(agreement.loanOracle.addr).getResistantValue(agreement.loanAmount, agreement.loanOracle.parameters);
+        uint256 loanValue = IOracle(agreement.loanOracle.addr).getResistantValue(
+            agreement.loanAmount,
+            agreement.loanOracle.parameters
+        );
         uint256 collateralValue;
 
         if (order.isOffer) {
             agreement.lenderAccount = order.account;
             agreement.borrowerAccount = fill.account;
-            collateralValue = loanValue * fill.borrowerConfig.initCollateralRatio / C.RATIO_FACTOR;
+            collateralValue = (loanValue * fill.borrowerConfig.initCollateralRatio) / C.RATIO_FACTOR;
             agreement.position.parameters = fill.borrowerConfig.positionParameters;
         } else {
             agreement.lenderAccount = fill.account;
             agreement.borrowerAccount = order.account;
-            collateralValue = loanValue * order.borrowerConfig.initCollateralRatio / C.RATIO_FACTOR;
+            collateralValue = (loanValue * order.borrowerConfig.initCollateralRatio) / C.RATIO_FACTOR;
             agreement.position.parameters = order.borrowerConfig.positionParameters;
         }
         console.log("agreement coll value: %s", collateralValue);
-        agreement.collAmount =
-            IOracle(agreement.collOracle.addr).getResistantAmount(collateralValue, agreement.collOracle.parameters);
+        agreement.collAmount = IOracle(agreement.collOracle.addr).getResistantAmount(
+            collateralValue,
+            agreement.collOracle.parameters
+        );
         console.log("agreement coll amount: %s", agreement.collAmount);
         // Set Position data that cannot be computed off chain by caller.
         agreement.deploymentTime = block.timestamp;
@@ -113,15 +117,13 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
     }
 
     // NOTE CEI?
-    function exitPosition(SignedBlueprint calldata agreementBlueprint)
-        external
-        payable
-        nonReentrant
-        verifySignature(agreementBlueprint)
-    {
+    function exitPosition(
+        SignedBlueprint calldata agreementBlueprint
+    ) external payable nonReentrant verifySignature(agreementBlueprint) {
         (bytes1 blueprintDataType, bytes memory blueprintData) = unpackDataField(agreementBlueprint.blueprint.data);
         require(
-            blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "Bookkeeper: Invalid blueprint data type"
+            blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)),
+            "Bookkeeper: Invalid blueprint data type"
         );
         Agreement memory agreement = abi.decode(blueprintData, (Agreement));
         require(
@@ -141,11 +143,14 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         if (LibUtils.isValidLoanAssetAsCost(agreement.loanAsset, costAsset)) {
             lenderOwed += cost;
             distributeValue = msg.value;
-        } // If cost in eth but loan asset is not eth.
+        }
+        // If cost in eth but loan asset is not eth.
         else if (costAsset.standard == ETH_STANDARD) {
             require(msg.value == cost, "exitPosition: msg.value mismatch from Eth denoted cost");
             IAccount(agreement.lenderAccount.addr).loadFromPosition{value: msg.value}(
-                costAsset, cost, agreement.lenderAccount.parameters
+                costAsset,
+                cost,
+                agreement.lenderAccount.parameters
             );
         } else {
             revert("exitPosition: isLiquidatable: invalid cost asset");
@@ -155,18 +160,18 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         position.distribute{value: distributeValue}(msg.sender, lenderOwed, agreement);
 
         IAccount(agreement.borrowerAccount.addr).unlockCollateral(
-            agreement.collAsset, agreement.collAmount, agreement.borrowerAccount.parameters
+            agreement.collAsset,
+            agreement.collAmount,
+            agreement.borrowerAccount.parameters
         );
 
         // Marks position as closed from Bookkeeper pov.
         position.transferContract(msg.sender);
     }
 
-    function kick(SignedBlueprint calldata agreementBlueprint)
-        external
-        nonReentrant
-        verifySignature(agreementBlueprint)
-    {
+    function kick(
+        SignedBlueprint calldata agreementBlueprint
+    ) external nonReentrant verifySignature(agreementBlueprint) {
         (, bytes memory blueprintData) = unpackDataField(agreementBlueprint.blueprint.data);
         // require(blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "BKKIBDT"); // decoding will fail
         Agreement memory agreement = abi.decode(blueprintData, (Agreement));
@@ -205,19 +210,22 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         // NOTE lots of gas savings if collateral can be kept in borrower account until absolutely necessary.
         console.log("locking %s of %s as collateral", agreement.collAmount, agreement.collAsset.addr);
         IAccount(agreement.borrowerAccount.addr).lockCollateral(
-            agreement.collAsset, agreement.collAmount, agreement.borrowerAccount.parameters
+            agreement.collAsset,
+            agreement.collAmount,
+            agreement.borrowerAccount.parameters
         );
         IPosition(agreement.position.addr).deploy(
-            agreement.loanAsset, agreement.loanAmount, agreement.position.parameters
+            agreement.loanAsset,
+            agreement.loanAmount,
+            agreement.position.parameters
         );
     }
 
     /// @dev assumes compatibility between match, offer, and request already verified.
-    function _agreementFromOrder(Fill calldata fill, Order memory order)
-        private
-        pure
-        returns (Agreement memory agreement)
-    {
+    function _agreementFromOrder(
+        Fill calldata fill,
+        Order memory order
+    ) private pure returns (Agreement memory agreement) {
         // NOTE MAKE CHECKS FOR VALIDITY
 
         // NOTE this is prly not gas efficient bc of zero -> non-zero changes...
@@ -241,8 +249,10 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
     function _signAgreement(Agreement memory agreement) private returns (SignedBlueprint memory signedBlueprint) {
         // Create blueprint to store signed Agreement off chain via events.
         signedBlueprint.blueprint.publisher = address(this);
-        signedBlueprint.blueprint.data =
-            packDataField(bytes1(uint8(BlueprintDataType.AGREEMENT)), abi.encode(agreement));
+        signedBlueprint.blueprint.data = packDataField(
+            bytes1(uint8(BlueprintDataType.AGREEMENT)),
+            abi.encode(agreement)
+        );
         signedBlueprint.blueprint.endTime = type(uint256).max;
         signedBlueprint.blueprintHash = getBlueprintHash(signedBlueprint.blueprint);
         // NOTE: Security: Is is possible to intentionally manufacture a blueprint with different data that creates the same hash?

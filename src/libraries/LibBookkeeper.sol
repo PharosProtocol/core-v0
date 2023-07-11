@@ -103,20 +103,26 @@ library LibBookkeeper {
         uint256 outstandingValue;
         if (LibUtils.isValidLoanAssetAsCost(agreement.loanAsset, costAsset)) {
             if (cost > exitAmount) return true;
-            outstandingValue =
-                IOracle(agreement.loanOracle.addr).getSpotValue(exitAmount - cost, agreement.loanOracle.parameters);
+            outstandingValue = IOracle(agreement.loanOracle.addr).getSpotValue(
+                exitAmount - cost,
+                agreement.loanOracle.parameters
+            );
         } else if (costAsset.standard == ETH_STANDARD) {
-            uint256 positionValue =
-                IOracle(agreement.loanOracle.addr).getSpotValue(exitAmount, agreement.loanOracle.parameters);
+            uint256 positionValue = IOracle(agreement.loanOracle.addr).getSpotValue(
+                exitAmount,
+                agreement.loanOracle.parameters
+            );
             if (positionValue > cost) return true;
             outstandingValue = positionValue - cost;
         } else {
             revert("isLiquidatable: invalid cost asset");
         }
-        uint256 collValue =
-            IOracle(agreement.collOracle.addr).getSpotValue(agreement.collAmount, agreement.collOracle.parameters);
+        uint256 collValue = IOracle(agreement.collOracle.addr).getSpotValue(
+            agreement.collAmount,
+            agreement.collOracle.parameters
+        );
 
-        uint256 collateralRatio = C.RATIO_FACTOR * outstandingValue / collValue;
+        uint256 collateralRatio = (C.RATIO_FACTOR * outstandingValue) / collValue;
 
         if (collateralRatio < agreement.minCollateralRatio) {
             return true;

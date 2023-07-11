@@ -25,20 +25,23 @@ contract UniswapV3Oracle is Oracle {
 
     function getResistantValue(uint256 amount, bytes calldata parameters) external view returns (uint256 value) {
         Parameters memory params = abi.decode(parameters, (Parameters));
-        return LibUniswapV3.getPathTWAP(params.pathToEth, amount, params.twapTime)
-            * (C.RATIO_FACTOR - params.stepSlippage * params.pathToEth.numPools()) / C.RATIO_FACTOR;
+        return
+            (LibUniswapV3.getPathTWAP(params.pathToEth, amount, params.twapTime) *
+                (C.RATIO_FACTOR - params.stepSlippage * params.pathToEth.numPools())) / C.RATIO_FACTOR;
     }
 
     function getSpotValue(uint256 amount, bytes calldata parameters) external view returns (uint256 value) {
         Parameters memory params = abi.decode(parameters, (Parameters));
-        return LibUniswapV3.getPathSpotPrice(params.pathToEth, amount)
-            * (C.RATIO_FACTOR - params.stepSlippage * params.pathToEth.numPools()) / C.RATIO_FACTOR;
+        return
+            (LibUniswapV3.getPathSpotPrice(params.pathToEth, amount) *
+                (C.RATIO_FACTOR - params.stepSlippage * params.pathToEth.numPools())) / C.RATIO_FACTOR;
     }
 
     function getResistantAmount(uint256 value, bytes calldata parameters) external view returns (uint256) {
         Parameters memory params = abi.decode(parameters, (Parameters));
-        return LibUniswapV3.getPathTWAP(params.pathFromEth, value, params.twapTime)
-            * (C.RATIO_FACTOR - params.stepSlippage * params.pathFromEth.numPools()) / C.RATIO_FACTOR;
+        return
+            (LibUniswapV3.getPathTWAP(params.pathFromEth, value, params.twapTime) *
+                (C.RATIO_FACTOR - params.stepSlippage * params.pathFromEth.numPools())) / C.RATIO_FACTOR;
     }
 
     /// @notice verify that parameters are valid combination with this implementation. Users should be able to use

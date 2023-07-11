@@ -1,0 +1,7 @@
+# Ignore artifacts:
+lib
+out
+broadcast
+cache
+
+src/interfaces/external

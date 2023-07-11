@@ -37,8 +37,8 @@ contract InstantLiquidatorTest is TestUtils {
 
     constructor() {
         ASSETS.push(Asset({standard: ERC20_STANDARD, addr: C.WETH, decimals: 18, id: 0, data: ""})); // Tests expect 0 index to be WETH
-            // NOTE why is USDC breaking? And why does USDC look like it is using a proxy wrapper contract...?
-            // ASSETS.push(Asset({standard: ERC20_STANDARD, addr: C.USDC, decimals: C.USDC_DECIMALS, id: 0, data: ""})); // Tests expect 1 index to be an ERC20}
+        // NOTE why is USDC breaking? And why does USDC look like it is using a proxy wrapper contract...?
+        // ASSETS.push(Asset({standard: ERC20_STANDARD, addr: C.USDC, decimals: C.USDC_DECIMALS, id: 0, data: ""})); // Tests expect 1 index to be an ERC20}
     }
 
     // invoked before each test case is run

@@ -49,7 +49,7 @@ contract StandardAssessorTest is Test {
         vm.prank(address(0));
         position = IPosition(positionFactory.createPosition());
         vm.prank(address(0));
-        position.deploy(mockAsset, loanAmount * currentValueRatio / C.RATIO_FACTOR, "");
+        position.deploy(mockAsset, (loanAmount * currentValueRatio) / C.RATIO_FACTOR, "");
 
         Agreement memory agreement;
         agreement.loanAmount = loanAmount;
@@ -76,13 +76,13 @@ contract StandardAssessorTest is Test {
         Asset memory asset;
         uint256 cost;
 
-        (asset, cost) = getCost(10 * C.RATIO_FACTOR / 100, 0, 0, loanAmount, 1, timePassed); // 10% origination fee
+        (asset, cost) = getCost((10 * C.RATIO_FACTOR) / 100, 0, 0, loanAmount, 1, timePassed); // 10% origination fee
         assertEq(cost, loanAmount / 10); // certainly going to have rounding error here
         (asset, cost) = getCost(0, C.RATIO_FACTOR / 1_000_000, 0, loanAmount, 1, timePassed); // 0.0001% interest per second for 1 day
-        assertEq(cost, loanAmount * timePassed / 1_000_000); // rounding errors?
-        (asset, cost) = getCost(0, 0, 5 * C.RATIO_FACTOR / 100, loanAmount, 120 * C.RATIO_FACTOR / 100, timePassed); // 5% of 20% profit
-        assertEq(cost, loanAmount * 20 * 5 / 100 / 100); // rounding errors?
-        (asset, cost) = getCost(0, 0, 5 * C.RATIO_FACTOR / 100, loanAmount, 90 * C.RATIO_FACTOR / 100, timePassed); // 5% of 10% loss
+        assertEq(cost, (loanAmount * timePassed) / 1_000_000); // rounding errors?
+        (asset, cost) = getCost(0, 0, (5 * C.RATIO_FACTOR) / 100, loanAmount, (120 * C.RATIO_FACTOR) / 100, timePassed); // 5% of 20% profit
+        assertEq(cost, (loanAmount * 20 * 5) / 100 / 100); // rounding errors?
+        (asset, cost) = getCost(0, 0, (5 * C.RATIO_FACTOR) / 100, loanAmount, (90 * C.RATIO_FACTOR) / 100, timePassed); // 5% of 10% loss
         assertEq(cost, 0);
         assertEq(asset.standard, ERC20_STANDARD);
     }
@@ -103,33 +103,49 @@ contract StandardAssessorTest is Test {
         loanAmount = bound(loanAmount, 0, type(uint64).max);
         currentValueRatio = bound(currentValueRatio, 0, 3 * C.RATIO_FACTOR);
         timePassed = bound(timePassed, 0, 365 * 24 * 60 * 60);
-        (, uint256 cost) =
-            getCost(originationFeeRatio, interestRatio, profitShareRatio, loanAmount, currentValueRatio, timePassed);
-        uint256 currentValue = loanAmount * currentValueRatio / C.RATIO_FACTOR;
+        (, uint256 cost) = getCost(
+            originationFeeRatio,
+            interestRatio,
+            profitShareRatio,
+            loanAmount,
+            currentValueRatio,
+            timePassed
+        );
+        uint256 currentValue = (loanAmount * currentValueRatio) / C.RATIO_FACTOR;
 
         {
             // assertLe(cost, loanAmount); // May not be true if cost parameters v high.
-            uint256 originationFee = loanAmount * originationFeeRatio / C.RATIO_FACTOR;
+            uint256 originationFee = (loanAmount * originationFeeRatio) / C.RATIO_FACTOR;
             assertGe(cost, originationFee);
-            uint256 interest = loanAmount * timePassed * interestRatio / C.RATIO_FACTOR;
+            uint256 interest = (loanAmount * timePassed * interestRatio) / C.RATIO_FACTOR;
             assertGe(cost, interest);
             uint256 nonProfitCost = loanAmount + originationFee + interest;
             if (currentValue > nonProfitCost) {
-                uint256 profitShare = (currentValue - nonProfitCost) * profitShareRatio / C.RATIO_FACTOR;
+                uint256 profitShare = ((currentValue - nonProfitCost) * profitShareRatio) / C.RATIO_FACTOR;
                 assertGe(cost, profitShare);
             }
         }
 
         {
             scaleUpRatio = bound(scaleUpRatio, 0, C.RATIO_FACTOR) + C.RATIO_FACTOR;
-            uint256 loanAmountBig = loanAmount * scaleUpRatio / C.RATIO_FACTOR;
-            uint256 timePassedBig = timePassed * scaleUpRatio / C.RATIO_FACTOR;
+            uint256 loanAmountBig = (loanAmount * scaleUpRatio) / C.RATIO_FACTOR;
+            uint256 timePassedBig = (timePassed * scaleUpRatio) / C.RATIO_FACTOR;
             (, uint256 newCost) = getCost(
-                originationFeeRatio, interestRatio, profitShareRatio, loanAmountBig, currentValueRatio, timePassed
+                originationFeeRatio,
+                interestRatio,
+                profitShareRatio,
+                loanAmountBig,
+                currentValueRatio,
+                timePassed
             );
             assertLe(cost, newCost);
             (, newCost) = getCost(
-                originationFeeRatio, interestRatio, profitShareRatio, loanAmount, currentValueRatio, timePassedBig
+                originationFeeRatio,
+                interestRatio,
+                profitShareRatio,
+                loanAmount,
+                currentValueRatio,
+                timePassedBig
             );
             assertLe(cost, newCost);
         }

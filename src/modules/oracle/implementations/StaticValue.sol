@@ -26,7 +26,7 @@ contract StaticPriceOracle is Oracle {
 
     function getResistantAmount(uint256 ethAmount, bytes calldata parameters) external pure returns (uint256) {
         Parameters memory params = abi.decode(parameters, (Parameters));
-        return ethAmount * params.ratio / (10 ** C.ETH_DECIMALS); // AUDIT rounding?
+        return (ethAmount * params.ratio) / (10 ** C.ETH_DECIMALS); // AUDIT rounding?
     }
 
     function canHandleAsset(Asset calldata, bytes calldata) external pure override returns (bool) {
@@ -35,6 +35,6 @@ contract StaticPriceOracle is Oracle {
 
     function _value(uint256 amount, bytes calldata parameters) private pure returns (uint256) {
         Parameters memory params = abi.decode(parameters, (Parameters));
-        return amount * (10 ** C.ETH_DECIMALS) / params.ratio; // AUDIT rounding?
+        return (amount * (10 ** C.ETH_DECIMALS)) / params.ratio; // AUDIT rounding?
     }
 }

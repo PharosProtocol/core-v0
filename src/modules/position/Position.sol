@@ -21,34 +21,28 @@ abstract contract Position is IPosition, CloneFactory, Module {
         // _setupRole
     }
 
-    function deploy(Asset calldata asset, uint256 amount, bytes calldata parameters)
-        external
-        override
-        proxyExecution
-        onlyRole(C.ADMIN_ROLE)
-    {
+    function deploy(
+        Asset calldata asset,
+        uint256 amount,
+        bytes calldata parameters
+    ) external override proxyExecution onlyRole(C.ADMIN_ROLE) {
         _deploy(asset, amount, parameters);
     }
 
     function _deploy(Asset calldata asset, uint256 amount, bytes calldata parameters) internal virtual;
 
-    function close(address sender, Agreement calldata agreement)
-        external
-        override
-        proxyExecution
-        onlyRole(C.ADMIN_ROLE)
-        returns (uint256)
-    {
+    function close(
+        address sender,
+        Agreement calldata agreement
+    ) external override proxyExecution onlyRole(C.ADMIN_ROLE) returns (uint256) {
         return _close(sender, agreement);
     }
 
-    function distribute(address sender, uint256 lenderAmount, Agreement calldata agreement)
-        external
-        payable
-        override
-        proxyExecution
-        onlyRole(C.ADMIN_ROLE)
-    {
+    function distribute(
+        address sender,
+        uint256 lenderAmount,
+        Agreement calldata agreement
+    ) external payable override proxyExecution onlyRole(C.ADMIN_ROLE) {
         return _distribute(sender, lenderAmount, agreement);
     }
 
@@ -82,13 +76,11 @@ abstract contract Position is IPosition, CloneFactory, Module {
         emit ControlTransferred(msg.sender, controller);
     }
 
-    function passThrough(address payable destination, bytes calldata data, bool delegateCall)
-        external
-        payable
-        proxyExecution
-        onlyRole(C.ADMIN_ROLE)
-        returns (bool, bytes memory)
-    {
+    function passThrough(
+        address payable destination,
+        bytes calldata data,
+        bool delegateCall
+    ) external payable proxyExecution onlyRole(C.ADMIN_ROLE) returns (bool, bytes memory) {
         if (!delegateCall) {
             return destination.call{value: msg.value}(data);
         } else {

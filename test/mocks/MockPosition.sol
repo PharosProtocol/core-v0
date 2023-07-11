@@ -27,7 +27,7 @@ contract MockPosition is Position {
     }
 
     function _close(address, Agreement calldata agreement) internal view override returns (uint256 closedAmount) {
-        (Asset memory costAsset,) = IAssessor(agreement.assessor.addr).getCost(agreement, closedAmount);
+        (Asset memory costAsset, ) = IAssessor(agreement.assessor.addr).getCost(agreement, closedAmount);
         require(
             LibUtils.isValidLoanAssetAsCost(agreement.loanAsset, costAsset),
             "MockPosition, _close(): cost asset invalid"
@@ -44,7 +44,10 @@ contract MockPosition is Position {
             // Lender is owed more than the position is worth.
             // Sender pays the difference.
             LibUtilsPublic.safeErc20TransferFrom(
-                agreement.loanAsset.addr, sender, address(this), lenderAmount - balance
+                agreement.loanAsset.addr,
+                sender,
+                address(this),
+                lenderAmount - balance
             );
             balance += lenderAmount - balance;
         }
@@ -52,7 +55,9 @@ contract MockPosition is Position {
         if (lenderAmount > 0) {
             erc20.approve(agreement.lenderAccount.addr, lenderAmount);
             IAccount(agreement.lenderAccount.addr).loadFromPosition(
-                agreement.loanAsset, lenderAmount, agreement.lenderAccount.parameters
+                agreement.loanAsset,
+                lenderAmount,
+                agreement.lenderAccount.parameters
             );
             balance -= lenderAmount;
         }
@@ -60,7 +65,9 @@ contract MockPosition is Position {
         if (balance > 0) {
             erc20.approve(agreement.borrowerAccount.addr, balance);
             IAccount(agreement.borrowerAccount.addr).loadFromPosition(
-                agreement.loanAsset, balance, agreement.borrowerAccount.parameters
+                agreement.loanAsset,
+                balance,
+                agreement.borrowerAccount.parameters
             );
         }
     }

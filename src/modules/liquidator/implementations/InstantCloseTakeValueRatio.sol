@@ -8,7 +8,7 @@ import {InstantErc20} from "./InstantErc20.sol";
 import {IOracle} from "src/interfaces/IOracle.sol";
 
 /*
- * Liquidate a position at kick time by giving closing the position and having position contract distribute loan and 
+ * Liquidate a position at kick time by giving closing the position and having position contract distribute loan and
  * collateral assets between liquidator, lender, and borrower. Only useable with ERC20s due to need for divisibility.
  * Liquidator reward is a ratio of loan value, and maximum is 100% of collateral assets.
  */
@@ -26,9 +26,11 @@ contract InstantCloseTakeValueRatio is InstantErc20 {
 
     function getRewardCollAmount(Agreement memory agreement) public view override returns (uint256 rewardCollAmount) {
         Parameters memory params = abi.decode(agreement.liquidator.parameters, (Parameters));
-        uint256 loanValue =
-            IOracle(agreement.loanOracle.addr).getResistantValue(agreement.loanAmount, agreement.loanOracle.parameters);
-        uint256 rewardValue = loanValue * params.loanValueRatio / C.RATIO_FACTOR;
+        uint256 loanValue = IOracle(agreement.loanOracle.addr).getResistantValue(
+            agreement.loanAmount,
+            agreement.loanOracle.parameters
+        );
+        uint256 rewardValue = (loanValue * params.loanValueRatio) / C.RATIO_FACTOR;
         return IOracle(agreement.collOracle.addr).getResistantAmount(rewardValue, agreement.collOracle.parameters);
     }
 }

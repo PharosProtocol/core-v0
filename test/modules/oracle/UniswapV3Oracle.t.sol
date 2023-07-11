@@ -78,7 +78,7 @@ contract UniswapV3OracleTest is Test, Module {
         uint256 spotValue = oracleModule.getSpotValue(baseAmount, parameters);
         uint256 newAmount = oracleModule.getResistantAmount(value, parameters);
 
-        uint256 expectedAmount = baseAmount * (C.RATIO_FACTOR - params.stepSlippage) ** 2 / C.RATIO_FACTOR ** 2;
+        uint256 expectedAmount = (baseAmount * (C.RATIO_FACTOR - params.stepSlippage) ** 2) / C.RATIO_FACTOR ** 2;
         // Matching rounding here is difficult. Uni internal rounding is different that Oracle application of slippage.
         // Use Uni math to match rounding. Fees are round up.
         // uint256 expectedAmount = FullMath.mulDivRoundingUp(

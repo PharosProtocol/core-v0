@@ -20,6 +20,15 @@ https://fravoll.github.io/solidity-patterns/pull_over_push.html
 
 - What are Pharos invariants?
 https://www.nascent.xyz/idea/youre-writing-require-statements-wrong
+
+## Temporary Security Limitations
+In order to ensure a more secure launch, Pharos will limit some early functionality. This provides us more time to
+test, audit, and improve some of the elements that are most novel.
+
+- Testnet / L2 testing will have agreement size limitations.
+- Permissionless use of 3rd party modules will be disabled.
+- Direct interaction with Position protocol wrappers will not be implemented.
+
 ### Core: 
 
 ### Entity-Centric

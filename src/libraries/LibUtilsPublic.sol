@@ -6,7 +6,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /*
  * This util functions are public so that they can be called from decoded calldata. Specifically this pattern
- * is used with position passthrough functions. 
+ * is used with position passthrough functions.
  */
 
 library LibUtilsPublic {
@@ -23,8 +23,9 @@ library LibUtilsPublic {
     /// @notice Transfers tokens from the targeted address to the given destination.
     /// @dev Return value is optional.
     function safeErc20TransferFrom(address token, address from, address to, uint256 value) public {
-        (bool success, bytes memory data) =
-            token.call(abi.encodeWithSelector(IERC20.transferFrom.selector, from, to, value));
+        (bool success, bytes memory data) = token.call(
+            abi.encodeWithSelector(IERC20.transferFrom.selector, from, to, value)
+        );
         require(success && (data.length == 0 || abi.decode(data, (bool))), "UtilsPublic.safeErc20TransferFrom failed");
     }
 }

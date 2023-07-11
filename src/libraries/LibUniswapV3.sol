@@ -49,8 +49,10 @@ library LibUniswapV3 {
                 (tokenIn, tokenOut, fee) = path.decodeFirstPool();
                 tokens[i] = tokenIn;
                 // console.log("tokenIn: %s, tokenOut: %s, fee: %s", tokenIn, tokenOut, fee);
-                address pool =
-                    PoolAddress.computeAddress(C.UNI_V3_FACTORY, PoolAddress.getPoolKey(tokenIn, tokenOut, fee));
+                address pool = PoolAddress.computeAddress(
+                    C.UNI_V3_FACTORY,
+                    PoolAddress.getPoolKey(tokenIn, tokenOut, fee)
+                );
                 // console.log("pool: %s", pool);
                 // Computation depends on PoolAddress.POOL_INIT_CODE_HASH. Default value in Uni repo may not be correct.
                 ticks[i] = getTWATick(pool, twapTime);
@@ -72,14 +74,17 @@ library LibUniswapV3 {
     /// Get the TWAP of the pool across interval. token1/token0.
     function getTWATick(address pool, uint32 twapTime) internal view returns (int24 arithmeticMeanTick) {
         if (twapTime == 0) {
-            (, arithmeticMeanTick,,,,,) = IUniswapV3PoolState(pool).slot0();
+            (, arithmeticMeanTick, , , , , ) = IUniswapV3PoolState(pool).slot0();
         } else {
             require(LibUtils.isDeployedContract(pool), "Invalid pool, no contract at address");
-            require(OracleLibrary.getOldestObservationSecondsAgo(pool) >= twapTime, "UniV3 pool observations too young"); // ensure needed data is available
+            require(
+                OracleLibrary.getOldestObservationSecondsAgo(pool) >= twapTime,
+                "UniV3 pool observations too young"
+            ); // ensure needed data is available
             // console.log("oldest observation seconds ago: %s", OracleLibrary.getOldestObservationSecondsAgo(pool));
-            (,,, uint16 observationCardinality,,,) = IUniswapV3PoolState(pool).slot0();
+            (, , , uint16 observationCardinality, , , ) = IUniswapV3PoolState(pool).slot0();
             require(observationCardinality >= twapTime / 12, "UniV3 pool cardinality too low"); // shortest case scenario should always cover twap time
-            (arithmeticMeanTick,) = OracleLibrary.consult(pool, twapTime);
+            (arithmeticMeanTick, ) = OracleLibrary.consult(pool, twapTime);
             // console.log("arithmeticMeanTick:");
             // console.logInt(arithmeticMeanTick);
         }

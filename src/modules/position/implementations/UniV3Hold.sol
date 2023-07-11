@@ -81,9 +81,10 @@ contract UniV3HoldFactory is Position {
     using Path for bytes;
     using BytesLib for bytes;
 
-    constructor(address protocolAddr) Position(protocolAddr) 
-    // Component(compatibleLoanAssets, compatibleCollAssets)
-    {}
+    constructor(address protocolAddr) Position(protocolAddr) // Component(compatibleLoanAssets, compatibleCollAssets)
+    {
+
+    }
 
     function canHandleAsset(Asset calldata asset, bytes calldata parameters) external pure override returns (bool) {
         Parameters memory params = abi.decode(parameters, (Parameters));
@@ -164,7 +165,7 @@ contract UniV3HoldFactory is Position {
     function _close(address, Agreement calldata agreement) internal override returns (uint256 closedAmount) {
         Parameters memory params = abi.decode(agreement.position.parameters, (Parameters));
         // require(heldAsset.standard == ERC20_STANDARD, "UniV3Hold: exit asset must be ETH or ERC20");
-        (address heldAsset,,) = params.exitPath.decodeFirstPool();
+        (address heldAsset, , ) = params.exitPath.decodeFirstPool();
 
         uint256 transferAmount = amountHeld;
         amountHeld = 0;
@@ -186,18 +187,17 @@ contract UniV3HoldFactory is Position {
         }
     }
 
-    function _distribute(address sender, uint256 lenderAmount, Agreement calldata agreement)
-        internal
-        
-        override
-    {
+    function _distribute(address sender, uint256 lenderAmount, Agreement calldata agreement) internal override {
         IERC20 erc20 = IERC20(agreement.loanAsset.addr);
         uint256 balance = erc20.balanceOf(address(this));
 
         // If there are not enough assets to pay lender, pull missing from sender.
         if (lenderAmount > balance) {
             LibUtilsPublic.safeErc20TransferFrom(
-                agreement.loanAsset.addr, sender, address(this), lenderAmount - balance
+                agreement.loanAsset.addr,
+                sender,
+                address(this),
+                lenderAmount - balance
             );
             balance += lenderAmount - balance;
         }
@@ -207,7 +207,9 @@ contract UniV3HoldFactory is Position {
             //          loadFromUser rathe than loadFromPosition.
             erc20.approve(agreement.lenderAccount.addr, lenderAmount);
             IAccount(agreement.lenderAccount.addr).loadFromPosition(
-                agreement.loanAsset, lenderAmount, agreement.lenderAccount.parameters
+                agreement.loanAsset,
+                lenderAmount,
+                agreement.lenderAccount.parameters
             );
             balance -= lenderAmount;
         }
@@ -216,7 +218,9 @@ contract UniV3HoldFactory is Position {
         if (balance > 0) {
             erc20.approve(agreement.borrowerAccount.addr, balance);
             IAccount(agreement.borrowerAccount.addr).loadFromPosition(
-                agreement.loanAsset, balance, agreement.borrowerAccount.parameters
+                agreement.loanAsset,
+                balance,
+                agreement.borrowerAccount.parameters
             );
         }
         // Collateral is still in borrower account and is unlocked by the bookkeeper.
@@ -233,8 +237,9 @@ contract UniV3HoldFactory is Position {
 
     // NOTE this is an inexact method of computing multistep slippage. but exponentials are hard.
     function amountOutMin(Parameters memory params) private view returns (uint256) {
-        return LibUniswapV3.getPathTWAP(params.exitPath, amountHeld, TWAP_TIME)
-            * (C.RATIO_FACTOR - STEP_SLIPPAGE_RATIO * params.exitPath.numPools()) / C.RATIO_FACTOR;
+        return
+            (LibUniswapV3.getPathTWAP(params.exitPath, amountHeld, TWAP_TIME) *
+                (C.RATIO_FACTOR - STEP_SLIPPAGE_RATIO * params.exitPath.numPools())) / C.RATIO_FACTOR;
     }
 
     function validParameters(bytes calldata parameters) private view returns (bool) {

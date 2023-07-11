@@ -6,7 +6,7 @@ import {Agreement} from "src/libraries/LibBookkeeper.sol";
 import {InstantErc20} from "./InstantErc20.sol";
 
 /*
- * Liquidate a position at kick time by giving closing the position and having position contract distribute loan and 
+ * Liquidate a position at kick time by giving closing the position and having position contract distribute loan and
  * collateral assets between liquidator, lender, and borrower. Only useable with ERC20s due to need for divisibility.
  * Liquidator reward is all of the collateral.
  */

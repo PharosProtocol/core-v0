@@ -27,11 +27,11 @@ abstract contract Account is IAccount, AccessControl, Module {
         emit LoadedFromUser(asset, amount, parameters);
     }
 
-    function loadFromPosition(Asset calldata asset, uint256 amount, bytes calldata parameters)
-        external
-        payable
-        override
-    {
+    function loadFromPosition(
+        Asset calldata asset,
+        uint256 amount,
+        bytes calldata parameters
+    ) external payable override {
         _loadFromPosition(asset, amount, parameters);
         emit LoadedFromPosition(asset, amount, parameters);
     }
@@ -52,27 +52,30 @@ abstract contract Account is IAccount, AccessControl, Module {
         emit UnloadedToPosition(position, asset, amount, isLockedColl, parameters);
     }
 
-    function lockCollateral(Asset calldata asset, uint256 amount, bytes calldata parameters)
-        external
-        override
-        onlyRole(C.BOOKKEEPER_ROLE)
-    {
+    function lockCollateral(
+        Asset calldata asset,
+        uint256 amount,
+        bytes calldata parameters
+    ) external override onlyRole(C.BOOKKEEPER_ROLE) {
         _lockCollateral(asset, amount, parameters);
         emit LockedCollateral(asset, amount, parameters);
     }
 
-    function unlockCollateral(Asset calldata asset, uint256 amount, bytes calldata parameters)
-        external
-        override
-        onlyRole(C.BOOKKEEPER_ROLE)
-    {
+    function unlockCollateral(
+        Asset calldata asset,
+        uint256 amount,
+        bytes calldata parameters
+    ) external override onlyRole(C.BOOKKEEPER_ROLE) {
         _unlockCollateral(asset, amount, parameters);
         emit UnlockedCollateral(asset, amount, parameters);
     }
 
     function _loadFromUser(Asset calldata asset, uint256 amount, bytes calldata parameters) internal virtual;
+
     function _loadFromPosition(Asset calldata asset, uint256 amount, bytes calldata parameters) internal virtual;
+
     function _unloadToUser(Asset calldata asset, uint256 amount, bytes calldata parameters) internal virtual;
+
     function _unloadToPosition(
         address position,
         Asset calldata asset,
@@ -80,6 +83,8 @@ abstract contract Account is IAccount, AccessControl, Module {
         bool isLockedColl,
         bytes calldata parameters
     ) internal virtual;
+
     function _lockCollateral(Asset calldata asset, uint256 amount, bytes calldata parameters) internal virtual;
+
     function _unlockCollateral(Asset calldata asset, uint256 amount, bytes calldata parameters) internal virtual;
 }

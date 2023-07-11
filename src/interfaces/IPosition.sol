@@ -25,16 +25,19 @@ interface IPosition is IAccessControl {
 
     /// @notice Get current exitable value of the position, denoted in loan asset.
     function getCloseAmount(bytes calldata parameters) external view returns (uint256);
+
     /// @notice Transfer the position to a new controller. Used for liquidations.
     /// @dev Do not set admin role to prevent liquidator from pushing the position back into the protocol.
     function transferContract(address controller) external;
 
     function canHandleAsset(Asset calldata asset, bytes calldata parameters) external pure returns (bool);
+
     /// @notice Pass through function to allow the position to interact with other contracts after liquidation.
     /// @dev Internal functions are not reachable. // NOTE right? bc allowing controller to be set *back* to bookkeeper will open exploits
-    function passThrough(address payable destination, bytes calldata data, bool delegateCall)
-        external
-        payable
-        returns (bool, bytes memory);
+    function passThrough(
+        address payable destination,
+        bytes calldata data,
+        bool delegateCall
+    ) external payable returns (bool, bytes memory);
     // function removeEth(address payable recipient) external // ONLY_ROLE(BOOKKEEPER_ROLE)
 }

@@ -45,11 +45,14 @@ import {Asset} from "src/libraries/LibUtils.sol";
 interface IAccount {
     /// @notice Transfer asset and increment account balance. Pulls asset from sender or uses msg.value.
     function loadFromUser(Asset calldata asset, uint256 amount, bytes calldata parameters) external payable;
+
     /// @notice Transfer asset and increment account balance. Pulls asset from sender or uses msg.value.
     /// @dev Assets may not literally be coming from a position.
     function loadFromPosition(Asset calldata asset, uint256 amount, bytes calldata parameters) external payable;
+
     /// @notice Transfer asset out and decrement account balance. Pushes asset to sender.
     function unloadToUser(Asset calldata asset, uint256 amount, bytes calldata parameters) external;
+
     /// @notice Transfer loan or collateral asset from account to Position MPC. Pushes.
     function unloadToPosition(
         address position,
@@ -60,6 +63,7 @@ interface IAccount {
     ) external;
 
     function lockCollateral(Asset calldata asset, uint256 amount, bytes calldata parameters) external;
+
     function unlockCollateral(Asset calldata asset, uint256 amount, bytes calldata parameters) external;
 
     // NOTE is is possible to (securely) require the owner addr to be the first parameter so that owner can

@@ -28,8 +28,9 @@ interface ILiquidator {
     /// @notice Handles receipt of a position that the bookkeeper has passed along for liquidation.
     function receiveKick(address kicker, Agreement calldata agreement) external;
 
-    function canHandleAssets(Asset calldata loanAsset, Asset calldata collAsset, bytes calldata parameters)
-        external
-        view
-        returns (bool);
+    function canHandleAssets(
+        Asset calldata loanAsset,
+        Asset calldata collAsset,
+        bytes calldata parameters
+    ) external view returns (bool);
 }

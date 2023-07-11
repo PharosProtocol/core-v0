@@ -45,8 +45,11 @@ contract SoloAccount is Account {
         Parameters memory params = abi.decode(parameters, (Parameters));
         bytes32 id = _getId(params.owner, params.salt);
         bytes32 assetHash = keccak256(abi.encode(asset));
-        unlockedBalances[id][assetHash] =
-            LibUtils.addWithMsg(unlockedBalances[id][assetHash], amount, "_load: balance too large");
+        unlockedBalances[id][assetHash] = LibUtils.addWithMsg(
+            unlockedBalances[id][assetHash],
+            amount,
+            "_load: balance too large"
+        );
 
         if (msg.value > 0 && asset.addr == C.WETH) {
             assert(msg.value == amount);
@@ -61,8 +64,11 @@ contract SoloAccount is Account {
         require(msg.sender == params.owner, "unload: not owner");
         bytes32 id = _getId(params.owner, params.salt);
         bytes32 assetHash = keccak256(abi.encode(asset));
-        unlockedBalances[id][assetHash] =
-            LibUtils.subWithMsg(unlockedBalances[id][assetHash], amount, "_unloadToUser: balance too low");
+        unlockedBalances[id][assetHash] = LibUtils.subWithMsg(
+            unlockedBalances[id][assetHash],
+            amount,
+            "_unloadToUser: balance too low"
+        );
         LibUtilsPublic.safeErc20Transfer(asset.addr, msg.sender, amount);
     }
 
@@ -83,8 +89,11 @@ contract SoloAccount is Account {
         bytes32 id = _getId(params.owner, params.salt);
         if (!isLockedColl) {
             bytes32 assetHash = keccak256(abi.encode(asset));
-            unlockedBalances[id][assetHash] =
-                LibUtils.subWithMsg(unlockedBalances[id][assetHash], amount, "_unloadToPosition: balance too low");
+            unlockedBalances[id][assetHash] = LibUtils.subWithMsg(
+                unlockedBalances[id][assetHash],
+                amount,
+                "_unloadToPosition: balance too low"
+            );
         }
         // AUDIT any method to take out of other users locked balance?
         LibUtilsPublic.safeErc20Transfer(asset.addr, position, amount);
@@ -92,30 +101,36 @@ contract SoloAccount is Account {
 
     // Without wasting gas on ERC20 transfer, lock assets here. In normal case (healthy position close) no transfers
     // of collateral are necessary.
-    function _lockCollateral(Asset calldata asset, uint256 amount, bytes calldata parameters)
-        internal
-        override
-        onlyRole(C.BOOKKEEPER_ROLE)
-    {
+    function _lockCollateral(
+        Asset calldata asset,
+        uint256 amount,
+        bytes calldata parameters
+    ) internal override onlyRole(C.BOOKKEEPER_ROLE) {
         Parameters memory params = abi.decode(parameters, (Parameters));
 
         bytes32 id = _getId(params.owner, params.salt);
         bytes32 assetHash = keccak256(abi.encode(asset));
-        unlockedBalances[id][assetHash] =
-            LibUtils.subWithMsg(unlockedBalances[id][assetHash], amount, "_lockCollateral: balance too low");
+        unlockedBalances[id][assetHash] = LibUtils.subWithMsg(
+            unlockedBalances[id][assetHash],
+            amount,
+            "_lockCollateral: balance too low"
+        );
     }
 
-    function _unlockCollateral(Asset calldata asset, uint256 amount, bytes calldata parameters)
-        internal
-        override
-        onlyRole(C.BOOKKEEPER_ROLE)
-    {
+    function _unlockCollateral(
+        Asset calldata asset,
+        uint256 amount,
+        bytes calldata parameters
+    ) internal override onlyRole(C.BOOKKEEPER_ROLE) {
         Parameters memory params = abi.decode(parameters, (Parameters));
 
         bytes32 id = _getId(params.owner, params.salt);
         bytes32 assetHash = keccak256(abi.encode(asset));
-        unlockedBalances[id][assetHash] =
-            LibUtils.addWithMsg(unlockedBalances[id][assetHash], amount, "_unlockCollateral: balance too large");
+        unlockedBalances[id][assetHash] = LibUtils.addWithMsg(
+            unlockedBalances[id][assetHash],
+            amount,
+            "_unlockCollateral: balance too large"
+        );
     }
 
     function getOwner(bytes calldata parameters) external pure override returns (address) {
@@ -127,12 +142,10 @@ contract SoloAccount is Account {
         return false;
     }
 
-    function getBalance(Asset calldata asset, bytes calldata parameters)
-        external
-        view
-        override
-        returns (uint256 amounts)
-    {
+    function getBalance(
+        Asset calldata asset,
+        bytes calldata parameters
+    ) external view override returns (uint256 amounts) {
         Parameters memory params = abi.decode(parameters, (Parameters));
         bytes32 accountId = _getId(params.owner, params.salt);
         return unlockedBalances[accountId][keccak256(abi.encode(asset))];

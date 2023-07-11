@@ -15,12 +15,7 @@ contract MockAssessor is Assessor {
         finalCost = cost;
     }
 
-    function _getCost(Agreement calldata, uint256)
-        internal
-        view
-        override
-        returns (Asset memory asset, uint256 amount)
-    {
+    function _getCost(Agreement calldata, uint256) internal view override returns (Asset memory asset, uint256 amount) {
         return (instanceAsset, finalCost);
     }
 

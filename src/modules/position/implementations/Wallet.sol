@@ -41,8 +41,10 @@ contract WalletFactory is Position {
         uint256 returnAmount = amountDistributed;
 
         // Positions do not typically factor in a cost, but doing so here often saves an ERC20 transfer in distribute.
-        (Asset memory costAsset, uint256 cost) =
-            IAssessor(agreement.assessor.addr).getCost(agreement, amountDistributed);
+        (Asset memory costAsset, uint256 cost) = IAssessor(agreement.assessor.addr).getCost(
+            agreement,
+            amountDistributed
+        );
         if (LibUtils.isValidLoanAssetAsCost(agreement.loanAsset, costAsset)) {
             returnAmount += cost;
         }
@@ -60,14 +62,19 @@ contract WalletFactory is Position {
         // If there are not enough assets to pay lender, pull missing from sender.
         if (lenderAmount > balance) {
             LibUtilsPublic.safeErc20TransferFrom(
-                agreement.loanAsset.addr, sender, address(this), lenderAmount - balance
+                agreement.loanAsset.addr,
+                sender,
+                address(this),
+                lenderAmount - balance
             );
         }
 
         if (lenderAmount > 0) {
             erc20.approve(agreement.lenderAccount.addr, lenderAmount);
             IAccount(agreement.lenderAccount.addr).loadFromPosition(
-                agreement.loanAsset, lenderAmount, agreement.lenderAccount.parameters
+                agreement.loanAsset,
+                lenderAmount,
+                agreement.lenderAccount.parameters
             );
         }
     }

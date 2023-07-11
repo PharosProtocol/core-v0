@@ -141,6 +141,7 @@ contract Handler is Test, HandlerUtils {
     SoloAccount public accountModule;
     Asset[] public ASSETS;
     uint256[] public assetBalances;
+
     // uint256[] public assetsIn;
     // uint256[] public assetsOut;
 
@@ -151,12 +152,12 @@ contract Handler is Test, HandlerUtils {
         accountModule = new SoloAccount(address(1));
     }
 
-    function load(uint256 assetIdx, uint256 amount, address owner, bytes32 salt)
-        external
-        payable
-        createActor
-        countCall("load")
-    {
+    function load(
+        uint256 assetIdx,
+        uint256 amount,
+        address owner,
+        bytes32 salt
+    ) external payable createActor countCall("load") {
         assetIdx = bound(assetIdx, 0, ASSETS.length - 1);
         amount = bound(amount, 0, type(uint128).max);
         Asset memory asset = ASSETS[assetIdx];
@@ -180,11 +181,13 @@ contract Handler is Test, HandlerUtils {
         accountModule.loadFromUser{value: value}(asset, amount, parameters);
     }
 
-    function unload(uint256 actorIndexSeed, uint256 assetIdx, uint256 amount, address owner, bytes32 salt)
-        external
-        useActor(actorIndexSeed)
-        countCall("unload")
-    {
+    function unload(
+        uint256 actorIndexSeed,
+        uint256 assetIdx,
+        uint256 amount,
+        address owner,
+        bytes32 salt
+    ) external useActor(actorIndexSeed) countCall("unload") {
         assetIdx = bound(assetIdx, 0, ASSETS.length - 1);
         amount = bound(amount, 0, type(uint128).max);
         Asset memory asset = ASSETS[assetIdx];
@@ -230,7 +233,7 @@ contract InvariantAccountTest is Test {
 
     function invariant_ExpectedCumulativeBalances() public {
         for (uint256 j; j < handler.ASSETSLength(); j++) {
-            (bytes3 standard, address addr,,,) = handler.ASSETS(j);
+            (bytes3 standard, address addr, , , ) = handler.ASSETS(j);
             if (standard == ETH_STANDARD) {
                 assertEq(address(handler.accountModule()).balance, handler.assetBalances(j));
             } else if (standard == ERC20_STANDARD) {

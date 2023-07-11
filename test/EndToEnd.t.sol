@@ -100,15 +100,18 @@ contract EndToEndTest is TestUtils {
         address borrower = vm.addr(BORROWER_PRIVATE_KEY);
 
         SoloAccount.Parameters memory lenderAccountParams = SoloAccount.Parameters({owner: lender, salt: bytes32(0)});
-        SoloAccount.Parameters memory borrowerAccountParams =
-            SoloAccount.Parameters({owner: borrower, salt: bytes32(0)});
+        SoloAccount.Parameters memory borrowerAccountParams = SoloAccount.Parameters({
+            owner: borrower,
+            salt: bytes32(0)
+        });
 
         fundAccount(lenderAccountParams);
         fundAccount(borrowerAccountParams);
 
         assertEq(accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 10e18);
         assertEq(
-            accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000 * (10 ** C.USDC_DECIMALS)
+            accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
+            5_000 * (10 ** C.USDC_DECIMALS)
         );
 
         Order memory order = createOrder(lenderAccountParams);
@@ -134,7 +137,8 @@ contract EndToEndTest is TestUtils {
 
         assertEq(accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 8e18);
         assertLt(
-            accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000 * (10 ** C.USDC_DECIMALS)
+            accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
+            5_000 * (10 ** C.USDC_DECIMALS)
         );
         assertGt(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 0);
 
@@ -160,7 +164,9 @@ contract EndToEndTest is TestUtils {
         bookkeeper.exitPosition(agreementSignedBlueprint);
 
         assertGe(
-            accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 10e18, "lender act funds missing"
+            accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)),
+            10e18,
+            "lender act funds missing"
         );
         assertEq(
             accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
@@ -178,15 +184,18 @@ contract EndToEndTest is TestUtils {
         address liquidator = vm.addr(LIQUIDATOR_PRIVATE_KEY);
 
         SoloAccount.Parameters memory lenderAccountParams = SoloAccount.Parameters({owner: lender, salt: bytes32(0)});
-        SoloAccount.Parameters memory borrowerAccountParams =
-            SoloAccount.Parameters({owner: borrower, salt: bytes32(0)});
+        SoloAccount.Parameters memory borrowerAccountParams = SoloAccount.Parameters({
+            owner: borrower,
+            salt: bytes32(0)
+        });
 
         fundAccount(lenderAccountParams);
         fundAccount(borrowerAccountParams);
 
         assertEq(accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 10e18);
         assertEq(
-            accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000 * (10 ** C.USDC_DECIMALS)
+            accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
+            5_000 * (10 ** C.USDC_DECIMALS)
         );
 
         Order memory order = createOrder(lenderAccountParams);
@@ -208,7 +217,8 @@ contract EndToEndTest is TestUtils {
 
         assertEq(accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 8e18);
         assertLt(
-            accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000 * (10 ** C.USDC_DECIMALS)
+            accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
+            5_000 * (10 ** C.USDC_DECIMALS)
         );
         assertGt(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 0);
 
@@ -237,7 +247,8 @@ contract EndToEndTest is TestUtils {
 
         assertGe(accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 10e18);
         assertLt(
-            accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000 * (10 ** C.USDC_DECIMALS)
+            accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
+            5_000 * (10 ** C.USDC_DECIMALS)
         );
         assertGt(IERC20(USDC_ASSET.addr).balanceOf(liquidator), 0);
 
@@ -259,8 +270,10 @@ contract EndToEndTest is TestUtils {
 
     function createOrder(SoloAccount.Parameters memory accountParams) private view returns (Order memory) {
         // Set individual structs here for cleanliness and solidity ease.
-        ModuleReference memory account =
-            ModuleReference({addr: address(accountModule), parameters: abi.encode(accountParams)});
+        ModuleReference memory account = ModuleReference({
+            addr: address(accountModule),
+            parameters: abi.encode(accountParams)
+        });
         // Solidity array syntax is so bad D:
         address[] memory takers = new address[](0);
         uint256[] memory minLoanAmounts = new uint256[](2);
@@ -320,29 +333,30 @@ contract EndToEndTest is TestUtils {
                     interestRatio: C.RATIO_FACTOR / 1000000000,
                     profitShareRatio: C.RATIO_FACTOR / 20
                 })
-                )
+            )
         });
         ModuleReference memory liquidator = ModuleReference({addr: address(liquidatorModule), parameters: ""});
 
         // Lender creates an offer.
-        return Order({
-            minLoanAmounts: minLoanAmounts,
-            loanAssets: loanAssets,
-            collAssets: collAssets,
-            takers: takers,
-            maxDuration: 7 days,
-            minCollateralRatio: C.RATIO_FACTOR / 5,
-            account: account,
-            assessor: assessor,
-            liquidator: liquidator,
-            /* Allowlisted variables */
-            loanOracles: loanOracles,
-            collOracles: collOracles,
-            // Lender would need to list parameters for all possible holdable tokens from all possible lent tokens. Instead just allow a whole factory.
-            factories: factories,
-            isOffer: true,
-            borrowerConfig: BorrowerConfig(0, "")
-        });
+        return
+            Order({
+                minLoanAmounts: minLoanAmounts,
+                loanAssets: loanAssets,
+                collAssets: collAssets,
+                takers: takers,
+                maxDuration: 7 days,
+                minCollateralRatio: C.RATIO_FACTOR / 5,
+                account: account,
+                assessor: assessor,
+                liquidator: liquidator,
+                /* Allowlisted variables */
+                loanOracles: loanOracles,
+                collOracles: collOracles,
+                // Lender would need to list parameters for all possible holdable tokens from all possible lent tokens. Instead just allow a whole factory.
+                factories: factories,
+                isOffer: true,
+                borrowerConfig: BorrowerConfig(0, "")
+            });
     }
 
     function createFill(SoloAccount.Parameters memory borrowerAccountParams) private view returns (Fill memory) {
@@ -356,29 +370,29 @@ contract EndToEndTest is TestUtils {
         //     )
         // });
         BorrowerConfig memory borrowerConfig = BorrowerConfig({
-            initCollateralRatio: C.RATIO_FACTOR * 11 / 10, // 110%
+            initCollateralRatio: (C.RATIO_FACTOR * 11) / 10, // 110%
             positionParameters: abi.encode(WalletFactory.Parameters({recipient: borrowerAccountParams.owner}))
         });
 
-        return Fill({
-            account: ModuleReference({addr: address(accountModule), parameters: abi.encode(borrowerAccountParams)}),
-            loanAmount: 2e18, // must be valid with init CR and available collateral value
-            takerIdx: 0,
-            loanAssetIdx: 0,
-            collAssetIdx: 0,
-            loanOracleIdx: 0,
-            collOracleIdx: 0,
-            factoryIdx: 0,
-            isOfferFill: true,
-            borrowerConfig: borrowerConfig
-        });
+        return
+            Fill({
+                account: ModuleReference({addr: address(accountModule), parameters: abi.encode(borrowerAccountParams)}),
+                loanAmount: 2e18, // must be valid with init CR and available collateral value
+                takerIdx: 0,
+                loanAssetIdx: 0,
+                collAssetIdx: 0,
+                loanOracleIdx: 0,
+                collOracleIdx: 0,
+                factoryIdx: 0,
+                isOfferFill: true,
+                borrowerConfig: borrowerConfig
+            });
     }
 
-    function createSignedBlueprint(Blueprint memory blueprint, uint256 privateKey)
-        private
-        view
-        returns (SignedBlueprint memory)
-    {
+    function createSignedBlueprint(
+        Blueprint memory blueprint,
+        uint256 privateKey
+    ) private view returns (SignedBlueprint memory) {
         bytes32 blueprintHash = bookkeeper.getBlueprintHash(blueprint);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, blueprintHash);
 
