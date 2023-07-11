@@ -54,13 +54,13 @@ abstract contract CloneFactory is AccessControl, Initializable {
         _disableInitializers(); // redundant with proxyExecution modifier?
         BOOKKEEPER_ADDRESS = bookkeeperAddr;
         FACTORY_ADDRESS = address(this);
-        _setupRole(C.ADMIN_ROLE, BOOKKEEPER_ADDRESS); // Factory role set
+        _setupRole(C.BOOKKEEPER_ROLE, BOOKKEEPER_ADDRESS); // Factory role set
     }
 
     /*
      * Create position (clone) that will use this Factory.
      */
-    function createPosition() external implementationExecution onlyRole(C.ADMIN_ROLE) returns (address addr) {
+    function createPosition() external implementationExecution onlyRole(C.BOOKKEEPER_ROLE) returns (address addr) {
         addr = Clones.clone(address(this));
         (bool success, ) = addr.call(abi.encodeWithSignature("initialize()"));
         require(success, "createPosition: initialize fail");

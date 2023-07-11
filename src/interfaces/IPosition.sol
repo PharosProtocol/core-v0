@@ -32,8 +32,10 @@ interface IPosition is IAccessControl {
 
     function canHandleAsset(Asset calldata asset, bytes calldata parameters) external pure returns (bool);
 
+    // SECURITY is it correct that internal/private functions cannot be reached with this passthrough?
     /// @notice Pass through function to allow the position to interact with other contracts after liquidation.
-    /// @dev Internal functions are not reachable. // NOTE right? bc allowing controller to be set *back* to bookkeeper will open exploits
+    /// @dev Internal functions are not reachable.
+    /// @dev Refer to LibUtilsPublic for common functionality.
     function passThrough(
         address payable destination,
         bytes calldata data,

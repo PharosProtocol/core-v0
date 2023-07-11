@@ -8,6 +8,19 @@ User navigates to Pharos UI, selects Doodles NFT collection as whitelisted colla
 
 # Security 
 
+## Security in Design
+- The bookkeeper is considered trusted by plugins and all agreements.
+- The bookkeeper does not trust any plugins.
+- An agreement *does* trust plugins, as they were manually mutually selected. Poor module choices may lead to loss
+of funds for the two parties involved in the agreement. But **only** those two parties.
+- Users who have not explicitly agreed to use a module do not trust that module and cannot have funds at risk
+regardless of implementation.
+- Positions trust their admin. Which is bookkeeper by default and then borrower/liquidator after close.
+- Plugins must trust the other plugins that they are in an agreement with, but none of those interactions should
+entrust safety of any assets outside of the agreement to depend on safe implementation of the other plugins.
+
+## Outstanding Thoughts and Questions
+
 - TODO - **Existing Vulnerability??** - contracts implementing receive functions could be malicious. Reentrancy ofc, which
 has been considered a bit (need to verify use of CEI flow) but also griefing. a borrower could borrow via a smart 
 contract which reverts on fund receipt thus locking lender funds in the contracts. Might be alleviated by using verified
@@ -20,6 +33,8 @@ https://fravoll.github.io/solidity-patterns/pull_over_push.html
 
 - What are Pharos invariants?
 https://www.nascent.xyz/idea/youre-writing-require-statements-wrong
+
+- What is the cost of putting non-reentrant on all external calls?
 
 ## Temporary Security Limitations
 In order to ensure a more secure launch, Pharos will limit some early functionality. This provides us more time to

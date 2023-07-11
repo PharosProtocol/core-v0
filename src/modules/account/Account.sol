@@ -3,6 +3,7 @@
 pragma solidity 0.8.19;
 
 import {AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
+import {ReentrancyGuard} from "lib/openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
 
 // import {Agreement} from "src/libraries/LibBookkeeper.sol";
 import "src/libraries/C.sol";
@@ -10,7 +11,7 @@ import {Asset} from "src/libraries/LibUtils.sol";
 import {IAccount} from "src/interfaces/IAccount.sol";
 import {Module} from "src/modules/Module.sol";
 
-abstract contract Account is IAccount, AccessControl, Module {
+abstract contract Account is IAccount, AccessControl, ReentrancyGuard, Module 
     event LoadedFromUser(Asset asset, uint256 amount, bytes parameters);
     event LoadedFromPosition(Asset asset, uint256 amount, bytes parameters);
     event UnloadedToUser(Asset asset, uint256 amount, bytes parameters);
@@ -22,7 +23,11 @@ abstract contract Account is IAccount, AccessControl, Module {
         _setupRole(C.BOOKKEEPER_ROLE, bookkeeperAddr);
     }
 
-    function loadFromUser(Asset calldata asset, uint256 amount, bytes calldata parameters) external payable override {
+    function loadFromUser(
+        Asset calldata asset,
+        uint256 amount,
+        bytes calldata parameters
+    ) external payable override nonReentrant {
         _loadFromUser(asset, amount, parameters);
         emit LoadedFromUser(asset, amount, parameters);
     }
@@ -31,12 +36,16 @@ abstract contract Account is IAccount, AccessControl, Module {
         Asset calldata asset,
         uint256 amount,
         bytes calldata parameters
-    ) external payable override {
+    ) external payable override nonReentrant {
         _loadFromPosition(asset, amount, parameters);
         emit LoadedFromPosition(asset, amount, parameters);
     }
 
-    function unloadToUser(Asset calldata asset, uint256 amount, bytes calldata parameters) external override {
+    function unloadToUser(
+        Asset calldata asset,
+        uint256 amount,
+        bytes calldata parameters
+    ) external override nonReentrant {
         _unloadToUser(asset, amount, parameters);
         emit UnloadedToUser(asset, amount, parameters);
     }
@@ -87,4 +96,4 @@ abstract contract Account is IAccount, AccessControl, Module {
     function _lockCollateral(Asset calldata asset, uint256 amount, bytes calldata parameters) internal virtual;
 
     function _unlockCollateral(Asset calldata asset, uint256 amount, bytes calldata parameters) internal virtual;
-}
+

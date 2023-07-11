@@ -46,19 +46,19 @@ abstract contract Position is IPosition, CloneFactory, Module {
         return _distribute(sender, lenderAmount, agreement);
     }
 
+    function getCloseAmount(bytes calldata parameters) external view override proxyExecution returns (uint256) {
+        return _getCloseAmount(parameters);
+    }
+
     /// @notice Close position and distribute assets. Give borrower MPC control.
     /// @dev All asset management must be done within this call, else bk would need to have asset-specific knowledge.
     function _close(address sender, Agreement calldata agreement) internal virtual returns (uint256);
 
     function _distribute(address sender, uint256 lenderAmount, Agreement calldata agreement) internal virtual;
 
-    function getCloseAmount(bytes calldata parameters) external view override proxyExecution returns (uint256) {
-        return _getCloseAmount(parameters);
-    }
-
     function _getCloseAmount(bytes calldata parameters) internal view virtual returns (uint256);
 
-    // AUDIT Hello auditors, pls gather around. This feels risky.
+    // SECURITY Hello auditors. This feels risky.
     function transferContract(address controller) external override proxyExecution onlyRole(C.ADMIN_ROLE) {
         // ADMIN_ROLE is not transferred to prevent hostile actors from 'reactivating' a position by setting the
         // controller back to the bookkeeper.
