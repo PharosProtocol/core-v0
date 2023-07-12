@@ -1,16 +1,15 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 
 pragma solidity 0.8.19;
 
-import "lib/forge-std/src/console.sol";
+import {IUniswapV3Pool} from "@uni-v3-core/interfaces/IUniswapV3Pool.sol";
+import {IUniswapV3PoolState} from "@uni-v3-core/interfaces/pool/IUniswapV3PoolState.sol";
+import {PoolAddress} from "@uni-v3-periphery/libraries/PoolAddress.sol";
+import {OracleLibrary} from "@uni-v3-periphery/libraries/OracleLibrary.sol";
+import {Path} from "@uni-v3-periphery/libraries/path.sol";
 
 import {C} from "src/libraries/C.sol";
-import {IUniswapV3Pool} from "lib/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
-import {IUniswapV3PoolState} from "lib/v3-core/contracts/interfaces/pool/IUniswapV3PoolState.sol";
-import {PoolAddress} from "lib/v3-periphery/contracts/libraries/PoolAddress.sol";
-import {OracleLibrary} from "lib/v3-periphery/contracts/libraries/OracleLibrary.sol";
-import {Path} from "lib/v3-periphery/contracts/libraries/path.sol";
-import "src/libraries/LibUtils.sol";
+import {LibUtils} from "src/libraries/LibUtils.sol";
 
 // reference of similar logic https://github.com/butterymoney/molten-oracle/blob/main/contracts/libraries/UniswapV3OracleConsulter.sol
 
@@ -35,7 +34,7 @@ library LibUniswapV3 {
         uint24 fee;
         uint256 pathLength = path.numPools();
         require(pathLength > 0, "getPathTWAP: Empty path provided");
-        require(amount < type(uint128).max, "getPathTWAP: amount uint128 overflow");
+        require(amount < type(uint128).max, "getPathTWAP: amount overflow");
         uint128 amount128 = uint128(amount);
         if (pathLength == 1) {
             (tokenIn, tokenOut, fee) = path.decodeFirstPool();
@@ -48,12 +47,10 @@ library LibUniswapV3 {
             for (uint256 i = 0; i < pathLength; i++) {
                 (tokenIn, tokenOut, fee) = path.decodeFirstPool();
                 tokens[i] = tokenIn;
-                // console.log("tokenIn: %s, tokenOut: %s, fee: %s", tokenIn, tokenOut, fee);
                 address pool = PoolAddress.computeAddress(
                     C.UNI_V3_FACTORY,
                     PoolAddress.getPoolKey(tokenIn, tokenOut, fee)
                 );
-                // console.log("pool: %s", pool);
                 // Computation depends on PoolAddress.POOL_INIT_CODE_HASH. Default value in Uni repo may not be correct.
                 ticks[i] = getTWATick(pool, twapTime);
                 // = getTWAP(pool, amount, tokenIn, tokenOut, twapTime);
@@ -76,17 +73,11 @@ library LibUniswapV3 {
         if (twapTime == 0) {
             (, arithmeticMeanTick, , , , , ) = IUniswapV3PoolState(pool).slot0();
         } else {
-            require(LibUtils.isDeployedContract(pool), "Invalid pool, no contract at address");
-            require(
-                OracleLibrary.getOldestObservationSecondsAgo(pool) >= twapTime,
-                "UniV3 pool observations too young"
-            ); // ensure needed data is available
-            // console.log("oldest observation seconds ago: %s", OracleLibrary.getOldestObservationSecondsAgo(pool));
+            require(LibUtils.isDeployedContract(pool), "no pool/contract at address");
+            require(OracleLibrary.getOldestObservationSecondsAgo(pool) >= twapTime, "pool observations too young"); // ensure needed data is available
             (, , , uint16 observationCardinality, , , ) = IUniswapV3PoolState(pool).slot0();
-            require(observationCardinality >= twapTime / 12, "UniV3 pool cardinality too low"); // shortest case scenario should always cover twap time
+            require(observationCardinality >= twapTime / 12, "pool cardinality too low"); // shortest case scenario should always cover twap time
             (arithmeticMeanTick, ) = OracleLibrary.consult(pool, twapTime);
-            // console.log("arithmeticMeanTick:");
-            // console.logInt(arithmeticMeanTick);
         }
     }
 }

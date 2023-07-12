@@ -1,14 +1,14 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 
 pragma solidity 0.8.19;
 
+import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
+
 import {C} from "src/libraries/C.sol";
 
-import {Asset} from "src/libraries/LibUtils.sol";
-import {AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
-import {Agreement} from "src/Bookkeeper.sol";
-import {Clones} from "lib/openzeppelin-contracts/contracts/proxy/Clones.sol";
-import "lib/openzeppelin-contracts/contracts/proxy/utils/Initializable.sol";
+// import {Asset} from "src/libraries/LibUtils.sol";
 
 /// NOTE: Should define parameter invariants to confirm that clone parameters are valid before showing in UI.
 
@@ -39,12 +39,12 @@ abstract contract CloneFactory is AccessControl, Initializable {
     event PositionCreated(address position);
 
     modifier implementationExecution() {
-        require(address(this) == FACTORY_ADDRESS, "execution not allowed in proxy contract");
+        require(address(this) == FACTORY_ADDRESS, "exec not allowed in proxy");
         _;
     }
 
     modifier proxyExecution() {
-        require(address(this) != FACTORY_ADDRESS, "execution not allowed in implementation contract");
+        require(address(this) != FACTORY_ADDRESS, "exec not allowed in impl");
         _;
     }
 
@@ -73,7 +73,7 @@ abstract contract CloneFactory is AccessControl, Initializable {
      * NOTE cannot do role check modifier here because state not yet set
      */
     function initialize() external initializer proxyExecution {
-        require(msg.sender == FACTORY_ADDRESS);
+        require(msg.sender == FACTORY_ADDRESS, "sender != impl contract");
         _setupRole(C.ADMIN_ROLE, BOOKKEEPER_ADDRESS); // Position role set
     }
 

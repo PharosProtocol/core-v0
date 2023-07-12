@@ -1,8 +1,8 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 
 pragma solidity 0.8.19;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {C} from "src/libraries/C.sol";
 import {Account} from "../Account.sol";
@@ -72,8 +72,9 @@ contract SoloAccount is Account {
         LibUtilsPublic.safeErc20Transfer(asset.addr, msg.sender, amount);
     }
 
-    // NOTE this asset knowledge could be removed entirely from unlockedBalances. This function logic would live in positions,
-    //      which inherently need ti understand the asset(s), and could be called by the bookkeeper using delegatecall.
+    // NOTE this asset knowledge could be removed entirely from unlockedBalances. This function logic would live in
+    //      positions, which inherently need ti understand the asset(s), and could be called by the bookkeeper
+    //      using delegatecall.
     //      Thus account can allow it to remove assets using arbitrary passthrough function.
     //      Actually does not work bc bookkeeper cannot make delegate calls to unknown external code or state will
     //      be at risk.

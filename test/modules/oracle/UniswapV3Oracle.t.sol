@@ -1,19 +1,18 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
+// solhint-disable
 
 pragma solidity 0.8.19;
 
-import "forge-std/Test.sol";
-import {console} from "lib/forge-std/src/console.sol";
+import "@forge-std/Test.sol";
 
-// import {FullMath} from "lib/v3-core/contracts/libraries/FullMath.sol";
-import "lib/v3-periphery/contracts/libraries/PoolAddress.sol";
-import {Path} from "lib/v3-periphery/contracts/libraries/path.sol";
+import {console} from "@forge-std/console.sol";
+import "@uni-v3-periphery/libraries/PoolAddress.sol";
+import {Path} from "@uni-v3-periphery/libraries/path.sol";
 
 import {C} from "src/libraries/C.sol";
-import {Module} from "src/modules/Module.sol";
 import {UniswapV3Oracle} from "src/modules/oracle/implementations/UniswapV3Oracle.sol";
 
-contract UniswapV3OracleTest is Test, Module {
+contract UniswapV3OracleTest is Test {
     using Path for bytes;
 
     UniswapV3Oracle public oracleModule;

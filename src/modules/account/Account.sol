@@ -1,17 +1,16 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 
 pragma solidity 0.8.19;
 
-import {AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
-import {ReentrancyGuard} from "lib/openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 // import {Agreement} from "src/libraries/LibBookkeeper.sol";
-import "src/libraries/C.sol";
+import {C} from "src/libraries/C.sol";
 import {Asset} from "src/libraries/LibUtils.sol";
 import {IAccount} from "src/interfaces/IAccount.sol";
-import {Module} from "src/modules/Module.sol";
 
-abstract contract Account is IAccount, AccessControl, ReentrancyGuard, Module 
+abstract contract Account is IAccount, AccessControl, ReentrancyGuard {
     event LoadedFromUser(Asset asset, uint256 amount, bytes parameters);
     event LoadedFromPosition(Asset asset, uint256 amount, bytes parameters);
     event UnloadedToUser(Asset asset, uint256 amount, bytes parameters);
@@ -96,4 +95,4 @@ abstract contract Account is IAccount, AccessControl, ReentrancyGuard, Module
     function _lockCollateral(Asset calldata asset, uint256 amount, bytes calldata parameters) internal virtual;
 
     function _unlockCollateral(Asset calldata asset, uint256 amount, bytes calldata parameters) internal virtual;
-
+}

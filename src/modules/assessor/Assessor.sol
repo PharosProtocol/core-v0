@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 
 /*
  * INVARIANTS:
@@ -10,9 +10,8 @@ pragma solidity 0.8.19;
 import {IAssessor} from "src/interfaces/IAssessor.sol";
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
 import {Asset, ETH_STANDARD, ERC20_STANDARD} from "src/libraries/LibUtils.sol";
-import {Module} from "src/modules/Module.sol";
 
-abstract contract Assessor is IAssessor, Module {
+abstract contract Assessor is IAssessor {
     function getCost(
         Agreement calldata agreement,
         uint256 currentAmount

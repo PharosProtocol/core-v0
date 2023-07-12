@@ -1,12 +1,12 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 
 pragma solidity 0.8.19;
 
 import {Assessor} from "../Assessor.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
-import {Agreement} from "src/libraries/LibBookkeeper.sol";
-import "src/libraries/LibUtils.sol";
 import {C} from "src/libraries/C.sol";
+import {Agreement} from "src/libraries/LibBookkeeper.sol";
+import {Asset, ERC20_STANDARD} from "src/libraries/LibUtils.sol";
 
 /*
  * Example Assessor type that calculates cost using configurable origination fee, interest rate, and profit share ratio.

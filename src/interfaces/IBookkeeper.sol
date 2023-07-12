@@ -1,10 +1,11 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 
 pragma solidity 0.8.19;
 
+import {ITractor} from "@tractor/ITractor.sol";
+import {SignedBlueprint} from "@tractor/Tractor.sol";
+
 import {Fill, Order} from "src/libraries/LibBookkeeper.sol";
-import {ITractor} from "lib/tractor/ITractor.sol";
-import {SignedBlueprint} from "lib/tractor/Tractor.sol";
 
 interface IBookkeeper is ITractor {
     function signPublishOrder(Order calldata order, uint256 endTime) external;

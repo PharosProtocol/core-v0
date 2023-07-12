@@ -1,14 +1,15 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 
 pragma solidity 0.8.19;
 
 import {Oracle} from "../Oracle.sol";
 
+import {Path} from "@uni-v3-periphery/libraries/path.sol";
+import {BytesLib} from "@uni-v3-periphery/libraries/BytesLib.sol";
+
 import {C} from "src/libraries/C.sol";
 import {Asset, ETH_STANDARD, ERC20_STANDARD} from "src/libraries/LibUtils.sol";
 import {LibUniswapV3} from "src/libraries/LibUniswapV3.sol";
-import {Path} from "lib/v3-periphery/contracts/libraries/path.sol";
-import {BytesLib} from "lib/v3-periphery/contracts/libraries/BytesLib.sol";
 
 contract UniswapV3Oracle is Oracle {
     struct Parameters {

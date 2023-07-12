@@ -1,8 +1,6 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 
 pragma solidity 0.8.19;
-
-import "forge-std/console.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -50,7 +48,7 @@ abstract contract InstantErc20 is Liquidator {
                 ),
                 true
             );
-            require(success, "Failed to send collateral asset to liquidator");
+            require(success, "Failed send coll to liquidator");
         }
         // Spare collateral goes back to borrower.
         if (agreement.collAmount > rewardCollAmount) {
@@ -61,8 +59,6 @@ abstract contract InstantErc20 is Liquidator {
                 agreement.collAmount - rewardCollAmount
             );
         }
-
-        console.log("rewardCollAmount: %s", rewardCollAmount);
 
         /**
          * Loan Asset *
@@ -81,7 +77,7 @@ abstract contract InstantErc20 is Liquidator {
         if (LibUtils.isValidLoanAssetAsCost(agreement.loanAsset, costAsset)) {
             lenderOwed += cost;
         } else if (costAsset.standard == ETH_STANDARD) {
-            require(msg.value == cost, "_liquidate: msg.value mismatch from Eth denoted cost");
+            require(msg.value == cost, "_liquidate: value mismatch");
             IAccount(agreement.lenderAccount.addr).loadFromPosition{value: cost}(
                 costAsset,
                 cost,
@@ -90,7 +86,7 @@ abstract contract InstantErc20 is Liquidator {
         }
         // SECURITY are these else revert checks necessary?
         else {
-            revert("exitPosition: isLiquidatable: invalid cost asset");
+            revert("_liquidate: invalid cost asset");
         }
         // Call distribute after handling collateral assets in case collateral asset is same as loan asset.
         position.distribute(sender, lenderOwed, agreement);
@@ -115,7 +111,7 @@ abstract contract InstantErc20 is Liquidator {
             abi.encodeWithSelector(IERC20.approve.selector, account.addr, amount),
             false
         );
-        require(success, "Failed to approve position ERC20 spend");
+        require(success, "Failed approve ERC20 spend");
         // SECURITY why does anyone involved in the agreement care if liquidator uses _loadFromPosition vs
         //          loadFromUser? It is basically passing up on ownership of account assets. A hostile liquidator
         //          implementation could then essentially siphon off assets in an account without loss by lender
@@ -125,7 +121,7 @@ abstract contract InstantErc20 is Liquidator {
             abi.encodeWithSelector(IAccount.loadFromPosition.selector, asset, amount, account.parameters),
             false
         );
-        require(success, "Failed to load asset from position to account");
+        require(success, "Failed load from position");
     }
 
     /// @notice Returns amount of collateral asset that is due to the liquidator.

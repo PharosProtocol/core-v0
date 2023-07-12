@@ -1,4 +1,5 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
+// solhint-disable
 
 pragma solidity 0.8.19;
 
@@ -7,12 +8,11 @@ pragma solidity 0.8.19;
  * comprehensive as each unique implementation will likely need its own unique tests.
  */
 
-import "forge-std/Test.sol";
+import "@forge-std/Test.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 import {HandlerUtils} from "test/TestUtils.sol";
 import {TestUtils} from "test/TestUtils.sol";
-
-import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-
 import {C} from "src/libraries/C.sol";
 import {Asset, ETH_STANDARD, ERC20_STANDARD} from "src/libraries/LibUtils.sol";
 import {SoloAccount} from "src/modules/account/implementations/SoloAccount.sol";
@@ -68,7 +68,7 @@ contract AccountTest is TestUtils {
         accountModule.loadFromUser(ASSETS[0], 11e18, parameters);
 
         // Fail to add ERC20 because asset not approved.
-        vm.expectRevert("UtilsPublic.safeErc20TransferFrom failed");
+        vm.expectRevert("safeErc20TransferFrom failed");
         accountModule.loadFromUser(ASSETS[1], 1e18, parameters);
 
         // Approve ERC20s.
@@ -76,7 +76,7 @@ contract AccountTest is TestUtils {
         IERC20(ASSETS[1].addr).approve(address(accountModule), 999e18);
 
         // Fail to add ERC20 because balance too low.
-        vm.expectRevert("UtilsPublic.safeErc20TransferFrom failed");
+        vm.expectRevert("safeErc20TransferFrom failed");
         accountModule.loadFromUser(ASSETS[1], 11e18, parameters);
 
         // Add WETH.
@@ -147,6 +147,7 @@ contract Handler is Test, HandlerUtils {
 
     constructor() {
         ASSETS.push(Asset({standard: ETH_STANDARD, decimals: 18, addr: address(0), id: 0, data: ""}));
+        ASSETS.push(Asset({standard: ERC20_STANDARD, addr: C.WETH, decimals: 18, id: 0, data: ""}));
         ASSETS.push(Asset({standard: ERC20_STANDARD, decimals: C.USDC_DECIMALS, addr: C.USDC, id: 0, data: ""}));
         assetBalances = new uint256[](ASSETS.length);
         accountModule = new SoloAccount(address(1));
@@ -234,7 +235,7 @@ contract InvariantAccountTest is Test {
     function invariant_ExpectedCumulativeBalances() public {
         for (uint256 j; j < handler.ASSETSLength(); j++) {
             (bytes3 standard, address addr, , , ) = handler.ASSETS(j);
-            if (standard == ETH_STANDARD) {
+            if (standard == ETH_STANDARD || (standard == ERC20_STANDARD && addr == C.WETH)) {
                 assertEq(address(handler.accountModule()).balance, handler.assetBalances(j));
             } else if (standard == ERC20_STANDARD) {
                 assertEq(IERC20(addr).balanceOf(address(handler.accountModule())), handler.assetBalances(j));

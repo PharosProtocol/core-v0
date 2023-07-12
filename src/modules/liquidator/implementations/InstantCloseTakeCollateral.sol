@@ -1,9 +1,9 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 
 pragma solidity 0.8.19;
 
-import {Agreement} from "src/libraries/LibBookkeeper.sol";
 import {InstantErc20} from "./InstantErc20.sol";
+import {Agreement} from "src/libraries/LibBookkeeper.sol";
 
 /*
  * Liquidate a position at kick time by giving closing the position and having position contract distribute loan and

@@ -1,4 +1,5 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
+// solhint-disable
 
 pragma solidity 0.8.19;
 
@@ -7,12 +8,11 @@ pragma solidity 0.8.19;
  * comprehensive as each unique implementation will likely need its own unique tests.
  */
 
-import "forge-std/Test.sol";
-import {HandlerUtils} from "test/TestUtils.sol";
-import {TestUtils} from "test/TestUtils.sol";
+import "@forge-std/Test.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
-import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import "lib/openzeppelin-contracts/contracts/utils/Strings.sol";
+import {HandlerUtils, TestUtils} from "test/TestUtils.sol";
 
 import {IAccount} from "src/interfaces/IAccount.sol";
 import {IAssessor} from "src/interfaces/IAssessor.sol";

@@ -1,11 +1,9 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 
 pragma solidity 0.8.19;
 
-import "forge-std/console.sol";
-
-import {ReentrancyGuard} from "lib/openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
-import {Blueprint, SignedBlueprint, Tractor} from "lib/tractor/Tractor.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {Blueprint, SignedBlueprint, Tractor} from "@tractor/Tractor.sol";
 
 import {IOracle} from "src/interfaces/IOracle.sol";
 import {IAccount} from "src/interfaces/IAccount.sol";
@@ -57,23 +55,19 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         // decode order blueprint data and ensure blueprint metadata is valid pairing with embedded data
         (bytes1 blueprintDataType, bytes memory blueprintData) = unpackDataField(orderBlueprint.blueprint.data);
         require(uint8(blueprintDataType) == uint8(BlueprintDataType.ORDER), "BKDTMM");
-        console.log("order data at decoding:");
-        console.logBytes(blueprintData);
-        // console.log("blueprint data at decoding:");
-        // console.logBytes(orderBlueprint.blueprint.data);
 
         // Verify publishers own accounts. May or may not be EOA.
         require(
             msg.sender == IAccount(fill.account.addr).getOwner(fill.account.parameters),
-            "Taker account does not match msg.sender"
+            "fillOrder: Taker != msg.sender"
         );
         Order memory order = abi.decode(blueprintData, (Order));
         require(
             orderBlueprint.blueprint.publisher == IAccount(order.account.addr).getOwner(order.account.parameters),
             "BKPOMM"
         );
-        if (order.takers.length > 0) {
-            require(order.takers[fill.takerIdx] == msg.sender, "Bookkeeper: Invalid taker");
+        if (order.fillers.length > 0) {
+            require(order.fillers[fill.takerIdx] == msg.sender, "Bookkeeper: Invalid taker");
         }
 
         Agreement memory agreement = _agreementFromOrder(fill, order);
@@ -95,22 +89,14 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
             collateralValue = (loanValue * order.borrowerConfig.initCollateralRatio) / C.RATIO_FACTOR;
             agreement.position.parameters = order.borrowerConfig.positionParameters;
         }
-        console.log("agreement coll value: %s", collateralValue);
         agreement.collAmount = IOracle(agreement.collOracle.addr).getResistantAmount(
             collateralValue,
             agreement.collOracle.parameters
         );
-        console.log("agreement coll amount: %s", agreement.collAmount);
         // Set Position data that cannot be computed off chain by caller.
         agreement.deploymentTime = block.timestamp;
 
-        // console.log("loanAmount: %s", agreement.loanAmount);
-        // console.log("collAmount: %s", agreement.collAmount);
-
         _createFundEnterPosition(agreement);
-
-        // console.log("agreement encoded:");
-        // console.logBytes(abi.encode(agreement));
 
         SignedBlueprint memory signedBlueprint = _signAgreement(agreement);
         emit OrderFilled(signedBlueprint, orderBlueprint.blueprintHash, msg.sender);
@@ -121,14 +107,11 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         SignedBlueprint calldata agreementBlueprint
     ) external payable nonReentrant verifySignature(agreementBlueprint) {
         (bytes1 blueprintDataType, bytes memory blueprintData) = unpackDataField(agreementBlueprint.blueprint.data);
-        require(
-            blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)),
-            "Bookkeeper: Invalid blueprint data type"
-        );
+        require(blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "exitPosition: Invalid data type");
         Agreement memory agreement = abi.decode(blueprintData, (Agreement));
         require(
             msg.sender == IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters),
-            "Bookkeeper: Only borrower can exit position without liquidation"
+            "exitPosition: sender!=borrower"
         );
 
         // All asset management must be done within this call, else bk would need to have asset-specific knowledge.
@@ -146,16 +129,15 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         }
         // If cost in eth but loan asset is not eth.
         else if (costAsset.standard == ETH_STANDARD) {
-            require(msg.value == cost, "exitPosition: msg.value mismatch from Eth denoted cost");
+            require(msg.value == cost, "exitPosition: msg.value mismatch");
             IAccount(agreement.lenderAccount.addr).loadFromPosition{value: msg.value}(
                 costAsset,
                 cost,
                 agreement.lenderAccount.parameters
             );
         } else {
-            revert("exitPosition: isLiquidatable: invalid cost asset");
+            revert("exitPosition: invalid cost asset");
         }
-        console.log("lender loan asset owed: %s", lenderOwed);
 
         position.distribute{value: distributeValue}(msg.sender, lenderOwed, agreement);
 
@@ -177,7 +159,7 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         Agreement memory agreement = abi.decode(blueprintData, (Agreement));
         IPosition position = IPosition(agreement.position.addr);
 
-        require(LibBookkeeper.isLiquidatable(agreement), "Bookkeeper: Position is not liquidatable");
+        require(LibBookkeeper.isLiquidatable(agreement), "kick: Position not liquidatable");
 
         IAccount(agreement.borrowerAccount.addr).unloadToPosition(
             agreement.position.addr,
@@ -208,7 +190,6 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
             agreement.lenderAccount.parameters
         );
         // NOTE lots of gas savings if collateral can be kept in borrower account until absolutely necessary.
-        console.log("locking %s of %s as collateral", agreement.collAmount, agreement.collAsset.addr);
         IAccount(agreement.borrowerAccount.addr).lockCollateral(
             agreement.collAsset,
             agreement.collAmount,
@@ -242,7 +223,7 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         agreement.factory = order.factories[fill.factoryIdx];
         // agreement.position.addr = order.factories[fill.factoryIdx];
 
-        require(fill.loanAmount >= order.minLoanAmounts[fill.loanAssetIdx], "Bookkeeper: fill loan amount too small");
+        require(fill.loanAmount >= order.minLoanAmounts[fill.loanAssetIdx], "_agreementFromOrder: too small");
         agreement.loanAmount = fill.loanAmount;
     }
 
@@ -260,8 +241,12 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         // publishBlueprint(signedBlueprint); // These verifiable blueprints will be used to interact with positions.
     }
 
-    // AUDIT what are the implications of deactivating the fallback function? Doing just for ease of use and testing.
-    fallback() external {
-        revert("Fallback function deactivated");
-    }
+    // // fallback and receive revert by default. helpful to make reversion reason explicit?
+    // fallback() external payable {
+    //     revert("fallback function deactivated");
+    // }
+
+    // receive() external payable {
+    //     revert("receive function deactivated");
+    // }
 }

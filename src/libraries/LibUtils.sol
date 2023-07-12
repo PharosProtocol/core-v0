@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 
 pragma solidity 0.8.19;
 
@@ -40,17 +40,17 @@ library LibUtils {
         return (size > 0);
     }
 
-    function addWithMsg(uint256 l, uint256 r, string memory failMsg) internal pure returns (uint256) {
+    function addWithMsg(uint256 left, uint256 right, string memory failMsg) internal pure returns (uint256) {
         unchecked {
-            require(l <= type(uint256).max - r, failMsg);
-            return l + r;
+            require(left <= type(uint256).max - right, failMsg);
+            return left + right;
         }
     }
 
-    function subWithMsg(uint256 l, uint256 r, string memory failMsg) internal pure returns (uint256) {
-        require(l >= r, failMsg);
+    function subWithMsg(uint256 left, uint256 right, string memory failMsg) internal pure returns (uint256) {
+        require(left >= right, failMsg);
         unchecked {
-            return l - r;
+            return left - right;
         }
     }
 

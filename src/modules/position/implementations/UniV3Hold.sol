@@ -1,45 +1,33 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 
 pragma solidity 0.8.19;
 
-import "forge-std/console.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {ISwapRouter} from "@uni-v3-periphery/interfaces/ISwapRouter.sol";
+// import "@uni-v3-periphery/libraries/PoolAddress.sol";
+// import "@uni-v3-core/libraries/TickMath.sol";
+// import "@uni-v3-core/libraries/FixedPoint96.sol";
+// import "@uni-v3-core/libraries/FullMath.sol";
+// import "@uni-v3-periphery/libraries/OracleLibrary.sol";
+// import "@uni-v3-periphery/interfaces/IQuoter.sol";
+// import "@uni-v3-periphery/interfaces/ISwapRouter.sol";
+import {BytesLib} from "@uni-v3-periphery/libraries/BytesLib.sol";
+import {Path} from "@uni-v3-periphery/libraries/path.sol";
+// import {IUniswapV3Factory} from "@uni-v3-core/interfaces/IUniswapV3Factory.sol";
+import {CallbackValidation} from "@uni-v3-periphery/libraries/CallbackValidation.sol";
 
 import {IAccount} from "src/interfaces/IAccount.sol";
 import {C} from "src/libraries/C.sol";
-import {Position} from "src/modules/position/Position.sol";
-import {Module} from "src/modules/Module.sol";
-import {IAssessor} from "src/interfaces/IAssessor.sol";
-import {Agreement} from "src/libraries/LibBookkeeper.sol";
-
-import "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-
-import "src/interfaces/external/IWETH9.sol";
-import {ISwapRouter} from "lib/v3-periphery/contracts/interfaces/ISwapRouter.sol";
-import "lib/v3-periphery/contracts/libraries/PoolAddress.sol";
-// import "lib/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
-import "lib/v3-core/contracts/libraries/TickMath.sol";
-import "lib/v3-core/contracts/libraries/FixedPoint96.sol";
-import "lib/v3-core/contracts/libraries/FullMath.sol";
-import "lib/v3-periphery/contracts/libraries/OracleLibrary.sol";
-import "lib/v3-periphery/contracts/interfaces/IQuoter.sol";
-
-import "lib/v3-periphery/contracts/interfaces/ISwapRouter.sol";
-import {BytesLib} from "lib/v3-periphery/contracts/libraries/BytesLib.sol";
-import {Path} from "lib/v3-periphery/contracts/libraries/path.sol";
-import {IUniswapV3Factory} from "lib/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
-import {CallbackValidation} from "lib/v3-periphery/contracts/libraries/CallbackValidation.sol";
-
 import {LibUniswapV3} from "src/libraries/LibUniswapV3.sol";
 import {Asset, ERC20_STANDARD} from "src/libraries/LibUtils.sol";
 import {LibUtilsPublic} from "src/libraries/LibUtilsPublic.sol";
+import {Agreement} from "src/libraries/LibBookkeeper.sol";
+import {Position} from "src/modules/position/Position.sol";
 
-// import {SwapCallbackData} from "lib/v3-periphery/contracts/SwapRouter.sol";
 struct SwapCallbackData {
     bytes path;
     address payer;
 }
-
-// import "lib/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 
 // (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
 
@@ -81,10 +69,7 @@ contract UniV3HoldFactory is Position {
     using Path for bytes;
     using BytesLib for bytes;
 
-    constructor(address protocolAddr) Position(protocolAddr) // Component(compatibleLoanAssets, compatibleCollAssets)
-    {
-
-    }
+    constructor(address protocolAddr) Position(protocolAddr) {}
 
     function canHandleAsset(Asset calldata asset, bytes calldata parameters) external pure override returns (bool) {
         Parameters memory params = abi.decode(parameters, (Parameters));
@@ -242,9 +227,9 @@ contract UniV3HoldFactory is Position {
                 (C.RATIO_FACTOR - STEP_SLIPPAGE_RATIO * params.exitPath.numPools())) / C.RATIO_FACTOR;
     }
 
-    function validParameters(bytes calldata parameters) private view returns (bool) {
-        Parameters memory params = abi.decode(parameters, (Parameters));
-    }
+    // function validParameters(bytes calldata parameters) private view returns (bool) {
+    //     Parameters memory params = abi.decode(parameters, (Parameters));
+    // }
 
     // function AssetParameters(Asset asset) private view {
     //     require(asset.standard == ERC20_STANDARD);

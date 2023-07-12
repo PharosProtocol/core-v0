@@ -1,8 +1,9 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
+// solhint-disable
 
 pragma solidity 0.8.19;
 
-import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {Asset, ERC20_STANDARD, LibUtils} from "src/libraries/LibUtils.sol";
 import {LibUtilsPublic} from "src/libraries/LibUtilsPublic.sol";
@@ -12,8 +13,8 @@ import {IAccount} from "src/interfaces/IAccount.sol";
 import {IAssessor} from "src/interfaces/IAssessor.sol";
 
 contract MockPosition is Position {
-    uint256 currentAmount;
-    Asset positionAsset;
+    uint256 public currentAmount;
+    Asset public positionAsset;
 
     constructor(address bookkeeperAddr) Position(bookkeeperAddr) {}
 
@@ -28,10 +29,7 @@ contract MockPosition is Position {
 
     function _close(address, Agreement calldata agreement) internal view override returns (uint256 closedAmount) {
         (Asset memory costAsset, ) = IAssessor(agreement.assessor.addr).getCost(agreement, closedAmount);
-        require(
-            LibUtils.isValidLoanAssetAsCost(agreement.loanAsset, costAsset),
-            "MockPosition, _close(): cost asset invalid"
-        );
+        require(LibUtils.isValidLoanAssetAsCost(agreement.loanAsset, costAsset), "_close(): cost asset invalid");
 
         return currentAmount;
     }

@@ -1,4 +1,5 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
+// solhint-disable
 
 pragma solidity 0.8.19;
 
@@ -7,8 +8,8 @@ import {Asset} from "src/libraries/LibUtils.sol";
 import {Assessor} from "src/modules/assessor/Assessor.sol";
 
 contract MockAssessor is Assessor {
-    uint256 finalCost;
-    Asset instanceAsset;
+    uint256 public finalCost;
+    Asset public instanceAsset;
 
     constructor(Asset memory asset, uint256 cost) {
         instanceAsset = asset;

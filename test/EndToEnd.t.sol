@@ -1,4 +1,5 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
+// solhint-disable
 
 pragma solidity 0.8.19;
 
@@ -7,13 +8,11 @@ pragma solidity 0.8.19;
  * comprehensive as each unique implementation will likely need its own unique tests.
  */
 
-import "forge-std/Test.sol";
-import "forge-std/console.sol";
+import "@forge-std/Test.sol";
+import "@forge-std/console.sol";
 
-import {TestUtils} from "test/TestUtils.sol";
-
-// import {IUniswapV3Pool} from "lib/v3-core/contracts/UniswapV3Pool.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {Blueprint, SignedBlueprint, Tractor} from "@tractor/Tractor.sol";
 
 import {SoloAccount} from "src/modules/account/implementations/SoloAccount.sol";
 import {IAssessor} from "src/interfaces/IAssessor.sol";
@@ -32,9 +31,10 @@ import {WalletFactory} from "src/modules/position/implementations/Wallet.sol";
 import {Bookkeeper} from "src/Bookkeeper.sol";
 import {IndexPair, ModuleReference, BorrowerConfig, Order, Fill, Agreement} from "src/libraries/LibBookkeeper.sol";
 
+import {TestUtils} from "test/TestUtils.sol";
+
 import "src/libraries/C.sol";
 import "src/libraries/LibUtils.sol";
-import {Blueprint, SignedBlueprint, Tractor} from "lib/tractor/Tractor.sol";
 
 contract EndToEndTest is TestUtils {
     IBookkeeper public bookkeeper;
@@ -275,7 +275,7 @@ contract EndToEndTest is TestUtils {
             parameters: abi.encode(accountParams)
         });
         // Solidity array syntax is so bad D:
-        address[] memory takers = new address[](0);
+        address[] memory fillers = new address[](0);
         uint256[] memory minLoanAmounts = new uint256[](2);
         minLoanAmounts[0] = 1e18;
         minLoanAmounts[1] = 1000 * (10 ** C.USDC_DECIMALS);
@@ -343,7 +343,7 @@ contract EndToEndTest is TestUtils {
                 minLoanAmounts: minLoanAmounts,
                 loanAssets: loanAssets,
                 collAssets: collAssets,
-                takers: takers,
+                fillers: fillers,
                 maxDuration: 7 days,
                 minCollateralRatio: C.RATIO_FACTOR / 5,
                 account: account,

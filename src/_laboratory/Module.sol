@@ -1,7 +1,11 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 
 pragma solidity 0.8.19;
 
+// NOTE this was intended to house logic shared between all module categories. However, there
+//      turned out not to be any shared logic.
+
+/*
 import {Asset} from "src/libraries/LibUtils.sol";
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
 
@@ -43,3 +47,4 @@ abstract contract Module {
     // // If an asset can be used with the exposed interface functions of the module instance.
     // function isCompatibleAsset(Asset calldata asset, bytes calldata parameters) external view virtual;
 }
+*/

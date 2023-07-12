@@ -1,8 +1,8 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 
 pragma solidity 0.8.19;
 
-import {IERC20} from "lib/openzeppelin-contracts//contracts/token/ERC20/IERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /*
  * This util functions are public so that they can be called from decoded calldata. Specifically this pattern
@@ -14,7 +14,7 @@ library LibUtilsPublic {
     /// @dev vulnerable to reentrancy. ensure reentrancy safety in calling function.
     function ethCallTransfer(address payable to, uint256 amount) public {
         (bool success, ) = to.call{value: amount}("");
-        require(success, "UtilsPublic.ethCallTransfer failed");
+        require(success, "ethCallTransfer failed");
     }
 
     // SECURITY NOTE: did not account for fee on transfer ERC20s. Either need to update logic or restrict to non-fee ERC20s.
@@ -23,7 +23,7 @@ library LibUtilsPublic {
     /// @notice Transfers tokens from msg.sender to a recipient.
     function safeErc20Transfer(address token, address to, uint256 amount) public {
         (bool success, bytes memory data) = token.call(abi.encodeWithSelector(IERC20.transfer.selector, to, amount));
-        require(success && (data.length == 0 || abi.decode(data, (bool))), "UtilsPublic.safeErc20Transfer failed");
+        require(success && (data.length == 0 || abi.decode(data, (bool))), "safeErc20Transfer failed");
     }
 
     /// @notice Transfers tokens from the targeted address to the given destination.
@@ -31,6 +31,6 @@ library LibUtilsPublic {
         (bool success, bytes memory data) = token.call(
             abi.encodeWithSelector(IERC20.transferFrom.selector, from, to, amount)
         );
-        require(success && (data.length == 0 || abi.decode(data, (bool))), "UtilsPublic.safeErc20TransferFrom failed");
+        require(success && (data.length == 0 || abi.decode(data, (bool))), "safeErc20TransferFrom failed");
     }
 }

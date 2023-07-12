@@ -1,17 +1,14 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 
 pragma solidity 0.8.19;
 
-import "forge-std/console.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {IAccount} from "src/interfaces/IAccount.sol";
 import {C} from "src/libraries/C.sol";
 import {Position} from "src/modules/position/Position.sol";
-import {Module} from "src/modules/Module.sol";
 import {IAssessor} from "src/interfaces/IAssessor.sol";
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
-
-import "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 import {Asset, ERC20_STANDARD, LibUtils} from "src/libraries/LibUtils.sol";
 import {LibUtilsPublic} from "src/libraries/LibUtilsPublic.sol";
@@ -21,7 +18,7 @@ contract WalletFactory is Position {
         address recipient;
     }
 
-    uint256 amountDistributed;
+    uint256 public amountDistributed;
 
     constructor(address protocolAddr) Position(protocolAddr) {}
 
@@ -85,10 +82,10 @@ contract WalletFactory is Position {
         return amountDistributed;
     }
 
-    function validParameters(bytes calldata) private pure returns (bool) {
-        return true;
-        // NOTE somewhere in here should block under collateralized positions. right?
-    }
+    // function validParameters(bytes calldata) private pure returns (bool) {
+    //     return true;
+    //     // NOTE somewhere in here should block under collateralized positions. right?
+    // }
 
     // function AssetParameters(Asset asset) private view {
     //     require(asset.standard == ERC20_STANDARD);

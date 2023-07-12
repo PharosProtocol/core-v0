@@ -1,13 +1,12 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 
 pragma solidity 0.8.19;
 
-import {C} from "src/libraries/C.sol";
-import {Asset, ETH_STANDARD, LibUtils} from "src/libraries/LibUtils.sol";
-import "lib/tractor/Tractor.sol";
-import "src/interfaces/IPosition.sol";
+import {IPosition} from "src/interfaces/IPosition.sol";
 import {IOracle} from "src/interfaces/IOracle.sol";
 import {IAssessor} from "src/interfaces/IAssessor.sol";
+import {C} from "src/libraries/C.sol";
+import {Asset, ETH_STANDARD, LibUtils} from "src/libraries/LibUtils.sol";
 
 struct IndexPair {
     uint128 offer;
@@ -24,7 +23,7 @@ struct Order {
     uint256[] minLoanAmounts; // idx parity with loanAssets
     Asset[] loanAssets;
     Asset[] collAssets;
-    address[] takers;
+    address[] fillers;
     uint256 maxDuration;
     uint256 minCollateralRatio;
     // Modules
@@ -115,7 +114,7 @@ library LibBookkeeper {
             if (positionValue > cost) return true;
             outstandingValue = positionValue - cost;
         } else {
-            revert("isLiquidatable: invalid cost asset");
+            revert("isLiquidatable: invalid asset");
         }
         uint256 collValue = IOracle(agreement.collOracle.addr).getSpotValue(
             agreement.collAmount,

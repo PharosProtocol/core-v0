@@ -1,19 +1,19 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 
 pragma solidity 0.8.19;
 
-import {IPosition} from "src/interfaces/IPosition.sol";
-import {CloneFactory} from "src/modules/CloneFactory.sol";
-import {Agreement} from "src/libraries/LibBookkeeper.sol";
-import {IAccount} from "src/interfaces/IAccount.sol";
-import {AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
-import {IAccessControl} from "lib/openzeppelin-contracts/contracts/access/IAccessControl.sol";
-import {IAssessor} from "src/interfaces/IAssessor.sol";
-import {Module} from "src/modules/Module.sol";
-import {C} from "src/libraries/C.sol";
-import "src/libraries/LibUtils.sol";
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 
-abstract contract Position is IPosition, CloneFactory, Module {
+import {IAccount} from "src/interfaces/IAccount.sol";
+import {IAssessor} from "src/interfaces/IAssessor.sol";
+import {IPosition} from "src/interfaces/IPosition.sol";
+import {C} from "src/libraries/C.sol";
+import {Agreement} from "src/libraries/LibBookkeeper.sol";
+import {Asset} from "src/libraries/LibUtils.sol";
+import {CloneFactory} from "src/modules/CloneFactory.sol";
+
+abstract contract Position is IPosition, CloneFactory {
     event ControlTransferred(address previousController, address newController);
 
     constructor(address bookkeeperAddr) CloneFactory(bookkeeperAddr) {

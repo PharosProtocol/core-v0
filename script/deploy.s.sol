@@ -1,8 +1,8 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 
 pragma solidity 0.8.19;
 
-import "forge-std/Script.sol";
+import "@forge-std/Script.sol";
 import "src/libraries/LibBookkeeper.sol";
 import "src/Bookkeeper.sol";
 import "src/libraries/LibUtils.sol";
