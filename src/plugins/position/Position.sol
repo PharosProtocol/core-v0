@@ -60,19 +60,9 @@ abstract contract Position is IPosition, CloneFactory {
 
     // SECURITY Hello auditors. This feels risky.
     function transferContract(address controller) external override proxyExecution onlyRole(C.ADMIN_ROLE) {
-        // ADMIN_ROLE is not transferred to prevent hostile actors from 'reactivating' a position by setting the
-        // controller back to the bookkeeper.
-        // grantRole(LIQUIDATOR_ROLE, controller); // having a distinct liquidator role and controller role is a nicer abstraction, but has gas cost for no benefit.
         grantRole(C.ADMIN_ROLE, controller);
         renounceRole(C.ADMIN_ROLE, msg.sender);
 
-        // TODO fix this so that admin role is not granted to untrustable code (liquidator user or plugin). Currently
-        // will get stuck as liquidator plugin will not be able to grant liquidator control.
-        // Do not allow liquidators admin access to avoid security implications if set back to protocol control.
-        // if (grantAdmin) {
-        //     grantRole(DEFAULT_ADMIN_ROLE, controller);
-        // }
-        // renounceRole(DEFAULT_ADMIN_ROLE);
         emit ControlTransferred(msg.sender, controller);
     }
 

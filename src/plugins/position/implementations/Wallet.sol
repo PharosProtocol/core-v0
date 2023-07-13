@@ -13,6 +13,8 @@ import {Agreement} from "src/libraries/LibBookkeeper.sol";
 import {Asset, ERC20_STANDARD, LibUtils} from "src/libraries/LibUtils.sol";
 import {LibUtilsPublic} from "src/libraries/LibUtilsPublic.sol";
 
+// NOTE collateralized positions are not explicitly blocked. UI/user should take care.
+
 contract WalletFactory is Position {
     struct Parameters {
         address recipient;
@@ -81,17 +83,4 @@ contract WalletFactory is Position {
     function _getCloseAmount(bytes calldata) internal view override returns (uint256) {
         return amountDistributed;
     }
-
-    // function validParameters(bytes calldata) private pure returns (bool) {
-    //     return true;
-    //     // NOTE somewhere in here should block under collateralized positions. right?
-    // }
-
-    // function AssetParameters(Asset asset) private view {
-    //     require(asset.standard == ERC20_STANDARD);
-    //     require(asset.addr == path[0th token]);
-    // require paths to be compatible so no assets get stuck
-    // (,address finalAssetAddr,) = params.exitPath.decodeFirstPool();
-    // require(asset.addr == finalAssetAddr, "illegal exit path");
-    // }
 }

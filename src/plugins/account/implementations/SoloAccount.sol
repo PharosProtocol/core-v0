@@ -12,11 +12,12 @@ import {LibUtilsPublic} from "src/libraries/LibUtilsPublic.sol";
 
 // SECURITY although unlikely, in the extreme situation of bad debt it is possible that a position never closes and
 //          returns assets to the account. Although *if* a position does close it will always close with the amount
-//          dictated by the assessor. We would expect this to be at least the same as the initial amount, but a bad
-//          actor could design an assessor that returns less. When less is returned, what will happen to lenders in
-//          this type of account? Someone will be left out. Does this basically allow a bad actor to extract assets
-//          from a shared account contract instance by taking both sides of an agreement with a negative assessor?
-//          No, this can be protected by only subtracting that loss from the lender.
+//          dictated by loan amount + assessor cost. Though, a malicious terminal could be designed to return less. When
+//          less is returned, what will happen to uninvolved lenders using the same account contract? Does this
+//          allow a bad actor to extract assets from a shared account contract instance by taking both sides
+//          of an agreement with a malicious terminal?
+//          No. At least it is safe for Solo Account, because balances are handled per user. This may be a security
+//          driver for implementing accounts as MPCs though.
 
 /**
  * Account for holding ERC20 assets, to use for either lending or borrowing through an Agreement.
@@ -72,12 +73,6 @@ contract SoloAccount is Account {
         LibUtilsPublic.safeErc20Transfer(asset.addr, msg.sender, amount);
     }
 
-    // NOTE this asset knowledge could be removed entirely from unlockedBalances. This function logic would live in
-    //      positions, which inherently need ti understand the asset(s), and could be called by the bookkeeper
-    //      using delegatecall.
-    //      Thus account can allow it to remove assets using arbitrary passthrough function.
-    //      Actually does not work bc bookkeeper cannot make delegate calls to unknown external code or state will
-    //      be at risk.
     function _unloadToPosition(
         address position,
         Asset calldata asset,

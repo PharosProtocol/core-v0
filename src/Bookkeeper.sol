@@ -197,6 +197,8 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         );
     }
 
+    // TODO implement the verification
+
     /// @dev assumes compatibility between match, offer, and request already verified.
     function _agreementFromOrder(
         Fill calldata fill,
@@ -231,7 +233,7 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         );
         signedBlueprint.blueprint.endTime = type(uint256).max;
         signedBlueprint.blueprintHash = getBlueprintHash(signedBlueprint.blueprint);
-        // NOTE: Security: Is is possible to intentionally manufacture a blueprint with different data that creates the same hash?
+        // SECURITY Is is possible to intentionally manufacture a blueprint with different data that creates the same hash?
         signBlueprint(signedBlueprint.blueprintHash);
         // publishBlueprint(signedBlueprint); // These verifiable blueprints will be used to interact with positions.
     }

@@ -8,16 +8,14 @@ import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 
 import {C} from "src/libraries/C.sol";
 
-// import {Asset} from "src/libraries/LibUtils.sol";
-
-/// NOTE: Should define parameter invariants to confirm that clone parameters are valid before showing in UI.
-
 /**
  * Factories are implemented using the Minimal Proxy Contract standard (https://eips.ethereum.org/EIPS/eip-1167).
  * Each implementation contract (Factory) represents one interface to an external protocol.
  * Each clone represents one Position in the Factory.
  * Each implementation contract must implement the functionality of the standard Factory Interface defined here.
  * Implementations may also offer additional non-essential functionality beyond the standard interface.
+ *
+ * Primary use is expected to be in Terminals/Positions, which must be implemented using MPCs.
  *
  * This will enable several key features:
  * 1. Permissionlessness. Any user can deploy arbitrarily complex logic used to define an agreement.
@@ -26,15 +24,10 @@ import {C} from "src/libraries/C.sol";
  *    minimal set of features in the standard interface.
  */
 
-/*
- * The Factory is used to spawn positions (clones) and call their intializers.
- */
-
 abstract contract CloneFactory is AccessControl, Initializable {
-    address public immutable BOOKKEEPER_ADDRESS; // Modulus address
-    address public immutable FACTORY_ADDRESS; // Implementation contract address // assumes proxy constant values are set by implementation contract
-
-    // Metadata metadata;
+    address public immutable BOOKKEEPER_ADDRESS;
+    // SECURITY assumes proxy constant values are set by implementation contract
+    address public immutable FACTORY_ADDRESS; // Implementation contract address
 
     event PositionCreated(address position);
 
@@ -69,8 +62,8 @@ abstract contract CloneFactory is AccessControl, Initializable {
 
     /*
      * Must be called on all proxy clones immediately after creation.
+     * Cannot do role check modifier here because state not yet set
      * NOTE "When used with inheritance, manual care must be taken to not invoke a parent initializer twice, or to ensure that all initializers are idempotent" <- idk what this is about, but sounds relevant.
-     * NOTE cannot do role check modifier here because state not yet set
      */
     function initialize() external initializer proxyExecution {
         require(msg.sender == FACTORY_ADDRESS, "sender != impl contract");

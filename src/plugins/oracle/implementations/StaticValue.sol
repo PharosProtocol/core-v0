@@ -8,8 +8,6 @@ import {Asset} from "src/libraries/LibUtils.sol";
 
 /*
  * This is a contract that represents one method of computing asset prices.
- * Its computation will differ for each set of parameters provided.
- * Modulus will interact directly with the clone using only the standard functions.
  */
 contract StaticPriceOracle is Oracle {
     struct Parameters {

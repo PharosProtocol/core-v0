@@ -10,7 +10,6 @@ import {ILiquidator} from "src/interfaces/ILiquidator.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
 
 abstract contract Liquidator is ILiquidator, AccessControl {
-    // NOTE need a system to ensure the same "position" signed message cannot be double liquidated
     // mapping(bytes32 => bool) internal liquidating;
 
     event KickReceived(address indexed position, Agreement agreement, address kicker);

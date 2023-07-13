@@ -146,7 +146,7 @@ contract Handler is Test, HandlerUtils {
     // uint256[] public assetsOut;
 
     constructor() {
-        ASSETS.push(Asset({standard: ETH_STANDARD, decimals: 18, addr: address(0), id: 0, data: ""}));
+        // ASSETS.push(Asset({standard: ETH_STANDARD, decimals: 18, addr: address(0), id: 0, data: ""}));
         ASSETS.push(Asset({standard: ERC20_STANDARD, addr: C.WETH, decimals: 18, id: 0, data: ""}));
         ASSETS.push(Asset({standard: ERC20_STANDARD, decimals: C.USDC_DECIMALS, addr: C.USDC, id: 0, data: ""}));
         assetBalances = new uint256[](ASSETS.length);
@@ -163,7 +163,6 @@ contract Handler is Test, HandlerUtils {
         amount = bound(amount, 0, type(uint128).max);
         Asset memory asset = ASSETS[assetIdx];
         bytes memory parameters = abi.encode(SoloAccount.Parameters({owner: owner, salt: salt}));
-        assetBalances[assetIdx] += amount;
 
         // Set ETH balance.
         uint256 value;
@@ -180,6 +179,8 @@ contract Handler is Test, HandlerUtils {
 
         vm.prank(currentActor);
         accountPlugin.loadFromUser{value: value}(asset, amount, parameters);
+        
+        assetBalances[assetIdx] += amount;
     }
 
     function unload(
@@ -193,10 +194,11 @@ contract Handler is Test, HandlerUtils {
         amount = bound(amount, 0, type(uint128).max);
         Asset memory asset = ASSETS[assetIdx];
         bytes memory parameters = abi.encode(SoloAccount.Parameters({owner: owner, salt: salt}));
-        assetBalances[assetIdx] -= amount; // NOTE how does invariant behave on reverts? will this protect lower failures?
 
         vm.prank(currentActor);
         accountPlugin.unloadToUser(asset, amount, parameters);
+
+        assetBalances[assetIdx] -= amount; // NOTE how does invariant behave on reverts? will this protect lower failures?
     }
 
     /**

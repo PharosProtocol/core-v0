@@ -23,7 +23,6 @@ contract StandardAssessor is Assessor {
     }
 
     /// @notice Return the cost of a loan, quantified in the Loan Asset. This simplifies compatibility matrix.
-    // NOTE this will not be compatible if borrowing a non-divisible asset.
     function _getCost(
         Agreement calldata agreement,
         uint256 currentAmount

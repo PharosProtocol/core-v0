@@ -1,14 +1,9 @@
 # Testing
-Testing is primarily performed using Forge. For lots of reasons but especially bc I do not want to spend the next
-two days fighting ts compilers and package managers.
+Testing code is very much still a WIP. The most comprehensive test is the end to end test.
+Each module implemented should also feature a single unit test and an invariant test (partially implemented).
 
-## Tools
-
-### Foundry
-The majority of tests are written using Forge. Anvil is used for local fork node running. 
-
-### Brownie
-Brownie is used for simple tests and console functionality. Expected to be run with Anvil node using `brownie console --network anvil`.
+## Forge
+The majority of tests are written using Foundry. Anvil is used for local fork node running. 
 
 
 ## Test Types

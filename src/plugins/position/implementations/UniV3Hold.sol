@@ -4,16 +4,8 @@ pragma solidity 0.8.19;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ISwapRouter} from "@uni-v3-periphery/interfaces/ISwapRouter.sol";
-// import "@uni-v3-periphery/libraries/PoolAddress.sol";
-// import "@uni-v3-core/libraries/TickMath.sol";
-// import "@uni-v3-core/libraries/FixedPoint96.sol";
-// import "@uni-v3-core/libraries/FullMath.sol";
-// import "@uni-v3-periphery/libraries/OracleLibrary.sol";
-// import "@uni-v3-periphery/interfaces/IQuoter.sol";
-// import "@uni-v3-periphery/interfaces/ISwapRouter.sol";
 import {BytesLib} from "@uni-v3-periphery/libraries/BytesLib.sol";
 import {Path} from "@uni-v3-periphery/libraries/path.sol";
-// import {IUniswapV3Factory} from "@uni-v3-core/interfaces/IUniswapV3Factory.sol";
 import {CallbackValidation} from "@uni-v3-periphery/libraries/CallbackValidation.sol";
 
 import {IAccount} from "src/interfaces/IAccount.sol";
@@ -29,37 +21,33 @@ struct SwapCallbackData {
     address payer;
 }
 
-// (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
-
 /*
- * This contract serves as a demonstration of how to implement a Modulus Factory.
- * Factorys should be designed as Minimal Proxy Contracts with an arbitrary number of proxy contracts. Each MPC
+ * This contract serves as a demonstration of how to implement a Terminal / Factory.
+ * Factories should be designed as Minimal Proxy Contracts with an arbitrary number of proxy contracts. Each MPC
  * represents one position that has been open through the Factory. This allows for the capital of multiple positions
  * to remain isolated from each other even when deployed in the same Factory.
  *
- * The Factory must implement at minimum the set of methods shown in the Modulus Factory Interface. Beyond that,
+ * The Factory must implement at minimum the set of methods shown in the Factory Interface. Beyond that,
  * a Factory can offer an arbitrary set of additional methods that act as wrappers for the underlying protocol;
- * however, the Pluginnd marketplace cannot be updated to support all possible actions in all possible Factory. Users
+ * however, the Plugin marketplace cannot be updated to support all possible actions in all possible Factory. Users
  * will automatically have the ability to call functions listed in the interface as well as any public functions that do
  * not require parameters. These additional argumentless function calls can be used to wrap functionality of the
  * underlying protocol to enable simple updating and interaction with a position - we recommend they are named in a
  * self documenting fashion, so that users can be programatically informed of their purpose. Further,
  * arbitrarily complex functions can be implemented, but the Factory creator will be responsible for providing a UI
  * to handle these interactions.
- *
- * NOTE for sake of efficiency, should split into multi-hop and single pool paths.
  */
+
+// NOTE for sake of efficiency, should split into multi-hop and single pool paths.
+
 contract UniV3HoldFactory is Position {
     struct Parameters {
         bytes enterPath;
         bytes exitPath;
     }
 
-    // Factory parameters shared for all positions.
-    // NOTE sharing params here increases simplicity but costs position customizability. how much of a burden is it to
-    //      have very large parameters set in each order? that will probably dictate how we want to handle this.
-    //      Also, setting them here prevents a position creator from setting them in a hostile fashion.
-    uint32 private constant TWAP_TIME = 300; // https://oracle.euler.finance
+    // SECURITY what is a safe enough twap time at expected volumes?
+    uint32 private constant TWAP_TIME = 300;
     uint256 private constant DEADLINE_OFFSET = 180;
     uint256 private constant STEP_SLIPPAGE_RATIO = C.RATIO_FACTOR / 200; // 0.5% slippage
 
@@ -130,6 +118,7 @@ contract UniV3HoldFactory is Position {
         //         ) / C.RATIO_FACTOR
         // });
         // amountHeld = router.exactInputSingle(swapParams); // msg.sender from router pov is clone (Position) address
+
         ISwapRouter.ExactInputParams memory swapParams = ISwapRouter.ExactInputParams({
             path: params.enterPath,
             recipient: address(this), // position address
@@ -138,15 +127,8 @@ contract UniV3HoldFactory is Position {
             amountOutMinimum: amountOutMin(params)
         });
         amountHeld = router.exactInput(swapParams); // msg.sender from router pov is clone (Position) address
-
-        // return amountHeld; // can a named return value be used with a state variable?
     }
 
-    // NOTE: How to liquidate if min acceptable price is uncontrollable? Better to liquidate at a bad price now than wait
-    //       until volatility slows. Answer: Allow liquidator to pass in min price, but require them to return some
-    //       amount. then if they give themselves a bad deal they are the only one who loses. Alt Answer: Allow
-    //       liquidator to pass through any function via callback, so long as they return enough assets to Pluginnd
-    //       lender / borrower in end.
     function _close(address, Agreement calldata agreement) internal override returns (uint256 closedAmount) {
         Parameters memory params = abi.decode(agreement.position.parameters, (Parameters));
         // require(heldAsset.standard == ERC20_STANDARD, "UniV3Hold: exit asset must be ETH or ERC20");
@@ -188,8 +170,8 @@ contract UniV3HoldFactory is Position {
         }
 
         if (lenderAmount > 0) {
-            // SECURITY account assets of non-involved parties are at risk if a position uses
-            //          loadFromUser rathe than loadFromPosition.
+            // SECURITY account plugin cannot trust terminal plugin account to use loadFromPosition over loadFromUser.
+            //          must ensure assets of non-involved parties are at risk if a hostile terminal used.
             erc20.approve(agreement.lenderAccount.addr, lenderAmount);
             IAccount(agreement.lenderAccount.addr).loadFromPosition(
                 agreement.loanAsset,
@@ -226,16 +208,4 @@ contract UniV3HoldFactory is Position {
             (LibUniswapV3.getPathTWAP(params.exitPath, amountHeld, TWAP_TIME) *
                 (C.RATIO_FACTOR - STEP_SLIPPAGE_RATIO * params.exitPath.numPools())) / C.RATIO_FACTOR;
     }
-
-    // function validParameters(bytes calldata parameters) private view returns (bool) {
-    //     Parameters memory params = abi.decode(parameters, (Parameters));
-    // }
-
-    // function AssetParameters(Asset asset) private view {
-    //     require(asset.standard == ERC20_STANDARD);
-    //     require(asset.addr == path[0th token]);
-    // require paths to be compatible so no assets get stuck
-    // (,address finalAssetAddr,) = params.exitPath.decodeFirstPool();
-    // require(asset.addr == finalAssetAddr, "illegal exit path");
-    // }
 }
