@@ -143,7 +143,7 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference",
+            "internalType": "struct PluginReference",
             "name": "account",
             "type": "tuple"
           },
@@ -174,7 +174,7 @@
           },
           {
             "internalType": "uint256",
-            "name": "collateralOracleIdx",
+            "name": "collOracleIdx",
             "type": "uint256"
           },
           {
@@ -547,7 +547,7 @@
           },
           {
             "internalType": "address[]",
-            "name": "takers",
+            "name": "fillers",
             "type": "address[]"
           },
           {
@@ -573,7 +573,7 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference",
+            "internalType": "struct PluginReference",
             "name": "account",
             "type": "tuple"
           },
@@ -590,7 +590,7 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference",
+            "internalType": "struct PluginReference",
             "name": "assessor",
             "type": "tuple"
           },
@@ -607,7 +607,7 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference",
+            "internalType": "struct PluginReference",
             "name": "liquidator",
             "type": "tuple"
           },
@@ -624,7 +624,7 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference[]",
+            "internalType": "struct PluginReference[]",
             "name": "loanOracles",
             "type": "tuple[]"
           },
@@ -641,8 +641,8 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference[]",
-            "name": "collateralOracles",
+            "internalType": "struct PluginReference[]",
+            "name": "collOracles",
             "type": "tuple[]"
           },
           {

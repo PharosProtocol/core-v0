@@ -383,7 +383,7 @@
   },
   {
     "inputs": [],
-    "name": "accountModule",
+    "name": "accountPlugin",
     "outputs": [
       {
         "internalType": "contract IAccount",
@@ -396,7 +396,7 @@
   },
   {
     "inputs": [],
-    "name": "assessorModule",
+    "name": "assessorPlugin",
     "outputs": [
       {
         "internalType": "contract IAssessor",
@@ -422,7 +422,7 @@
   },
   {
     "inputs": [],
-    "name": "liquidatorModule",
+    "name": "liquidatorPlugin",
     "outputs": [
       {
         "internalType": "contract ILiquidator",

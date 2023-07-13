@@ -1,5 +1,15 @@
 [
   {
+    "inputs": [],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [],
+    "name": "T",
+    "type": "error"
+  },
+  {
     "inputs": [
       {
         "components": [
@@ -47,14 +57,14 @@
         "type": "bool"
       }
     ],
-    "stateMutability": "view",
+    "stateMutability": "pure",
     "type": "function"
   },
   {
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "ethAmount",
+        "name": "value",
         "type": "uint256"
       },
       {
@@ -91,7 +101,7 @@
     "outputs": [
       {
         "internalType": "uint256",
-        "name": "ethAmount",
+        "name": "value",
         "type": "uint256"
       }
     ],
@@ -115,7 +125,7 @@
     "outputs": [
       {
         "internalType": "uint256",
-        "name": "ethAmount",
+        "name": "value",
         "type": "uint256"
       }
     ],

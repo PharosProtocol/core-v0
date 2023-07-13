@@ -30,12 +30,12 @@
           }
         ],
         "internalType": "struct Asset",
-        "name": "asset",
+        "name": "",
         "type": "tuple"
       },
       {
         "internalType": "bytes",
-        "name": "parameters",
+        "name": "",
         "type": "bytes"
       }
     ],
@@ -47,7 +47,7 @@
         "type": "bool"
       }
     ],
-    "stateMutability": "view",
+    "stateMutability": "pure",
     "type": "function"
   },
   {
@@ -71,7 +71,7 @@
         "type": "uint256"
       }
     ],
-    "stateMutability": "view",
+    "stateMutability": "pure",
     "type": "function"
   },
   {
@@ -91,11 +91,11 @@
     "outputs": [
       {
         "internalType": "uint256",
-        "name": "ethAmount",
+        "name": "",
         "type": "uint256"
       }
     ],
-    "stateMutability": "view",
+    "stateMutability": "pure",
     "type": "function"
   },
   {
@@ -115,11 +115,11 @@
     "outputs": [
       {
         "internalType": "uint256",
-        "name": "ethAmount",
+        "name": "",
         "type": "uint256"
       }
     ],
-    "stateMutability": "view",
+    "stateMutability": "pure",
     "type": "function"
   }
 ]

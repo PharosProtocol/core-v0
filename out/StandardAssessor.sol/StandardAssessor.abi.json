@@ -35,7 +35,7 @@
       },
       {
         "internalType": "bytes",
-        "name": "",
+        "name": "parameters",
         "type": "bytes"
       }
     ],
@@ -151,7 +151,7 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference",
+            "internalType": "struct PluginReference",
             "name": "lenderAccount",
             "type": "tuple"
           },
@@ -168,7 +168,7 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference",
+            "internalType": "struct PluginReference",
             "name": "borrowerAccount",
             "type": "tuple"
           },
@@ -185,7 +185,7 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference",
+            "internalType": "struct PluginReference",
             "name": "assessor",
             "type": "tuple"
           },
@@ -202,7 +202,7 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference",
+            "internalType": "struct PluginReference",
             "name": "liquidator",
             "type": "tuple"
           },
@@ -219,7 +219,7 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference",
+            "internalType": "struct PluginReference",
             "name": "loanOracle",
             "type": "tuple"
           },
@@ -236,8 +236,8 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference",
-            "name": "collateralOracle",
+            "internalType": "struct PluginReference",
+            "name": "collOracle",
             "type": "tuple"
           },
           {
@@ -258,7 +258,7 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference",
+            "internalType": "struct PluginReference",
             "name": "position",
             "type": "tuple"
           },
@@ -281,244 +281,43 @@
     "name": "getCost",
     "outputs": [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "components": [
           {
-            "internalType": "uint256",
-            "name": "loanAmount",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "collAmount",
-            "type": "uint256"
-          },
-          {
-            "components": [
-              {
-                "internalType": "bytes3",
-                "name": "standard",
-                "type": "bytes3"
-              },
-              {
-                "internalType": "address",
-                "name": "addr",
-                "type": "address"
-              },
-              {
-                "internalType": "uint8",
-                "name": "decimals",
-                "type": "uint8"
-              },
-              {
-                "internalType": "uint256",
-                "name": "id",
-                "type": "uint256"
-              },
-              {
-                "internalType": "bytes",
-                "name": "data",
-                "type": "bytes"
-              }
-            ],
-            "internalType": "struct Asset",
-            "name": "loanAsset",
-            "type": "tuple"
-          },
-          {
-            "components": [
-              {
-                "internalType": "bytes3",
-                "name": "standard",
-                "type": "bytes3"
-              },
-              {
-                "internalType": "address",
-                "name": "addr",
-                "type": "address"
-              },
-              {
-                "internalType": "uint8",
-                "name": "decimals",
-                "type": "uint8"
-              },
-              {
-                "internalType": "uint256",
-                "name": "id",
-                "type": "uint256"
-              },
-              {
-                "internalType": "bytes",
-                "name": "data",
-                "type": "bytes"
-              }
-            ],
-            "internalType": "struct Asset",
-            "name": "collAsset",
-            "type": "tuple"
-          },
-          {
-            "internalType": "uint256",
-            "name": "minCollateralRatio",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "maxDuration",
-            "type": "uint256"
-          },
-          {
-            "components": [
-              {
-                "internalType": "address",
-                "name": "addr",
-                "type": "address"
-              },
-              {
-                "internalType": "bytes",
-                "name": "parameters",
-                "type": "bytes"
-              }
-            ],
-            "internalType": "struct ModuleReference",
-            "name": "lenderAccount",
-            "type": "tuple"
-          },
-          {
-            "components": [
-              {
-                "internalType": "address",
-                "name": "addr",
-                "type": "address"
-              },
-              {
-                "internalType": "bytes",
-                "name": "parameters",
-                "type": "bytes"
-              }
-            ],
-            "internalType": "struct ModuleReference",
-            "name": "borrowerAccount",
-            "type": "tuple"
-          },
-          {
-            "components": [
-              {
-                "internalType": "address",
-                "name": "addr",
-                "type": "address"
-              },
-              {
-                "internalType": "bytes",
-                "name": "parameters",
-                "type": "bytes"
-              }
-            ],
-            "internalType": "struct ModuleReference",
-            "name": "assessor",
-            "type": "tuple"
-          },
-          {
-            "components": [
-              {
-                "internalType": "address",
-                "name": "addr",
-                "type": "address"
-              },
-              {
-                "internalType": "bytes",
-                "name": "parameters",
-                "type": "bytes"
-              }
-            ],
-            "internalType": "struct ModuleReference",
-            "name": "liquidator",
-            "type": "tuple"
-          },
-          {
-            "components": [
-              {
-                "internalType": "address",
-                "name": "addr",
-                "type": "address"
-              },
-              {
-                "internalType": "bytes",
-                "name": "parameters",
-                "type": "bytes"
-              }
-            ],
-            "internalType": "struct ModuleReference",
-            "name": "loanOracle",
-            "type": "tuple"
-          },
-          {
-            "components": [
-              {
-                "internalType": "address",
-                "name": "addr",
-                "type": "address"
-              },
-              {
-                "internalType": "bytes",
-                "name": "parameters",
-                "type": "bytes"
-              }
-            ],
-            "internalType": "struct ModuleReference",
-            "name": "collateralOracle",
-            "type": "tuple"
+            "internalType": "bytes3",
+            "name": "standard",
+            "type": "bytes3"
           },
           {
             "internalType": "address",
-            "name": "factory",
+            "name": "addr",
             "type": "address"
           },
           {
-            "components": [
-              {
-                "internalType": "address",
-                "name": "addr",
-                "type": "address"
-              },
-              {
-                "internalType": "bytes",
-                "name": "parameters",
-                "type": "bytes"
-              }
-            ],
-            "internalType": "struct ModuleReference",
-            "name": "position",
-            "type": "tuple"
+            "internalType": "uint8",
+            "name": "decimals",
+            "type": "uint8"
           },
           {
             "internalType": "uint256",
-            "name": "deploymentTime",
+            "name": "id",
             "type": "uint256"
+          },
+          {
+            "internalType": "bytes",
+            "name": "data",
+            "type": "bytes"
           }
         ],
-        "internalType": "struct Agreement",
-        "name": "agreement",
+        "internalType": "struct Asset",
+        "name": "asset",
         "type": "tuple"
       },
       {
-        "internalType": "bytes",
-        "name": "parameters",
-        "type": "bytes"
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
       }
     ],
-    "name": "initCheck",
-    "outputs": [],
     "stateMutability": "view",
     "type": "function"
   }

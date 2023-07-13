@@ -16,6 +16,19 @@
       {
         "indexed": false,
         "internalType": "address",
+        "name": "clone",
+        "type": "address"
+      }
+    ],
+    "name": "CloneCreated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
         "name": "previousController",
         "type": "address"
       },
@@ -40,19 +53,6 @@
       }
     ],
     "name": "Initialized",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "position",
-        "type": "address"
-      }
-    ],
-    "name": "PositionCreated",
     "type": "event"
   },
   {
@@ -164,6 +164,19 @@
         "internalType": "address",
         "name": "",
         "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "amountDistributed",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -326,7 +339,7 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference",
+            "internalType": "struct PluginReference",
             "name": "lenderAccount",
             "type": "tuple"
           },
@@ -343,7 +356,7 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference",
+            "internalType": "struct PluginReference",
             "name": "borrowerAccount",
             "type": "tuple"
           },
@@ -360,7 +373,7 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference",
+            "internalType": "struct PluginReference",
             "name": "assessor",
             "type": "tuple"
           },
@@ -377,7 +390,7 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference",
+            "internalType": "struct PluginReference",
             "name": "liquidator",
             "type": "tuple"
           },
@@ -394,7 +407,7 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference",
+            "internalType": "struct PluginReference",
             "name": "loanOracle",
             "type": "tuple"
           },
@@ -411,8 +424,8 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference",
-            "name": "collateralOracle",
+            "internalType": "struct PluginReference",
+            "name": "collOracle",
             "type": "tuple"
           },
           {
@@ -433,7 +446,7 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference",
+            "internalType": "struct PluginReference",
             "name": "position",
             "type": "tuple"
           },
@@ -446,16 +459,6 @@
         "internalType": "struct Agreement",
         "name": "agreement",
         "type": "tuple"
-      },
-      {
-        "internalType": "bool",
-        "name": "distribute",
-        "type": "bool"
-      },
-      {
-        "internalType": "bytes",
-        "name": "parameters",
-        "type": "bytes"
       }
     ],
     "name": "close",
@@ -471,7 +474,7 @@
   },
   {
     "inputs": [],
-    "name": "createPosition",
+    "name": "createClone",
     "outputs": [
       {
         "internalType": "address",
@@ -535,85 +538,15 @@
   {
     "inputs": [
       {
-        "internalType": "bytes",
-        "name": "parameters",
-        "type": "bytes"
-      }
-    ],
-    "name": "getCloseAmount",
-    "outputs": [
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
+      },
       {
         "internalType": "uint256",
-        "name": "",
+        "name": "lenderAmount",
         "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
-      }
-    ],
-    "name": "getRoleAdmin",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
       },
-      {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
-    ],
-    "name": "grantRole",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
-    ],
-    "name": "hasRole",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
       {
         "components": [
           {
@@ -713,7 +646,7 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference",
+            "internalType": "struct PluginReference",
             "name": "lenderAccount",
             "type": "tuple"
           },
@@ -730,7 +663,7 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference",
+            "internalType": "struct PluginReference",
             "name": "borrowerAccount",
             "type": "tuple"
           },
@@ -747,7 +680,7 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference",
+            "internalType": "struct PluginReference",
             "name": "assessor",
             "type": "tuple"
           },
@@ -764,7 +697,7 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference",
+            "internalType": "struct PluginReference",
             "name": "liquidator",
             "type": "tuple"
           },
@@ -781,7 +714,7 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference",
+            "internalType": "struct PluginReference",
             "name": "loanOracle",
             "type": "tuple"
           },
@@ -798,8 +731,8 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference",
-            "name": "collateralOracle",
+            "internalType": "struct PluginReference",
+            "name": "collOracle",
             "type": "tuple"
           },
           {
@@ -820,7 +753,7 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference",
+            "internalType": "struct PluginReference",
             "name": "position",
             "type": "tuple"
           },
@@ -833,15 +766,90 @@
         "internalType": "struct Agreement",
         "name": "agreement",
         "type": "tuple"
-      },
+      }
+    ],
+    "name": "distribute",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
       {
         "internalType": "bytes",
         "name": "parameters",
         "type": "bytes"
       }
     ],
-    "name": "initCheck",
+    "name": "getCloseAmount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "role",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getRoleAdmin",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "role",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "grantRole",
     "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "role",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "hasRole",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },

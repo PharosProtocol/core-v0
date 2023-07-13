@@ -4,12 +4,12 @@
     "inputs": [
       {
         "indexed": false,
-        "internalType": "uint8",
-        "name": "version",
-        "type": "uint8"
+        "internalType": "address",
+        "name": "clone",
+        "type": "address"
       }
     ],
-    "name": "Initialized",
+    "name": "CloneCreated",
     "type": "event"
   },
   {
@@ -17,12 +17,12 @@
     "inputs": [
       {
         "indexed": false,
-        "internalType": "address",
-        "name": "position",
-        "type": "address"
+        "internalType": "uint8",
+        "name": "version",
+        "type": "uint8"
       }
     ],
-    "name": "PositionCreated",
+    "name": "Initialized",
     "type": "event"
   },
   {
@@ -141,7 +141,7 @@
   },
   {
     "inputs": [],
-    "name": "createPosition",
+    "name": "createClone",
     "outputs": [
       {
         "internalType": "address",

@@ -188,7 +188,7 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference",
+            "internalType": "struct PluginReference",
             "name": "lenderAccount",
             "type": "tuple"
           },
@@ -205,7 +205,7 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference",
+            "internalType": "struct PluginReference",
             "name": "borrowerAccount",
             "type": "tuple"
           },
@@ -222,7 +222,7 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference",
+            "internalType": "struct PluginReference",
             "name": "assessor",
             "type": "tuple"
           },
@@ -239,7 +239,7 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference",
+            "internalType": "struct PluginReference",
             "name": "liquidator",
             "type": "tuple"
           },
@@ -256,7 +256,7 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference",
+            "internalType": "struct PluginReference",
             "name": "loanOracle",
             "type": "tuple"
           },
@@ -273,8 +273,8 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference",
-            "name": "collateralOracle",
+            "internalType": "struct PluginReference",
+            "name": "collOracle",
             "type": "tuple"
           },
           {
@@ -295,7 +295,7 @@
                 "type": "bytes"
               }
             ],
-            "internalType": "struct ModuleReference",
+            "internalType": "struct PluginReference",
             "name": "position",
             "type": "tuple"
           },

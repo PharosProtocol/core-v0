@@ -9,122 +9,6 @@
     "inputs": [
       {
         "indexed": false,
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "bytes32",
-        "name": "salt",
-        "type": "bytes32"
-      },
-      {
-        "components": [
-          {
-            "internalType": "bytes3",
-            "name": "standard",
-            "type": "bytes3"
-          },
-          {
-            "internalType": "address",
-            "name": "addr",
-            "type": "address"
-          },
-          {
-            "internalType": "uint8",
-            "name": "decimals",
-            "type": "uint8"
-          },
-          {
-            "internalType": "uint256",
-            "name": "id",
-            "type": "uint256"
-          },
-          {
-            "internalType": "bytes",
-            "name": "data",
-            "type": "bytes"
-          }
-        ],
-        "indexed": false,
-        "internalType": "struct Asset",
-        "name": "asset",
-        "type": "tuple"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "AssetAdded",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "bytes32",
-        "name": "salt",
-        "type": "bytes32"
-      },
-      {
-        "components": [
-          {
-            "internalType": "bytes3",
-            "name": "standard",
-            "type": "bytes3"
-          },
-          {
-            "internalType": "address",
-            "name": "addr",
-            "type": "address"
-          },
-          {
-            "internalType": "uint8",
-            "name": "decimals",
-            "type": "uint8"
-          },
-          {
-            "internalType": "uint256",
-            "name": "id",
-            "type": "uint256"
-          },
-          {
-            "internalType": "bytes",
-            "name": "data",
-            "type": "bytes"
-          }
-        ],
-        "indexed": false,
-        "internalType": "struct Asset",
-        "name": "asset",
-        "type": "tuple"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "AssetRemoved",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
         "internalType": "string",
         "name": "",
         "type": "string"
@@ -499,7 +383,7 @@
   },
   {
     "inputs": [],
-    "name": "accountModule",
+    "name": "accountPlugin",
     "outputs": [
       {
         "internalType": "contract IAccount",
@@ -512,7 +396,7 @@
   },
   {
     "inputs": [],
-    "name": "assessorModule",
+    "name": "assessorPlugin",
     "outputs": [
       {
         "internalType": "contract IAssessor",
@@ -551,7 +435,7 @@
   },
   {
     "inputs": [],
-    "name": "liquidatorModule",
+    "name": "liquidatorPlugin",
     "outputs": [
       {
         "internalType": "contract ILiquidator",
@@ -571,7 +455,7 @@
   },
   {
     "inputs": [],
-    "name": "staticPriceOracle",
+    "name": "staticOracle",
     "outputs": [
       {
         "internalType": "contract IOracle",
@@ -598,7 +482,7 @@
   },
   {
     "inputs": [],
-    "name": "uniOracleModule",
+    "name": "uniOraclePlugin",
     "outputs": [
       {
         "internalType": "contract IOracle",

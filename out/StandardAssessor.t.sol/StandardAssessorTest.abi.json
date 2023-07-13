@@ -383,7 +383,7 @@
   },
   {
     "inputs": [],
-    "name": "assessorModule",
+    "name": "assessorPlugin",
     "outputs": [
       {
         "internalType": "contract StandardAssessor",
