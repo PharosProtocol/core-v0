@@ -60,7 +60,8 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
             require(order.fillers[fill.takerIdx] == msg.sender, "Bookkeeper: Invalid taker");
         }
 
-        Agreement memory agreement = _agreementFromOrder(fill, order);
+        LibBookkeeper.verifyFill(fill, order);
+        Agreement memory agreement = LibBookkeeper.agreementFromOrder(fill, order);
 
         uint256 loanValue = IOracle(agreement.loanOracle.addr).getResistantValue(
             agreement.loanAmount,
@@ -198,31 +199,6 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
     }
 
     // TODO implement the verification
-
-    /// @dev assumes compatibility between match, offer, and request already verified.
-    function _agreementFromOrder(
-        Fill calldata fill,
-        Order memory order
-    ) private pure returns (Agreement memory agreement) {
-        // NOTE MAKE CHECKS FOR VALIDITY
-
-        // NOTE this is prly not gas efficient bc of zero -> non-zero changes...
-        agreement.maxDuration = order.maxDuration;
-        agreement.assessor = order.assessor;
-        agreement.liquidator = order.liquidator;
-        agreement.minCollateralRatio = order.minCollateralRatio;
-
-        agreement.loanAsset = order.loanAssets[fill.loanAssetIdx];
-        agreement.loanOracle = order.loanOracles[fill.loanOracleIdx];
-        agreement.collAsset = order.collAssets[fill.collAssetIdx];
-        agreement.collOracle = order.collOracles[fill.collOracleIdx];
-        // NOTE confusion here (and everywhere) on position address vs factory address. Naming fix?
-        agreement.factory = order.factories[fill.factoryIdx];
-        // agreement.position.addr = order.factories[fill.factoryIdx];
-
-        require(fill.loanAmount >= order.minLoanAmounts[fill.loanAssetIdx], "_agreementFromOrder: too small");
-        agreement.loanAmount = fill.loanAmount;
-    }
 
     function _signAgreement(Agreement memory agreement) private returns (SignedBlueprint memory signedBlueprint) {
         // Create blueprint to store signed Agreement off chain via events.

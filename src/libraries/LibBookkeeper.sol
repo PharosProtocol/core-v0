@@ -84,6 +84,48 @@ struct Agreement {
 }
 
 library LibBookkeeper {
+    /// @notice verify that a fill is valid for an order.
+    /// @dev Reverts with reason if not valid.
+    function verifyFill(Fill calldata fill, Order memory order) internal pure {
+        BorrowerConfig memory borrowerConfig;
+        if (!order.isOffer) {
+            require(!fill.isOfferFill, "offer fill of offer");
+            borrowerConfig = order.borrowerConfig;
+        } else {
+            require(fill.isOfferFill, "request fill of request");
+            borrowerConfig = fill.borrowerConfig;
+        }
+
+        require(fill.loanAmount >= order.minLoanAmounts[fill.loanAssetIdx], "loanAmount too small");
+        require(borrowerConfig.initCollateralRatio >= order.minCollateralRatio, "initCollateralRatio too small");
+
+        // NOTE this would be the right place to verify modules are compatible with agreement. Current
+        //      design allows users to make invalid combinations and leaves compatibility checks up to
+        //      UI/user. This is not great but fine because both users must explicitly agree to terms.
+    }
+
+    /// @dev assumes compatibility between match, offer, and request already verified.
+    /// @dev does not fill position address, as it is not known until deployment.
+    function agreementFromOrder(
+        Fill calldata fill,
+        Order memory order
+    ) internal pure returns (Agreement memory agreement) {
+        // AUDIT would this be more efficient in a single set statement, to avoid lots of zero -> non-zero changes?
+        //       i.e. agreement = Agreement({.....});
+        agreement.maxDuration = order.maxDuration;
+        agreement.assessor = order.assessor;
+        agreement.liquidator = order.liquidator;
+        agreement.minCollateralRatio = order.minCollateralRatio;
+
+        agreement.loanAsset = order.loanAssets[fill.loanAssetIdx];
+        agreement.loanOracle = order.loanOracles[fill.loanOracleIdx];
+        agreement.collAsset = order.collAssets[fill.collAssetIdx];
+        agreement.collOracle = order.collOracles[fill.collOracleIdx];
+        agreement.factory = order.factories[fill.factoryIdx];
+
+        agreement.loanAmount = fill.loanAmount;
+    }
+
     /// @notice Is the position defined by an agreement up for liquidation and not yet kicked
     /// @dev liquidation based on CR or duration limit
     function isLiquidatable(Agreement memory agreement) internal view returns (bool) {
