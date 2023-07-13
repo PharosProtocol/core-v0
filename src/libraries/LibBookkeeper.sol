@@ -13,7 +13,7 @@ struct IndexPair {
     uint128 request;
 }
 
-struct ModuleReference {
+struct PluginReference {
     address addr;
     bytes parameters;
 }
@@ -26,12 +26,12 @@ struct Order {
     address[] fillers;
     uint256 maxDuration;
     uint256 minCollateralRatio;
-    // Modules
-    ModuleReference account;
-    ModuleReference assessor;
-    ModuleReference liquidator;
-    ModuleReference[] loanOracles;
-    ModuleReference[] collOracles;
+    // Plugins
+    PluginReference account;
+    PluginReference assessor;
+    PluginReference liquidator;
+    PluginReference[] loanOracles;
+    PluginReference[] collOracles;
     address[] factories;
     // Sided config
     bool isOffer;
@@ -45,7 +45,7 @@ struct BorrowerConfig {
 
 /// @notice Taker defined Position configuration that is compatible with an offer or a request.
 struct Fill {
-    ModuleReference account;
+    PluginReference account;
     uint256 loanAmount; // should be valid with both minFillRatios and account balances
     uint256 takerIdx; // ignored if no taker allowlist.
     uint256 loanAssetIdx; // need to verify with the oracle
@@ -72,14 +72,14 @@ struct Agreement {
     Asset collAsset;
     uint256 minCollateralRatio; // Position value / collateral value
     uint256 maxDuration;
-    ModuleReference lenderAccount;
-    ModuleReference borrowerAccount;
-    ModuleReference assessor;
-    ModuleReference liquidator;
-    ModuleReference loanOracle;
-    ModuleReference collOracle;
+    PluginReference lenderAccount;
+    PluginReference borrowerAccount;
+    PluginReference assessor;
+    PluginReference liquidator;
+    PluginReference loanOracle;
+    PluginReference collOracle;
     address factory;
-    ModuleReference position; // addr set by bookkeeper.
+    PluginReference position; // addr set by bookkeeper.
     uint256 deploymentTime; // set by bookkeeper
 }
 

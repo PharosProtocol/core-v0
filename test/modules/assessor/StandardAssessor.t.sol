@@ -17,11 +17,11 @@ import {MockPosition} from "test/mocks/MockPosition.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
 import {C} from "src/libraries/C.sol";
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
-import {Asset, ETH_STANDARD, ERC20_STANDARD, ModuleReference} from "src/libraries/LibUtils.sol";
-import {StandardAssessor} from "src/modules/assessor/implementations/StandardAssessor.sol";
+import {Asset, ETH_STANDARD, ERC20_STANDARD, PluginReference} from "src/libraries/LibUtils.sol";
+import {StandardAssessor} from "src/plugins/assessor/implementations/StandardAssessor.sol";
 
 contract StandardAssessorTest is Test {
-    StandardAssessor public assessorModule;
+    StandardAssessor public assessorPlugin;
     IPosition public position;
 
     constructor() {}
@@ -32,7 +32,7 @@ contract StandardAssessorTest is Test {
         // // requires fork
         // vm.activeFork();
         vm.createSelectFork(vm.rpcUrl("mainnet"), 17092863); // seems that test begin at end of block.
-        assessorModule = new StandardAssessor();
+        assessorPlugin = new StandardAssessor();
     }
 
     function getCost(
@@ -63,8 +63,8 @@ contract StandardAssessorTest is Test {
             interestRatio: interestRatio,
             profitShareRatio: profitShareRatio
         });
-        agreement.assessor = ModuleReference({addr: address(assessorModule), parameters: abi.encode(parameters)});
-        (asset, cost) = assessorModule.getCost(agreement, position.getCloseAmount(agreement.position.parameters));
+        agreement.assessor = PluginReference({addr: address(assessorPlugin), parameters: abi.encode(parameters)});
+        (asset, cost) = assessorPlugin.getCost(agreement, position.getCloseAmount(agreement.position.parameters));
     }
 
     /// @notice manual defined test cases of getCost. Checks for correctness.

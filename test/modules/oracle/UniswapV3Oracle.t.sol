@@ -10,12 +10,12 @@ import "@uni-v3-periphery/libraries/PoolAddress.sol";
 import {Path} from "@uni-v3-periphery/libraries/path.sol";
 
 import {C} from "src/libraries/C.sol";
-import {UniswapV3Oracle} from "src/modules/oracle/implementations/UniswapV3Oracle.sol";
+import {UniswapV3Oracle} from "src/plugins/oracle/implementations/UniswapV3Oracle.sol";
 
 contract UniswapV3OracleTest is Test {
     using Path for bytes;
 
-    UniswapV3Oracle public oracleModule;
+    UniswapV3Oracle public oraclePlugin;
 
     constructor() {}
 
@@ -32,7 +32,7 @@ contract UniswapV3OracleTest is Test {
         // requires fork at known time so valuations are known. uni quote of eth ~= $1,919.37
         vm.createSelectFork(vm.rpcUrl("mainnet"), 17598691); // test begins at end of block.
 
-        oracleModule = new UniswapV3Oracle();
+        oraclePlugin = new UniswapV3Oracle();
     }
 
     function test_UniV3Oracle() public {
@@ -47,9 +47,9 @@ contract UniswapV3OracleTest is Test {
 
         // Nearest txn, but exact values are taken from running this code itself.
         // https://etherscan.io/tx/0xdbb4daef28e55f2d5f56de0aab299e5e488f13ba36313d38ab40914f99b63811
-        uint256 value = oracleModule.getResistantValue(2000e6, parameters);
-        uint256 spotValue = oracleModule.getSpotValue(2000e6, parameters);
-        uint256 amount = oracleModule.getResistantAmount(1e18, parameters);
+        uint256 value = oraclePlugin.getResistantValue(2000e6, parameters);
+        uint256 spotValue = oraclePlugin.getSpotValue(2000e6, parameters);
+        uint256 amount = oraclePlugin.getResistantAmount(1e18, parameters);
         // NOTE these test values were pulled from manual runs of the code with human verification.
         console.log("value: %s", value);
         console.log("spot value: %s", spotValue);
@@ -73,9 +73,9 @@ contract UniswapV3OracleTest is Test {
         });
         bytes memory parameters = abi.encode(params);
 
-        uint256 value = oracleModule.getResistantValue(baseAmount, parameters);
-        uint256 spotValue = oracleModule.getSpotValue(baseAmount, parameters);
-        uint256 newAmount = oracleModule.getResistantAmount(value, parameters);
+        uint256 value = oraclePlugin.getResistantValue(baseAmount, parameters);
+        uint256 spotValue = oraclePlugin.getSpotValue(baseAmount, parameters);
+        uint256 newAmount = oraclePlugin.getResistantAmount(value, parameters);
 
         uint256 expectedAmount = (baseAmount * (C.RATIO_FACTOR - params.stepSlippage) ** 2) / C.RATIO_FACTOR ** 2;
         // Matching rounding here is difficult. Uni internal rounding is different that Oracle application of slippage.

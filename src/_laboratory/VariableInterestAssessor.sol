@@ -4,7 +4,7 @@ pragma solidity 0.8.19;
 
 /*
 
-import {Assessor} from "src/modules/assessor/Assessor.sol";
+import {Assessor} from "src/plugins/assessor/Assessor.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
 import "src/libraries/LibUtils.sol";

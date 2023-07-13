@@ -14,7 +14,7 @@ import {IBookkeeper} from "src/interfaces/IBookkeeper.sol";
 import {Bookkeeper} from "src/bookkeeper.sol";
 import {Order} from "src/libraries/LibBookkeeper.sol";
 import {Asset, ERC20_STANDARD} from "src/libraries/LibUtils.sol";
-import {CloneFactory} from "src/modules/CloneFactory.sol";
+import {CloneFactory} from "src/plugins/CloneFactory.sol";
 import {Account} from "../Account.sol";
 import {IWETH9} from "src/interfaces/external/IWETH9.sol";
 import {LibUtilsPublic} from "src/libraries/LibUtilsPublic.sol";

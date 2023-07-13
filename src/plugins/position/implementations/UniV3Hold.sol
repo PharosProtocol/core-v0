@@ -22,7 +22,7 @@ import {LibUniswapV3} from "src/libraries/LibUniswapV3.sol";
 import {Asset, ERC20_STANDARD} from "src/libraries/LibUtils.sol";
 import {LibUtilsPublic} from "src/libraries/LibUtilsPublic.sol";
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
-import {Position} from "src/modules/position/Position.sol";
+import {Position} from "src/plugins/position/Position.sol";
 
 struct SwapCallbackData {
     bytes path;
@@ -39,7 +39,7 @@ struct SwapCallbackData {
  *
  * The Factory must implement at minimum the set of methods shown in the Modulus Factory Interface. Beyond that,
  * a Factory can offer an arbitrary set of additional methods that act as wrappers for the underlying protocol;
- * however, the Modulend marketplace cannot be updated to support all possible actions in all possible Factory. Users
+ * however, the Pluginnd marketplace cannot be updated to support all possible actions in all possible Factory. Users
  * will automatically have the ability to call functions listed in the interface as well as any public functions that do
  * not require parameters. These additional argumentless function calls can be used to wrap functionality of the
  * underlying protocol to enable simple updating and interaction with a position - we recommend they are named in a
@@ -145,7 +145,7 @@ contract UniV3HoldFactory is Position {
     // NOTE: How to liquidate if min acceptable price is uncontrollable? Better to liquidate at a bad price now than wait
     //       until volatility slows. Answer: Allow liquidator to pass in min price, but require them to return some
     //       amount. then if they give themselves a bad deal they are the only one who loses. Alt Answer: Allow
-    //       liquidator to pass through any function via callback, so long as they return enough assets to Modulend
+    //       liquidator to pass through any function via callback, so long as they return enough assets to Pluginnd
     //       lender / borrower in end.
     function _close(address, Agreement calldata agreement) internal override returns (uint256 closedAmount) {
         Parameters memory params = abi.decode(agreement.position.parameters, (Parameters));

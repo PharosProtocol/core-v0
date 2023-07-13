@@ -23,8 +23,8 @@ import {Asset} from "src/libraries/LibUtils.sol";
 // YET it seems that the orderbook itself must be able to generate the arguments of the below functions, otherwise
 // there is no way to verify the arguments are compatible with the orders/agreement. Will I just need to accept that
 // the interfaces cannot be fully generalized? on principle bc they must be comprehensible enough to determine
-// compatibility between all module calls and the orders.
-// This catch22 probably applies to all modules interfaces...
+// compatibility between all plugin calls and the orders.
+// This catch22 probably applies to all plugins interfaces...
 
 // There is a lot of complexity at position closure (happy or liquidation) bc there are 2 assets moving and both may
 // not be compatible with both accounts. This results in assets being sent to account owners, which actually breaks
@@ -40,7 +40,7 @@ import {Asset} from "src/libraries/LibUtils.sol";
 // Actually, if using direct sends do accounts need any sense of compatibility? Can argue it is account manager's
 // responsibility to be able to withdraw any assets they find at the address.
 //
-// ^^ in follow up to this implemented the optional initCheck() method for Modules.
+// ^^ in follow up to this implemented the optional initCheck() method for Plugins.
 
 interface IAccount {
     /// @notice Transfer asset and increment account balance. Pulls asset from sender or uses msg.value.

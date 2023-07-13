@@ -25,6 +25,7 @@ interface IPosition is IAccessControl {
     function distribute(address sender, uint256 lenderAmount, Agreement calldata agreement) external payable;
 
     /// @notice Get current exitable value of the position, denoted in loan asset.
+    /// @notice Value is an estimate. Value at exit may differ slightly.
     function getCloseAmount(bytes calldata parameters) external view returns (uint256);
 
     /// @notice Transfer the position to a new controller. Used for liquidations.

@@ -15,10 +15,10 @@ import {HandlerUtils} from "test/TestUtils.sol";
 import {TestUtils} from "test/TestUtils.sol";
 import {C} from "src/libraries/C.sol";
 import {Asset, ETH_STANDARD, ERC20_STANDARD} from "src/libraries/LibUtils.sol";
-import {SoloAccount} from "src/modules/account/implementations/SoloAccount.sol";
+import {SoloAccount} from "src/plugins/account/implementations/SoloAccount.sol";
 
 contract AccountTest is TestUtils {
-    SoloAccount public accountModule;
+    SoloAccount public accountPlugin;
     Asset[] ASSETS;
 
     // Copy of event definitions.
@@ -35,7 +35,7 @@ contract AccountTest is TestUtils {
     function setUp() public {
         vm.recordLogs();
         vm.createSelectFork(vm.rpcUrl("mainnet"), 17092863);
-        accountModule = new SoloAccount(address(1));
+        accountPlugin = new SoloAccount(address(1));
     }
 
     // NOTE it is unclear if this should be a fuzz or a direct unit tests. Are fuzzes handled by invariant tests?
@@ -61,84 +61,84 @@ contract AccountTest is TestUtils {
 
         // Define account instance.
         bytes memory parameters = abi.encode(SoloAccount.Parameters({owner: msg.sender, salt: "salt"}));
-        assertEq(accountModule.getOwner(parameters), msg.sender);
+        assertEq(accountPlugin.getOwner(parameters), msg.sender);
 
         // Fail to add WETH because balance too low.
         vm.expectRevert();
-        accountModule.loadFromUser(ASSETS[0], 11e18, parameters);
+        accountPlugin.loadFromUser(ASSETS[0], 11e18, parameters);
 
         // Fail to add ERC20 because asset not approved.
         vm.expectRevert("safeErc20TransferFrom failed");
-        accountModule.loadFromUser(ASSETS[1], 1e18, parameters);
+        accountPlugin.loadFromUser(ASSETS[1], 1e18, parameters);
 
         // Approve ERC20s.
-        IERC20(ASSETS[0].addr).approve(address(accountModule), 999e18);
-        IERC20(ASSETS[1].addr).approve(address(accountModule), 999e18);
+        IERC20(ASSETS[0].addr).approve(address(accountPlugin), 999e18);
+        IERC20(ASSETS[1].addr).approve(address(accountPlugin), 999e18);
 
         // Fail to add ERC20 because balance too low.
         vm.expectRevert("safeErc20TransferFrom failed");
-        accountModule.loadFromUser(ASSETS[1], 11e18, parameters);
+        accountPlugin.loadFromUser(ASSETS[1], 11e18, parameters);
 
         // Add WETH.
-        accountModule.loadFromUser{value: 0}(ASSETS[0], 1e18, parameters);
-        assertEq(accountModule.getBalance(ASSETS[0], parameters), 1e18);
-        accountModule.loadFromUser{value: 0}(ASSETS[0], 3e18, parameters);
-        assertEq(accountModule.getBalance(ASSETS[0], parameters), 4e18);
-        accountModule.loadFromUser{value: 0}(ASSETS[0], 1, parameters);
-        assertEq(accountModule.getBalance(ASSETS[0], parameters), 4000000000000000001);
-        accountModule.loadFromUser{value: 0}(ASSETS[0], 0, parameters); // NOTE should this be made to revert?
-        assertEq(accountModule.getBalance(ASSETS[0], parameters), 4000000000000000001);
+        accountPlugin.loadFromUser{value: 0}(ASSETS[0], 1e18, parameters);
+        assertEq(accountPlugin.getBalance(ASSETS[0], parameters), 1e18);
+        accountPlugin.loadFromUser{value: 0}(ASSETS[0], 3e18, parameters);
+        assertEq(accountPlugin.getBalance(ASSETS[0], parameters), 4e18);
+        accountPlugin.loadFromUser{value: 0}(ASSETS[0], 1, parameters);
+        assertEq(accountPlugin.getBalance(ASSETS[0], parameters), 4000000000000000001);
+        accountPlugin.loadFromUser{value: 0}(ASSETS[0], 0, parameters); // NOTE should this be made to revert?
+        assertEq(accountPlugin.getBalance(ASSETS[0], parameters), 4000000000000000001);
 
         // Add ERC20.
-        accountModule.loadFromUser{value: 0}(ASSETS[1], 1e18, parameters);
-        assertEq(accountModule.getBalance(ASSETS[1], parameters), 1e18);
-        accountModule.loadFromUser{value: 0}(ASSETS[1], 3e18, parameters);
-        assertEq(accountModule.getBalance(ASSETS[1], parameters), 4e18);
-        accountModule.loadFromUser{value: 0}(ASSETS[1], 1, parameters);
-        assertEq(accountModule.getBalance(ASSETS[1], parameters), 4000000000000000001);
-        accountModule.loadFromUser{value: 0}(ASSETS[1], 0, parameters); // NOTE should this be made to revert?
-        assertEq(accountModule.getBalance(ASSETS[1], parameters), 4000000000000000001);
+        accountPlugin.loadFromUser{value: 0}(ASSETS[1], 1e18, parameters);
+        assertEq(accountPlugin.getBalance(ASSETS[1], parameters), 1e18);
+        accountPlugin.loadFromUser{value: 0}(ASSETS[1], 3e18, parameters);
+        assertEq(accountPlugin.getBalance(ASSETS[1], parameters), 4e18);
+        accountPlugin.loadFromUser{value: 0}(ASSETS[1], 1, parameters);
+        assertEq(accountPlugin.getBalance(ASSETS[1], parameters), 4000000000000000001);
+        accountPlugin.loadFromUser{value: 0}(ASSETS[1], 0, parameters); // NOTE should this be made to revert?
+        assertEq(accountPlugin.getBalance(ASSETS[1], parameters), 4000000000000000001);
 
         // Verify other balances are still valid.
-        assertEq(accountModule.getBalance(ASSETS[0], parameters), 4000000000000000001);
-        // assertEq(accountModule.getBalance(ASSETS[1], parameters), 4000000000000000001);
+        assertEq(accountPlugin.getBalance(ASSETS[0], parameters), 4000000000000000001);
+        // assertEq(accountPlugin.getBalance(ASSETS[1], parameters), 4000000000000000001);
 
         // Remove WETH.
-        accountModule.unloadToUser(ASSETS[0], 1, parameters);
-        assertEq(accountModule.getBalance(ASSETS[0], parameters), 4e18);
-        accountModule.unloadToUser(ASSETS[0], 1e18, parameters);
-        assertEq(accountModule.getBalance(ASSETS[0], parameters), 3e18);
-        accountModule.unloadToUser(ASSETS[0], 0, parameters);
-        assertEq(accountModule.getBalance(ASSETS[0], parameters), 3e18);
-        accountModule.unloadToUser(ASSETS[0], 3e18, parameters);
-        assertEq(accountModule.getBalance(ASSETS[0], parameters), 0);
+        accountPlugin.unloadToUser(ASSETS[0], 1, parameters);
+        assertEq(accountPlugin.getBalance(ASSETS[0], parameters), 4e18);
+        accountPlugin.unloadToUser(ASSETS[0], 1e18, parameters);
+        assertEq(accountPlugin.getBalance(ASSETS[0], parameters), 3e18);
+        accountPlugin.unloadToUser(ASSETS[0], 0, parameters);
+        assertEq(accountPlugin.getBalance(ASSETS[0], parameters), 3e18);
+        accountPlugin.unloadToUser(ASSETS[0], 3e18, parameters);
+        assertEq(accountPlugin.getBalance(ASSETS[0], parameters), 0);
 
         // Remove ERC20.
-        accountModule.unloadToUser(ASSETS[1], 1, parameters);
-        assertEq(accountModule.getBalance(ASSETS[1], parameters), 4e18);
-        accountModule.unloadToUser(ASSETS[1], 1e18, parameters);
-        assertEq(accountModule.getBalance(ASSETS[1], parameters), 3e18);
-        accountModule.unloadToUser(ASSETS[1], 0, parameters);
-        assertEq(accountModule.getBalance(ASSETS[1], parameters), 3e18);
-        accountModule.unloadToUser(ASSETS[1], 3e18, parameters);
-        assertEq(accountModule.getBalance(ASSETS[1], parameters), 0);
+        accountPlugin.unloadToUser(ASSETS[1], 1, parameters);
+        assertEq(accountPlugin.getBalance(ASSETS[1], parameters), 4e18);
+        accountPlugin.unloadToUser(ASSETS[1], 1e18, parameters);
+        assertEq(accountPlugin.getBalance(ASSETS[1], parameters), 3e18);
+        accountPlugin.unloadToUser(ASSETS[1], 0, parameters);
+        assertEq(accountPlugin.getBalance(ASSETS[1], parameters), 3e18);
+        accountPlugin.unloadToUser(ASSETS[1], 3e18, parameters);
+        assertEq(accountPlugin.getBalance(ASSETS[1], parameters), 0);
 
         // Revert because account empty.
         vm.expectRevert("_unloadToUser: balance too low");
-        accountModule.unloadToUser(ASSETS[0], 1, parameters);
+        accountPlugin.unloadToUser(ASSETS[0], 1, parameters);
         vm.expectRevert("_unloadToUser: balance too low");
-        accountModule.unloadToUser(ASSETS[1], 1, parameters);
+        accountPlugin.unloadToUser(ASSETS[1], 1, parameters);
 
         // Revert because non-owned account.
         vm.stopPrank();
         vm.prank(address(0)); // non msg.sender address
         vm.expectRevert("unload: not owner");
-        accountModule.unloadToUser(ASSETS[0], 1, parameters);
+        accountPlugin.unloadToUser(ASSETS[0], 1, parameters);
     }
 }
 
 contract Handler is Test, HandlerUtils {
-    SoloAccount public accountModule;
+    SoloAccount public accountPlugin;
     Asset[] public ASSETS;
     uint256[] public assetBalances;
 
@@ -150,7 +150,7 @@ contract Handler is Test, HandlerUtils {
         ASSETS.push(Asset({standard: ERC20_STANDARD, addr: C.WETH, decimals: 18, id: 0, data: ""}));
         ASSETS.push(Asset({standard: ERC20_STANDARD, decimals: C.USDC_DECIMALS, addr: C.USDC, id: 0, data: ""}));
         assetBalances = new uint256[](ASSETS.length);
-        accountModule = new SoloAccount(address(1));
+        accountPlugin = new SoloAccount(address(1));
     }
 
     function load(
@@ -175,11 +175,11 @@ contract Handler is Test, HandlerUtils {
         if (asset.standard == ERC20_STANDARD) {
             // vm.assume(amount != 0);
             deal(asset.addr, currentActor, amount, true);
-            IERC20(asset.addr).approve(address(accountModule), amount);
+            IERC20(asset.addr).approve(address(accountPlugin), amount);
         }
 
         vm.prank(currentActor);
-        accountModule.loadFromUser{value: value}(asset, amount, parameters);
+        accountPlugin.loadFromUser{value: value}(asset, amount, parameters);
     }
 
     function unload(
@@ -196,7 +196,7 @@ contract Handler is Test, HandlerUtils {
         assetBalances[assetIdx] -= amount; // NOTE how does invariant behave on reverts? will this protect lower failures?
 
         vm.prank(currentActor);
-        accountModule.unloadToUser(asset, amount, parameters);
+        accountPlugin.unloadToUser(asset, amount, parameters);
     }
 
     /**
@@ -236,9 +236,9 @@ contract InvariantAccountTest is Test {
         for (uint256 j; j < handler.ASSETSLength(); j++) {
             (bytes3 standard, address addr, , , ) = handler.ASSETS(j);
             if (standard == ETH_STANDARD || (standard == ERC20_STANDARD && addr == C.WETH)) {
-                assertEq(address(handler.accountModule()).balance, handler.assetBalances(j));
+                assertEq(address(handler.accountPlugin()).balance, handler.assetBalances(j));
             } else if (standard == ERC20_STANDARD) {
-                assertEq(IERC20(addr).balanceOf(address(handler.accountModule())), handler.assetBalances(j));
+                assertEq(IERC20(addr).balanceOf(address(handler.accountPlugin())), handler.assetBalances(j));
             }
         }
     }

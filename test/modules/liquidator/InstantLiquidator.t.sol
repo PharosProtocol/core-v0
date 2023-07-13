@@ -21,16 +21,16 @@ import {ILiquidator} from "src/interfaces/ILiquidator.sol";
 import {C} from "src/libraries/C.sol";
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
 import {Asset, ERC20_STANDARD} from "src/libraries/LibUtils.sol";
-import {SoloAccount} from "src/modules/account/implementations/SoloAccount.sol";
-import {InstantCloseTakeCollateral} from "src/modules/liquidator/implementations/InstantCloseTakeCollateral.sol";
+import {SoloAccount} from "src/plugins/account/implementations/SoloAccount.sol";
+import {InstantCloseTakeCollateral} from "src/plugins/liquidator/implementations/InstantCloseTakeCollateral.sol";
 import {MockAssessor} from "test/mocks/MockAssessor.sol";
 import {MockPosition} from "test/mocks/MockPosition.sol";
 
 contract InstantLiquidatorTest is TestUtils {
     // Bookkeeper public bookkeeper;
-    IAssessor public assessorModule;
-    IAccount public accountModule;
-    ILiquidator public liquidatorModule;
+    IAssessor public assessorPlugin;
+    IAccount public accountPlugin;
+    ILiquidator public liquidatorPlugin;
 
     address bookkeeperAddr = address(1);
     Asset[] ASSETS;
@@ -47,10 +47,10 @@ contract InstantLiquidatorTest is TestUtils {
         vm.createSelectFork(vm.rpcUrl("mainnet"), 17092863);
 
         SoloAccount accountContract = new SoloAccount(bookkeeperAddr);
-        accountModule = IAccount(accountContract);
+        accountPlugin = IAccount(accountContract);
 
         InstantCloseTakeCollateral liquidatorContract = new InstantCloseTakeCollateral(bookkeeperAddr);
-        liquidatorModule = ILiquidator(liquidatorContract);
+        liquidatorPlugin = ILiquidator(liquidatorContract);
     }
 
     // NOTE it is unclear if this should be a fuzz or a direct unit tests. Are fuzzes handled by invariant tests?
@@ -88,7 +88,7 @@ contract InstantLiquidatorTest is TestUtils {
 
         // Set assessor and cost.
         MockAssessor assessorContract = new MockAssessor(ASSETS[loanAssetIdx], cost);
-        assessorModule = IAssessor(assessorContract);
+        assessorPlugin = IAssessor(assessorContract);
 
         // Set position and value.
         MockPosition positionFactory = new MockPosition(bookkeeperAddr);
@@ -99,22 +99,22 @@ contract InstantLiquidatorTest is TestUtils {
 
         // Create mock agreement and position.
         Agreement memory agreement;
-        agreement.lenderAccount.addr = address(accountModule);
+        agreement.lenderAccount.addr = address(accountPlugin);
         agreement.lenderAccount.parameters = abi.encode(SoloAccount.Parameters({owner: address(2), salt: "salt"}));
-        agreement.borrowerAccount.addr = address(accountModule);
+        agreement.borrowerAccount.addr = address(accountPlugin);
         agreement.borrowerAccount.parameters = abi.encode(SoloAccount.Parameters({owner: address(3), salt: "salt"}));
         agreement.loanAsset = ASSETS[loanAssetIdx];
         agreement.loanAmount = loanAmount;
         agreement.collAsset = ASSETS[collAssetIdx];
         agreement.collAmount = collAmount;
-        agreement.assessor.addr = address(assessorModule);
+        agreement.assessor.addr = address(assessorPlugin);
         agreement.position.addr = address(position);
 
         // Deal assets to position.
         dealErc20(agreement.loanAsset.addr, address(position), positionAmount);
         dealErc20(agreement.collAsset.addr, address(position), agreement.collAmount);
 
-        // Deal excess cost to sender and approve position module to pull.
+        // Deal excess cost to sender and approve position plugin to pull.
         if (loanAmount + cost > positionAmount) {
             dealErc20(agreement.loanAsset.addr, msg.sender, loanAmount + cost - positionAmount);
             vm.prank(msg.sender);
@@ -123,19 +123,19 @@ contract InstantLiquidatorTest is TestUtils {
 
         // Fail give control with non-bookkeeper caller.
         vm.expectRevert();
-        position.transferContract(address(liquidatorModule));
+        position.transferContract(address(liquidatorPlugin));
 
         // Give control to liquidator.
         vm.prank(bookkeeperAddr);
-        position.transferContract(address(liquidatorModule));
+        position.transferContract(address(liquidatorPlugin));
 
         // Fail kick with non-bookkeeper caller.
         vm.expectRevert();
-        liquidatorModule.receiveKick(msg.sender, agreement);
+        liquidatorPlugin.receiveKick(msg.sender, agreement);
 
         // Kick position.
         vm.prank(bookkeeperAddr);
-        liquidatorModule.receiveKick(msg.sender, agreement);
+        liquidatorPlugin.receiveKick(msg.sender, agreement);
 
         assertEq(
             IERC20(agreement.loanAsset.addr).balanceOf(agreement.position.addr),
@@ -162,17 +162,17 @@ contract InstantLiquidatorTest is TestUtils {
             "liquidator sender funds incorrect"
         );
         assertEq(
-            accountModule.getBalance(agreement.loanAsset, agreement.lenderAccount.parameters),
+            accountPlugin.getBalance(agreement.loanAsset, agreement.lenderAccount.parameters),
             agreement.loanAmount + cost,
             "Lender funds incorrect"
         );
         assertEq(
-            accountModule.getBalance(agreement.loanAsset, agreement.borrowerAccount.parameters),
+            accountPlugin.getBalance(agreement.loanAsset, agreement.borrowerAccount.parameters),
             borrowerProfit,
             "borrower funds incorrect"
         );
         // assertEq(
-        //     accountModule.getBalance(agreement.loanAsset, agreement.borrowerAccount.parameters),
+        //     accountPlugin.getBalance(agreement.loanAsset, agreement.borrowerAccount.parameters),
         //     loanAssetIdx != collAssetIdx ? borrowerProfit : borrowerProfit,
         //     "borrower funds incorrect"
         // );

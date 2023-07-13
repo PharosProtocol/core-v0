@@ -14,22 +14,22 @@ import "@forge-std/console.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Blueprint, SignedBlueprint, Tractor} from "@tractor/Tractor.sol";
 
-import {SoloAccount} from "src/modules/account/implementations/SoloAccount.sol";
+import {SoloAccount} from "src/plugins/account/implementations/SoloAccount.sol";
 import {IAssessor} from "src/interfaces/IAssessor.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
 import {IBookkeeper} from "src/interfaces/IBookkeeper.sol";
 import {IAssessor} from "src/interfaces/IAssessor.sol";
 import {ILiquidator} from "src/interfaces/ILiquidator.sol";
 import {IOracle} from "src/interfaces/IOracle.sol";
-import {StandardAssessor} from "src/modules/assessor/implementations/StandardAssessor.sol";
-import {InstantCloseTakeCollateral} from "src/modules/liquidator/implementations/InstantCloseTakeCollateral.sol";
-import {UniswapV3Oracle} from "src/modules/oracle/implementations/UniswapV3Oracle.sol";
-import {StaticPriceOracle} from "src/modules/oracle/implementations/StaticValue.sol";
-import {UniV3HoldFactory} from "src/modules/position/implementations/UniV3Hold.sol";
-import {WalletFactory} from "src/modules/position/implementations/Wallet.sol";
+import {StandardAssessor} from "src/plugins/assessor/implementations/StandardAssessor.sol";
+import {InstantCloseTakeCollateral} from "src/plugins/liquidator/implementations/InstantCloseTakeCollateral.sol";
+import {UniswapV3Oracle} from "src/plugins/oracle/implementations/UniswapV3Oracle.sol";
+import {StaticPriceOracle} from "src/plugins/oracle/implementations/StaticValue.sol";
+import {UniV3HoldFactory} from "src/plugins/position/implementations/UniV3Hold.sol";
+import {WalletFactory} from "src/plugins/position/implementations/Wallet.sol";
 
 import {Bookkeeper} from "src/Bookkeeper.sol";
-import {IndexPair, ModuleReference, BorrowerConfig, Order, Fill, Agreement} from "src/libraries/LibBookkeeper.sol";
+import {IndexPair, PluginReference, BorrowerConfig, Order, Fill, Agreement} from "src/libraries/LibBookkeeper.sol";
 
 import {TestUtils} from "test/TestUtils.sol";
 
@@ -38,10 +38,10 @@ import "src/libraries/LibUtils.sol";
 
 contract EndToEndTest is TestUtils {
     IBookkeeper public bookkeeper;
-    IAccount public accountModule;
-    IAssessor public assessorModule;
-    ILiquidator public liquidatorModule;
-    IOracle public uniOracleModule;
+    IAccount public accountPlugin;
+    IAssessor public assessorPlugin;
+    ILiquidator public liquidatorPlugin;
+    IOracle public uniOraclePlugin;
     IOracle public staticPriceOracle;
     IPosition public uniV3HoldFactory;
     IPosition public walletFactory;
@@ -75,22 +75,22 @@ contract EndToEndTest is TestUtils {
 
         // // For local deploy of contracts latest local changes.
         bookkeeper = IBookkeeper(address(new Bookkeeper()));
-        accountModule = IAccount(address(new SoloAccount(address(bookkeeper))));
-        assessorModule = IAssessor(address(new StandardAssessor()));
-        liquidatorModule = ILiquidator(address(new InstantCloseTakeCollateral(address(bookkeeper))));
+        accountPlugin = IAccount(address(new SoloAccount(address(bookkeeper))));
+        assessorPlugin = IAssessor(address(new StandardAssessor()));
+        liquidatorPlugin = ILiquidator(address(new InstantCloseTakeCollateral(address(bookkeeper))));
         staticPriceOracle = IOracle(address(new StaticPriceOracle()));
         walletFactory = IPosition(address(new WalletFactory(address(bookkeeper))));
-        // uniOracleModule = IOracle(address(new UniswapV3Oracle()));
+        // uniOraclePlugin = IOracle(address(new UniswapV3Oracle()));
         // uniV3HoldFactory = IPosition(address(new UniV3HoldFactory(address(bookkeeper))));
 
         // For use with pre deployed contracts.
         // bookkeeper = IBookkeeper();
-        // accountModule = IAccount();
-        // assessorModule = IAssessor();
-        // liquidatorModule = ILiquidator();
+        // accountPlugin = IAccount();
+        // assessorPlugin = IAssessor();
+        // liquidatorPlugin = ILiquidator();
         // staticPriceOracle = IOracle(); // static price
         // walletFactory = IPosition();
-        // uniOracleModule = IOracle(); // static prices
+        // uniOraclePlugin = IOracle(); // static prices
         // uniV3HoldFactory = IPosition();
     }
 
@@ -108,9 +108,9 @@ contract EndToEndTest is TestUtils {
         fundAccount(lenderAccountParams);
         fundAccount(borrowerAccountParams);
 
-        assertEq(accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 10e18);
+        assertEq(accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 10e18);
         assertEq(
-            accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
+            accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
             5_000 * (10 ** C.USDC_DECIMALS)
         );
 
@@ -135,12 +135,12 @@ contract EndToEndTest is TestUtils {
         vm.prank(borrower);
         bookkeeper.fillOrder(fill, orderSignedBlueprint);
 
-        assertEq(accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 8e18);
+        assertEq(accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 8e18);
         assertLt(
-            accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
+            accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
             5_000 * (10 ** C.USDC_DECIMALS)
         );
-        assertGt(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 0);
+        assertGt(accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 0);
 
         (SignedBlueprint memory agreementSignedBlueprint, Agreement memory agreement) = retrieveAgreementFromLogs();
 
@@ -164,12 +164,12 @@ contract EndToEndTest is TestUtils {
         bookkeeper.exitPosition(agreementSignedBlueprint);
 
         assertGe(
-            accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)),
+            accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)),
             10e18,
             "lender act funds missing"
         );
         assertEq(
-            accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
+            accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
             5000 * (10 ** C.USDC_DECIMALS),
             "borrow act funds missing"
         );
@@ -192,9 +192,9 @@ contract EndToEndTest is TestUtils {
         fundAccount(lenderAccountParams);
         fundAccount(borrowerAccountParams);
 
-        assertEq(accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 10e18);
+        assertEq(accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 10e18);
         assertEq(
-            accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
+            accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
             5_000 * (10 ** C.USDC_DECIMALS)
         );
 
@@ -215,12 +215,12 @@ contract EndToEndTest is TestUtils {
         vm.prank(borrower);
         bookkeeper.fillOrder(fill, orderSignedBlueprint);
 
-        assertEq(accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 8e18);
+        assertEq(accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 8e18);
         assertLt(
-            accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
+            accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
             5_000 * (10 ** C.USDC_DECIMALS)
         );
-        assertGt(accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 0);
+        assertGt(accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 0);
 
         (SignedBlueprint memory agreementSignedBlueprint, Agreement memory agreement) = retrieveAgreementFromLogs();
 
@@ -238,16 +238,16 @@ contract EndToEndTest is TestUtils {
         wethDeal(liquidator, 12e18);
         // deal(USDC_ASSET.addr, liquidator, 5_000 * (10 ** C.USDC_DECIMALS), true);
         // vm.prank(liquidator);
-        // IERC20(C.USDC).approve(address(liquidatorModule), 5_000 * (10 ** C.USDC_DECIMALS));
+        // IERC20(C.USDC).approve(address(liquidatorPlugin), 5_000 * (10 ** C.USDC_DECIMALS));
         // NOTE that the liquidator has to approve the position to spend their assets. meaning liquidators likely will not be willing to liquidate unverified positions.
         vm.prank(liquidator);
         IERC20(C.WETH).approve(address(agreement.position.addr), 12e18); // exact amount determined from prev runs
         vm.prank(liquidator);
         bookkeeper.kick(agreementSignedBlueprint);
 
-        assertGe(accountModule.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 10e18);
+        assertGe(accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 10e18);
         assertLt(
-            accountModule.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
+            accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
             5_000 * (10 ** C.USDC_DECIMALS)
         );
         assertGt(IERC20(USDC_ASSET.addr).balanceOf(liquidator), 0);
@@ -261,17 +261,17 @@ contract EndToEndTest is TestUtils {
         deal(USDC_ASSET.addr, accountParams.owner, 5_000 * (10 ** C.USDC_DECIMALS), true);
 
         vm.startPrank(accountParams.owner);
-        IERC20(C.WETH).approve(address(accountModule), 10e18);
-        accountModule.loadFromUser(WETH_ASSET, 10e18, abi.encode(accountParams));
-        IERC20(C.USDC).approve(address(accountModule), 5_000 * (10 ** C.USDC_DECIMALS));
-        accountModule.loadFromUser(USDC_ASSET, 5_000 * (10 ** C.USDC_DECIMALS), abi.encode(accountParams));
+        IERC20(C.WETH).approve(address(accountPlugin), 10e18);
+        accountPlugin.loadFromUser(WETH_ASSET, 10e18, abi.encode(accountParams));
+        IERC20(C.USDC).approve(address(accountPlugin), 5_000 * (10 ** C.USDC_DECIMALS));
+        accountPlugin.loadFromUser(USDC_ASSET, 5_000 * (10 ** C.USDC_DECIMALS), abi.encode(accountParams));
         vm.stopPrank();
     }
 
     function createOrder(SoloAccount.Parameters memory accountParams) private view returns (Order memory) {
         // Set individual structs here for cleanliness and solidity ease.
-        ModuleReference memory account = ModuleReference({
-            addr: address(accountModule),
+        PluginReference memory account = PluginReference({
+            addr: address(accountPlugin),
             parameters: abi.encode(accountParams)
         });
         // Solidity array syntax is so bad D:
@@ -283,9 +283,9 @@ contract EndToEndTest is TestUtils {
         loanAssets[0] = WETH_ASSET;
         Asset[] memory collAssets = new Asset[](1);
         collAssets[0] = USDC_ASSET;
-        ModuleReference[] memory loanOracles = new ModuleReference[](1);
-        // loanOracles[0] = ModuleReference({
-        //     addr: address(uniOracleModule),
+        PluginReference[] memory loanOracles = new PluginReference[](1);
+        // loanOracles[0] = PluginReference({
+        //     addr: address(uniOraclePlugin),
         //     parameters: abi.encode(
         //         UniswapV3Oracle.Parameters({
         //             pathFromEth: abi.encodePacked(C.USDC, uint24(500), C.WETH),
@@ -294,7 +294,7 @@ contract EndToEndTest is TestUtils {
         //         })
         //         )
         // });
-        loanOracles[0] = ModuleReference({
+        loanOracles[0] = PluginReference({
             addr: address(staticPriceOracle),
             parameters: abi.encode(StaticPriceOracle.Parameters({ratio: 1 * (10 ** C.ETH_DECIMALS)}))
         });
@@ -307,8 +307,8 @@ contract EndToEndTest is TestUtils {
             IOracle(loanOracles[0].addr).getResistantAmount(60 * (10 ** C.ETH_DECIMALS), loanOracles[0].parameters)
         );
 
-        ModuleReference[] memory collOracles = new ModuleReference[](1);
-        collOracles[0] = ModuleReference({
+        PluginReference[] memory collOracles = new PluginReference[](1);
+        collOracles[0] = PluginReference({
             addr: address(staticPriceOracle),
             parameters: abi.encode(StaticPriceOracle.Parameters({ratio: 2000 * (10 ** C.USDC_DECIMALS)}))
         });
@@ -324,8 +324,8 @@ contract EndToEndTest is TestUtils {
         // factories[0] = address(uniV3HoldFactory);
         factories[0] = address(walletFactory);
 
-        ModuleReference memory assessor = ModuleReference({
-            addr: address(assessorModule),
+        PluginReference memory assessor = PluginReference({
+            addr: address(assessorPlugin),
             parameters: abi.encode(
                 StandardAssessor.Parameters({
                     asset: loanAssets[0],
@@ -335,7 +335,7 @@ contract EndToEndTest is TestUtils {
                 })
             )
         });
-        ModuleReference memory liquidator = ModuleReference({addr: address(liquidatorModule), parameters: ""});
+        PluginReference memory liquidator = PluginReference({addr: address(liquidatorPlugin), parameters: ""});
 
         // Lender creates an offer.
         return
@@ -376,7 +376,7 @@ contract EndToEndTest is TestUtils {
 
         return
             Fill({
-                account: ModuleReference({addr: address(accountModule), parameters: abi.encode(borrowerAccountParams)}),
+                account: PluginReference({addr: address(accountPlugin), parameters: abi.encode(borrowerAccountParams)}),
                 loanAmount: 2e18, // must be valid with init CR and available collateral value
                 takerIdx: 0,
                 loanAssetIdx: 0,

@@ -1,9 +1,9 @@
 project_structure:
     build: build
     contracts: src
-    interfaces: interfaces
+    interfaces: src/interfaces
     reports: reports
-    scripts: test/script
+    scripts: script
     tests: test
 
 networks:

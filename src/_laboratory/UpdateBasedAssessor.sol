@@ -3,7 +3,7 @@
 pragma solidity 0.8.19;
 /*
 
-import {Assessor} from "src/modules/assessor/Assessor.sol";
+import {Assessor} from "src/plugins/assessor/Assessor.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
 import "src/libraries/LibUtils.sol";
@@ -16,7 +16,7 @@ import {C} from "src/libraries/C.sol";
  * the cost is not fixed at agreement time.
  * Notable limitation of implementations:
  *   - Accounts need to be able to report utilization rate
- *   - Updates need to be triggered. This means calling any time any other module changes in a meaningful way. This
+ *   - Updates need to be triggered. This means calling any time any other plugin changes in a meaningful way. This
  *        inherently requires opinionated design decisions and also will increase gas cost for operations, even if a
  *        dynamic assessor is not used.
  *

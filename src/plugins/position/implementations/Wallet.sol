@@ -6,7 +6,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {IAccount} from "src/interfaces/IAccount.sol";
 import {C} from "src/libraries/C.sol";
-import {Position} from "src/modules/position/Position.sol";
+import {Position} from "src/plugins/position/Position.sol";
 import {IAssessor} from "src/interfaces/IAssessor.sol";
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
 

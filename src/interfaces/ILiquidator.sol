@@ -19,7 +19,7 @@ import {Asset} from "src/libraries/LibUtils.sol";
  */
 
 // It is not necessary to standardize the entire liquidation flow through this interface because the
-// liquidation logic will be executed by independent users, rather than the bookkeeper or other modules. It is
+// liquidation logic will be executed by independent users, rather than the bookkeeper or other plugins. It is
 // possible to implement an arbitrarily complex interface with calls being made directly to the liquidator contract.
 // Access control can be handled by roles, rather than signatures.
 // function liquidate(Agreement memory agreement) external;

@@ -19,10 +19,10 @@ import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.so
 import {C} from "src/libraries/C.sol";
 import {Asset, ETH_STANDARD, ERC20_STANDARD} from "src/libraries/LibUtils.sol";
 import {Order} from "src/libraries/LibBookkeeper.sol";
-import {PoolSupplyAccount} from "src/modules/account/implementations/PoolSupplyAccount.sol";
+import {PoolSupplyAccount} from "src/plugins/account/implementations/PoolSupplyAccount.sol";
 
 contract PoolSupplyAccountTest is TestUtils {
-    PoolSupplyAccount public accountModule;
+    PoolSupplyAccount public accountPlugin;
     Asset[] ASSETS;
     address bookkeeperAddr;
     address positionAddr;
@@ -47,7 +47,7 @@ contract PoolSupplyAccountTest is TestUtils {
         vm.createSelectFork(vm.rpcUrl("mainnet"), 17092863);
         Order[] memory orders;
         bookkeeperAddr = address(99999);
-        accountModule = new PoolSupplyAccount(bookkeeperAddr, orders);
+        accountPlugin = new PoolSupplyAccount(bookkeeperAddr, orders);
         positionAddr = address(1);
     }
 
@@ -67,64 +67,64 @@ contract PoolSupplyAccountTest is TestUtils {
 
         // Define account instance.
         bytes memory parameters0 = abi.encode(PoolSupplyAccount.Parameters({user: user0}));
-        assertEq(accountModule.getOwner(parameters0), address(accountModule), "invalid owner");
+        assertEq(accountPlugin.getOwner(parameters0), address(accountPlugin), "invalid owner");
 
-        // Fail to unload WETH because account module is fully empty.
+        // Fail to unload WETH because account plugin is fully empty.
         vm.prank(user0);
         vm.expectRevert("_unloadToUser: asset minSupply == 0");
-        accountModule.unloadToUser(ASSETS[0], 1, parameters0);
+        accountPlugin.unloadToUser(ASSETS[0], 1, parameters0);
 
         // Fail to add WETH because asset not approved.
         vm.prank(user0);
         vm.expectRevert("UtilsPublic.safeErc20TransferFrom failed");
-        accountModule.loadFromUser(ASSETS[0], 5e18, parameters0);
+        accountPlugin.loadFromUser(ASSETS[0], 5e18, parameters0);
 
         // Fail to add ERC20 because asset not approved.
         vm.prank(user0);
         vm.expectRevert("UtilsPublic.safeErc20TransferFrom failed");
-        accountModule.loadFromUser(ASSETS[1], 5e18, parameters0);
+        accountPlugin.loadFromUser(ASSETS[1], 5e18, parameters0);
 
         // Approve ERC20s.
         vm.prank(user0);
-        IERC20(ASSETS[0].addr).approve(address(accountModule), 999e18);
+        IERC20(ASSETS[0].addr).approve(address(accountPlugin), 999e18);
         vm.prank(user0);
-        IERC20(ASSETS[1].addr).approve(address(accountModule), 999e18);
+        IERC20(ASSETS[1].addr).approve(address(accountPlugin), 999e18);
 
         // Fail to add ERC20 because balance too low.
         vm.prank(user0);
         vm.expectRevert("UtilsPublic.safeErc20TransferFrom failed");
-        accountModule.loadFromUser(ASSETS[0], 11e18, parameters0);
+        accountPlugin.loadFromUser(ASSETS[0], 11e18, parameters0);
 
         // Load WETH.
         vm.prank(user0);
-        accountModule.loadFromUser{value: 0}(ASSETS[0], 4e18, parameters0);
-        assertEq(accountModule.getBalance(ASSETS[0], parameters0), 4e18, "incorrect WETH balance 0");
+        accountPlugin.loadFromUser{value: 0}(ASSETS[0], 4e18, parameters0);
+        assertEq(accountPlugin.getBalance(ASSETS[0], parameters0), 4e18, "incorrect WETH balance 0");
 
         // Load ERC20.
         vm.prank(user0);
-        accountModule.loadFromUser{value: 0}(ASSETS[1], 4e18, parameters0);
-        assertEq(accountModule.getBalance(ASSETS[1], parameters0), 4e18, "incorrect USDC balance 0");
+        accountPlugin.loadFromUser{value: 0}(ASSETS[1], 4e18, parameters0);
+        assertEq(accountPlugin.getBalance(ASSETS[1], parameters0), 4e18, "incorrect USDC balance 0");
 
         // Marks will remain 0 until block/time passes.
         vm.warp(block.timestamp + 13);
         vm.roll(block.number + 1);
 
         // Check WETH balance.
-        assertEq(accountModule.getBalance(ASSETS[0], parameters0), 4e18, "incorrect WETH balance 0.1");
+        assertEq(accountPlugin.getBalance(ASSETS[0], parameters0), 4e18, "incorrect WETH balance 0.1");
 
         // Check ERC20 balance.
-        assertEq(accountModule.getBalance(ASSETS[1], parameters0), 4e18, "incorrect USDC balance 0.1");
+        assertEq(accountPlugin.getBalance(ASSETS[1], parameters0), 4e18, "incorrect USDC balance 0.1");
 
         // Unload loan asset to fake position.
         vm.prank(bookkeeperAddr);
-        accountModule.unloadToPosition(positionAddr, ASSETS[0], 4e18, false, parameters0);
-        assertEq(accountModule.getBalance(ASSETS[0], parameters0), 2e18, "incorrect WETH balance 1");
-        assertEq(accountModule.getBalance(ASSETS[1], parameters0), 4e18, "incorrect USDC balance 1");
+        accountPlugin.unloadToPosition(positionAddr, ASSETS[0], 4e18, false, parameters0);
+        assertEq(accountPlugin.getBalance(ASSETS[0], parameters0), 2e18, "incorrect WETH balance 1");
+        assertEq(accountPlugin.getBalance(ASSETS[1], parameters0), 4e18, "incorrect USDC balance 1");
 
         // Revert on unload loan asset to fake position.
         vm.prank(bookkeeperAddr);
         vm.expectRevert("_unloadToPosition: amount greater than available");
-        accountModule.unloadToPosition(positionAddr, ASSETS[0], 4e18, false, parameters0);
+        accountPlugin.unloadToPosition(positionAddr, ASSETS[0], 4e18, false, parameters0);
 
         // Should not change anything.
         vm.warp(block.timestamp + 13);
@@ -133,15 +133,15 @@ contract PoolSupplyAccountTest is TestUtils {
         // Revert on unload loan asset to fake position.
         vm.prank(bookkeeperAddr);
         vm.expectRevert("_unloadToPosition: amount greater than available");
-        accountModule.unloadToPosition(positionAddr, ASSETS[0], 4e18, false, parameters0);
+        accountPlugin.unloadToPosition(positionAddr, ASSETS[0], 4e18, false, parameters0);
 
         // Load from fake position.
         vm.prank(positionAddr);
-        IERC20(ASSETS[0].addr).approve(address(accountModule), 999e18);
+        IERC20(ASSETS[0].addr).approve(address(accountPlugin), 999e18);
         vm.prank(positionAddr);
-        accountModule.loadFromPosition(ASSETS[0], 4e18, parameters0);
-        assertEq(accountModule.getBalance(ASSETS[0], parameters0), 4e18, "incorrect WETH balance 2");
-        assertEq(accountModule.getBalance(ASSETS[1], parameters0), 4e18, "incorrect USDC balance 2");
+        accountPlugin.loadFromPosition(ASSETS[0], 4e18, parameters0);
+        assertEq(accountPlugin.getBalance(ASSETS[0], parameters0), 4e18, "incorrect WETH balance 2");
+        assertEq(accountPlugin.getBalance(ASSETS[1], parameters0), 4e18, "incorrect USDC balance 2");
 
         // Should not change anything.
         vm.warp(block.timestamp + 13);
@@ -150,28 +150,28 @@ contract PoolSupplyAccountTest is TestUtils {
         // Fail to lock collateral. Not compatible.
         vm.prank(bookkeeperAddr);
         vm.expectRevert("PoolAccount: Not compatible with borrowing");
-        accountModule.lockCollateral(ASSETS[1], 1e18, parameters0);
+        accountPlugin.lockCollateral(ASSETS[1], 1e18, parameters0);
 
         // Fail to unlock collateral. Not compatible.
         vm.prank(bookkeeperAddr);
         vm.expectRevert("PoolAccount: Not compatible with borrowing");
-        accountModule.unlockCollateral(ASSETS[1], 1e18, parameters0);
+        accountPlugin.unlockCollateral(ASSETS[1], 1e18, parameters0);
 
         // Fail to unload locked coll asset to fake position.
         vm.prank(bookkeeperAddr);
         vm.expectRevert("PoolAccount: Not compatible with borrowing");
-        accountModule.unloadToPosition(address(1), ASSETS[1], 1e18, true, parameters0);
+        accountPlugin.unloadToPosition(address(1), ASSETS[1], 1e18, true, parameters0);
 
         // Remove WETH.
         vm.prank(user0);
-        accountModule.unloadToUser(ASSETS[0], 4e18, parameters0);
-        assertEq(accountModule.getBalance(ASSETS[0], parameters0), 0e18, "incorrect WETH balance 3");
+        accountPlugin.unloadToUser(ASSETS[0], 4e18, parameters0);
+        assertEq(accountPlugin.getBalance(ASSETS[0], parameters0), 0e18, "incorrect WETH balance 3");
 
         // Revert because account empty.
         vm.prank(user0);
         // vm.expectRevert("_unloadToUser: withdrawing above user amount");
         vm.expectRevert();
-        accountModule.unloadToUser(ASSETS[0], 1, parameters0);
+        accountPlugin.unloadToUser(ASSETS[0], 1, parameters0);
 
         // Should not change anything.
         vm.warp(block.timestamp + 13);
@@ -181,12 +181,12 @@ contract PoolSupplyAccountTest is TestUtils {
         vm.prank(user0);
         // vm.expectRevert("_unloadToUser: withdrawing above user amount");
         vm.expectRevert();
-        accountModule.unloadToUser(ASSETS[0], 1, parameters0);
+        accountPlugin.unloadToUser(ASSETS[0], 1, parameters0);
 
         // Remove ERC20.
         vm.prank(user0);
-        accountModule.unloadToUser(ASSETS[1], 4e18, parameters0);
-        assertEq(accountModule.getBalance(ASSETS[1], parameters0), 0e18, "incorrect USDC balance 3");
+        accountPlugin.unloadToUser(ASSETS[1], 4e18, parameters0);
+        assertEq(accountPlugin.getBalance(ASSETS[1], parameters0), 0e18, "incorrect USDC balance 3");
 
         // Should not change anything.
         vm.warp(block.timestamp + 13);
@@ -196,18 +196,18 @@ contract PoolSupplyAccountTest is TestUtils {
         vm.prank(user0);
         // vm.expectRevert("_unloadToUser: withdrawing above user amount");
         vm.expectRevert();
-        accountModule.unloadToUser(ASSETS[1], 1, parameters0);
+        accountPlugin.unloadToUser(ASSETS[1], 1, parameters0);
 
         // Revert because non-owned account.
         vm.prank(user1); // non user address
         vm.expectRevert("unload: not owner");
-        accountModule.unloadToUser(ASSETS[0], 1, parameters0);
+        accountPlugin.unloadToUser(ASSETS[0], 1, parameters0);
     }
 }
 
 // contract Handler is Test, HandlerUtils {
 //     address public bookkeeperAddr;
-//     PoolSupplyAccount public accountModule;
+//     PoolSupplyAccount public accountPlugin;
 //     mapping(address => mapping(address => uint256)) public userEarningBalance;
 //     mapping(address => uint256) public totalEarningBalance;
 //     mapping(address => uint256) public totalBalance;
@@ -217,7 +217,7 @@ contract PoolSupplyAccountTest is TestUtils {
 
 //         bookkeeperAddr = address(99999);
 //         Order[] memory orders;
-//         accountModule = new PoolSupplyAccount(bookkeeperAddr, orders);
+//         accountPlugin = new PoolSupplyAccount(bookkeeperAddr, orders);
 //     }
 
 //     function newActor() public createActor countCall("newActor") {}
@@ -236,10 +236,10 @@ contract PoolSupplyAccountTest is TestUtils {
 
 //         dealAsset(currentAsset, currentActor, amount);
 //         vm.prank(currentActor);
-//         IERC20(currentAsset.addr).approve(address(accountModule), amount);
+//         IERC20(currentAsset.addr).approve(address(accountPlugin), amount);
 
 //         vm.prank(currentActor);
-//         accountModule.loadFromUser(currentAsset, amount, parameters);
+//         accountPlugin.loadFromUser(currentAsset, amount, parameters);
 
 //         // Local tracking updates.
 //         userEarningBalance[currentActor][currentAsset.addr] += amount;
@@ -259,7 +259,7 @@ contract PoolSupplyAccountTest is TestUtils {
 //         bytes memory parameters = abi.encode(PoolSupplyAccount.Parameters({user: currentActor}));
 
 //         vm.prank(currentActor);
-//         accountModule.unloadToUser(currentAsset, amount, parameters);
+//         accountPlugin.unloadToUser(currentAsset, amount, parameters);
 
 //         // Local tracking updates.
 //         userEarningBalance[currentActor][currentAsset.addr] -= amount;
@@ -279,10 +279,10 @@ contract PoolSupplyAccountTest is TestUtils {
 
 //         bytes memory parameters = abi.encode(PoolSupplyAccount.Parameters({user: currentActor}));
 
-//         vm.assume(accountModule.getBalance(currentAsset, parameters) >= amount);
+//         vm.assume(accountPlugin.getBalance(currentAsset, parameters) >= amount);
 
 //         vm.prank(bookkeeperAddr);
-//         accountModule.loadFromPosition(currentAsset, amount, parameters);
+//         accountPlugin.loadFromPosition(currentAsset, amount, parameters);
 
 //         // // Local tracking updates.
 //         // userEarningBalance[currentActor][currentAsset.addr] -= ???
@@ -305,10 +305,10 @@ contract PoolSupplyAccountTest is TestUtils {
 
 //         dealAsset(currentAsset, msg.sender, amount);
 //         vm.prank(position);
-//         IERC20(currentAsset.addr).approve(address(accountModule), amount);
+//         IERC20(currentAsset.addr).approve(address(accountPlugin), amount);
 
 //         vm.prank(bookkeeperAddr);
-//         accountModule.loadFromPosition(currentAsset, amount, parameters);
+//         accountPlugin.loadFromPosition(currentAsset, amount, parameters);
 
 //         // Local tracking updates.
 //         totalBalance[currentAsset.addr] += amount;
@@ -350,7 +350,7 @@ contract PoolSupplyAccountTest is TestUtils {
 //                 assertEq(
 //                     C.RATIO_FACTOR * handler.totalBalance(asset.addr) * handler.userEarningBalance(actor, asset.addr)
 //                         / handler.totalEarningBalance(asset.addr),
-//                     C.RATIO_FACTOR * handler.accountModule().getBalance(asset, parameters)
+//                     C.RATIO_FACTOR * handler.accountPlugin().getBalance(asset, parameters)
 //                 );
 //             }
 //         }

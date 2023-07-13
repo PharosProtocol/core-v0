@@ -11,7 +11,7 @@ import {IPosition} from "src/interfaces/IPosition.sol";
 import {C} from "src/libraries/C.sol";
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
 import {Asset} from "src/libraries/LibUtils.sol";
-import {CloneFactory} from "src/modules/CloneFactory.sol";
+import {CloneFactory} from "src/plugins/CloneFactory.sol";
 
 abstract contract Position is IPosition, CloneFactory {
     event ControlTransferred(address previousController, address newController);
@@ -66,8 +66,8 @@ abstract contract Position is IPosition, CloneFactory {
         grantRole(C.ADMIN_ROLE, controller);
         renounceRole(C.ADMIN_ROLE, msg.sender);
 
-        // TODO fix this so that admin role is not granted to untrustable code (liquidator user or module). Currently
-        // will get stuck as liquidator module will not be able to grant liquidator control.
+        // TODO fix this so that admin role is not granted to untrustable code (liquidator user or plugin). Currently
+        // will get stuck as liquidator plugin will not be able to grant liquidator control.
         // Do not allow liquidators admin access to avoid security implications if set back to protocol control.
         // if (grantAdmin) {
         //     grantRole(DEFAULT_ADMIN_ROLE, controller);

@@ -6,13 +6,13 @@ import "@forge-std/Script.sol";
 import "src/libraries/LibBookkeeper.sol";
 import "src/Bookkeeper.sol";
 import "src/libraries/LibUtils.sol";
-import "src/modules/account/implementations/SoloAccount.sol";
-import "src/modules/oracle/implementations/StaticValue.sol";
-import "src/modules/oracle/implementations/UniswapV3Oracle.sol";
-import "src/modules/assessor/implementations/StandardAssessor.sol";
-import "src/modules/liquidator/implementations/InstantCloseTakeCollateral.sol";
-import "src/modules/position/implementations/UniV3Hold.sol";
-import "src/modules/position/implementations/Wallet.sol";
+import "src/plugins/account/implementations/SoloAccount.sol";
+import "src/plugins/oracle/implementations/StaticValue.sol";
+import "src/plugins/oracle/implementations/UniswapV3Oracle.sol";
+import "src/plugins/assessor/implementations/StandardAssessor.sol";
+import "src/plugins/liquidator/implementations/InstantCloseTakeCollateral.sol";
+import "src/plugins/position/implementations/UniV3Hold.sol";
+import "src/plugins/position/implementations/Wallet.sol";
 
 // To install forge/cast:
 // https://book.getfoundry.sh/getting-started/installation

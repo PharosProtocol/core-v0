@@ -1,13 +1,6 @@
 # Pharos
-Pharos is *lending market factory* that enables users to trivially create any possible lending markets using any terms and any assets.
+Pharos is a DeFi primitive that allows any user to create leveraged lending markets between any assets under any terms.
 
-The protocol is designed with a modular architecture that allows for permissionless expansion by third party developers and protocols. Users can deploy novel modules that enforce unique loan parameters. Deployed modules can be tweaked and used by all users. A loan agreement is composed of an arbitrary set of modules and loan parameters, which are utilized and enforced by the Pharos Bookkeeper contract. 
+The protocol enables lenders and borrowers to permissionlessly coordinate peer-to-peer loans. Mutually agreed loans can access customizable risk management and cost options via third party plugins. The on-chain nature of the ecosystem ensures transparent and trustless management of loans, including the use of on-chain positions with leverage.
 
-Pharos uses EIP-712 to create a gas efficient order book. New orders are encoded and signed with a user's wallet. This signature proves signer is authentic without the need to publish and store the order on chain. Storage of signed orders is left to the UI implementation or the user themselves.
-
-Undercollateralized Loans can be deployed directly into other protocols. Loans are jointly custodied by the user, Pharos, and the deployment module. Borrowers can only perform actions whitelisted by the lender.
-
-
-## Math Notes
-Cumulative math system allows for tracking historical time weighted averages in minimal storage. The most popular example is Uniswap pool TWAP - used to track time weighted price.
-Pharos can implement this system to track historical account utilization, loan cost over time, and more.
+Pharos uses a plugins infrastructure where lenders and borrowers mix and match plugins to create unique lending markets. In this way, Pharos does not attempt to predict all possible markets that DeFi users need. Instead they are free to create there own markets, with near limitless customizability.

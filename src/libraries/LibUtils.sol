@@ -5,7 +5,7 @@ pragma solidity 0.8.19;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {IAccount} from "src/interfaces/IAccount.sol";
-import {IndexPair, ModuleReference} from "src/libraries/LibBookkeeper.sol";
+import {IndexPair, PluginReference} from "src/libraries/LibBookkeeper.sol";
 
 // Significant security risk to represent eth this way? Could wrap it instead.
 // https://twitter.com/pashovkrum/status/1637722714772258817?s=20

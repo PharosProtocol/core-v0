@@ -14,10 +14,10 @@ import {C} from "src/libraries/C.sol";
 import {Order, Fill, Agreement, LibBookkeeper} from "src/libraries/LibBookkeeper.sol";
 import {Asset, LibUtils, ETH_STANDARD} from "src/libraries/LibUtils.sol";
 
-// NOTE bookkeeper will be far more difficult to update / fix / expand than any of the modules. For this reason
+// NOTE bookkeeper will be far more difficult to update / fix / expand than any of the plugins. For this reason
 //      simplicity should be aggressively pursued.
 //      It should also *not* have any asset transfer logic, bc then it requires compatibility with any assets that
-//      modules might implement.
+//      plugins might implement.
 
 // NOTE enabling partial fills would benefit from on-chain validation of orders so that each taker does not need
 //      to pay gas to independently verify. Verified orders could be signed by Tractor.
@@ -177,7 +177,7 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         ILiquidator(agreement.liquidator.addr).receiveKick(msg.sender, agreement);
     }
 
-    // NOTE this function succinctly represents a lot of the inefficiency of a module system design.
+    // NOTE this function succinctly represents a lot of the inefficiency of a plugin system design.
     function _createFundEnterPosition(Agreement memory agreement) private {
         (bool success, bytes memory data) = agreement.factory.call(abi.encodeWithSignature("createPosition()"));
         require(success, "BKFCP");

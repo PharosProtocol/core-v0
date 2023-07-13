@@ -5,7 +5,7 @@ pragma solidity 0.8.19;
 
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
 import {Asset} from "src/libraries/LibUtils.sol";
-import {Assessor} from "src/modules/assessor/Assessor.sol";
+import {Assessor} from "src/plugins/assessor/Assessor.sol";
 
 contract MockAssessor is Assessor {
     uint256 public finalCost;

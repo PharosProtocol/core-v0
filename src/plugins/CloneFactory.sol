@@ -22,7 +22,7 @@ import {C} from "src/libraries/C.sol";
  * This will enable several key features:
  * 1. Permissionlessness. Any user can deploy arbitrarily complex logic used to define an agreement.
  * 2. Deep separation of positions. User deployed assets are not co-mingled.
- * 3. Ability for logical modules to have arbitrarily nuanced interfaces, as long as they support the
+ * 3. Ability for logical plugins to have arbitrarily nuanced interfaces, as long as they support the
  *    minimal set of features in the standard interface.
  */
 
