@@ -46,7 +46,7 @@ contract StandardAssessorTest is Test {
         Asset memory mockAsset;
         MockPosition positionFactory = new MockPosition(address(0));
         vm.prank(address(0));
-        position = IPosition(positionFactory.createPosition());
+        position = IPosition(positionFactory.createClone());
         vm.prank(address(0));
         position.deploy(mockAsset, (loanAmount * currentValueRatio) / C.RATIO_FACTOR, "");
 

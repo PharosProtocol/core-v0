@@ -1,7 +1,7 @@
 # Terminals
 Terminals are standalone contracts that are used to create and enter positions with borrowed capital. They are approximately a wrapper around EVM protocols and capital use cases. Terminals can permissionlessly deployed as independent contracts using a common interface standard defined within Modulus. Any user can deploy a Terminal and interact with it through Modulus.
 
-## Use with Modulend
+## Use with Pharos
 A Terminal can be permissionlessly deployed and used publicly within Modulus. However, in the interest of user security, there are additional steps a Terminal creator will need to take before Modulus will advertise the Terminal (or any components using it).
 
 ### Visibility

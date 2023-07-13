@@ -175,7 +175,7 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
 
     // NOTE this function succinctly represents a lot of the inefficiency of a plugin system design.
     function _createFundEnterPosition(Agreement memory agreement) private {
-        (bool success, bytes memory data) = agreement.factory.call(abi.encodeWithSignature("createPosition()"));
+        (bool success, bytes memory data) = agreement.factory.call(abi.encodeWithSignature("createClone()"));
         require(success, "BKFCP");
         agreement.position.addr = abi.decode(data, (address));
         IAccount(agreement.lenderAccount.addr).unloadToPosition(

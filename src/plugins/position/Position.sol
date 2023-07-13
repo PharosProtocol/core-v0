@@ -13,6 +13,12 @@ import {Agreement} from "src/libraries/LibBookkeeper.sol";
 import {Asset} from "src/libraries/LibUtils.sol";
 import {CloneFactory} from "src/plugins/CloneFactory.sol";
 
+// Implementation should not allow user to enter a position in such a way that they
+// would be unable to exit. Lender does not necessarily agree to the parameters, so they
+// cannot be configured in any way that would allow locking of assets. Griefing.
+// TODO SECURITY this is probably possible in current Uni Hold Position impl. Need to verify exit
+// path at enter time.
+
 abstract contract Position is IPosition, CloneFactory {
     event ControlTransferred(address previousController, address newController);
 

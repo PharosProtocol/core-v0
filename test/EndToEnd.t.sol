@@ -23,8 +23,8 @@ import {ILiquidator} from "src/interfaces/ILiquidator.sol";
 import {IOracle} from "src/interfaces/IOracle.sol";
 import {StandardAssessor} from "src/plugins/assessor/implementations/StandardAssessor.sol";
 import {InstantCloseTakeCollateral} from "src/plugins/liquidator/implementations/InstantCloseTakeCollateral.sol";
-import {UniswapV3Oracle} from "src/plugins/oracle/implementations/UniswapV3Oracle.sol";
-import {StaticPriceOracle} from "src/plugins/oracle/implementations/StaticValue.sol";
+import {UniV3Oracle} from "src/plugins/oracle/implementations/UniV3Oracle.sol";
+import {StaticOracle} from "src/plugins/oracle/implementations/StaticOracle.sol";
 import {UniV3HoldFactory} from "src/plugins/position/implementations/UniV3Hold.sol";
 import {WalletFactory} from "src/plugins/position/implementations/Wallet.sol";
 
@@ -42,7 +42,7 @@ contract EndToEndTest is TestUtils {
     IAssessor public assessorPlugin;
     ILiquidator public liquidatorPlugin;
     IOracle public uniOraclePlugin;
-    IOracle public staticPriceOracle;
+    IOracle public staticOracle;
     IPosition public uniV3HoldFactory;
     IPosition public walletFactory;
 
@@ -78,9 +78,9 @@ contract EndToEndTest is TestUtils {
         accountPlugin = IAccount(address(new SoloAccount(address(bookkeeper))));
         assessorPlugin = IAssessor(address(new StandardAssessor()));
         liquidatorPlugin = ILiquidator(address(new InstantCloseTakeCollateral(address(bookkeeper))));
-        staticPriceOracle = IOracle(address(new StaticPriceOracle()));
+        staticOracle = IOracle(address(new StaticOracle()));
         walletFactory = IPosition(address(new WalletFactory(address(bookkeeper))));
-        // uniOraclePlugin = IOracle(address(new UniswapV3Oracle()));
+        // uniOraclePlugin = IOracle(address(new UniV3Oracle()));
         // uniV3HoldFactory = IPosition(address(new UniV3HoldFactory(address(bookkeeper))));
 
         // For use with pre deployed contracts.
@@ -88,7 +88,7 @@ contract EndToEndTest is TestUtils {
         // accountPlugin = IAccount();
         // assessorPlugin = IAssessor();
         // liquidatorPlugin = ILiquidator();
-        // staticPriceOracle = IOracle(); // static price
+        // staticOracle = IOracle(); // static price
         // walletFactory = IPosition();
         // uniOraclePlugin = IOracle(); // static prices
         // uniV3HoldFactory = IPosition();
@@ -287,7 +287,7 @@ contract EndToEndTest is TestUtils {
         // loanOracles[0] = PluginReference({
         //     addr: address(uniOraclePlugin),
         //     parameters: abi.encode(
-        //         UniswapV3Oracle.Parameters({
+        //         UniV3Oracle.Parameters({
         //             pathFromEth: abi.encodePacked(C.USDC, uint24(500), C.WETH),
         //             pathToEth: abi.encodePacked(C.WETH, uint24(500), C.USDC),
         //             twapTime: 300
@@ -295,12 +295,12 @@ contract EndToEndTest is TestUtils {
         //         )
         // });
         loanOracles[0] = PluginReference({
-            addr: address(staticPriceOracle),
-            parameters: abi.encode(StaticPriceOracle.Parameters({ratio: 1 * (10 ** C.ETH_DECIMALS)}))
+            addr: address(staticOracle),
+            parameters: abi.encode(StaticOracle.Parameters({ratio: 1 * (10 ** C.ETH_DECIMALS)}))
         });
         console.log(
             "eth value of 1000 eth: %s",
-            staticPriceOracle.getSpotValue(1000 * (10 ** C.ETH_DECIMALS), loanOracles[0].parameters)
+            staticOracle.getSpotValue(1000 * (10 ** C.ETH_DECIMALS), loanOracles[0].parameters)
         );
         console.log(
             "eth amount for 60 eth: %s",
@@ -309,12 +309,12 @@ contract EndToEndTest is TestUtils {
 
         PluginReference[] memory collOracles = new PluginReference[](1);
         collOracles[0] = PluginReference({
-            addr: address(staticPriceOracle),
-            parameters: abi.encode(StaticPriceOracle.Parameters({ratio: 2000 * (10 ** C.USDC_DECIMALS)}))
+            addr: address(staticOracle),
+            parameters: abi.encode(StaticOracle.Parameters({ratio: 2000 * (10 ** C.USDC_DECIMALS)}))
         });
         console.log(
             "eth value of 1000 usdc: %s",
-            staticPriceOracle.getSpotValue(1000 * (10 ** C.USDC_DECIMALS), collOracles[0].parameters)
+            staticOracle.getSpotValue(1000 * (10 ** C.USDC_DECIMALS), collOracles[0].parameters)
         );
         console.log(
             "usdc amount for 60 eth: %s",

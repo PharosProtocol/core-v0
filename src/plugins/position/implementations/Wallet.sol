@@ -13,6 +13,10 @@ import {Agreement} from "src/libraries/LibBookkeeper.sol";
 import {Asset, ERC20_STANDARD, LibUtils} from "src/libraries/LibUtils.sol";
 import {LibUtilsPublic} from "src/libraries/LibUtilsPublic.sol";
 
+/*
+ * Send assets directly to a user wallet. Used with overcollateralized loans.
+ */
+
 // NOTE collateralized positions are not explicitly blocked. UI/user should take care.
 
 contract WalletFactory is Position {

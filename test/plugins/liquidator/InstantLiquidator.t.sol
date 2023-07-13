@@ -93,7 +93,7 @@ contract InstantLiquidatorTest is TestUtils {
         // Set position and value.
         MockPosition positionFactory = new MockPosition(bookkeeperAddr);
         vm.prank(bookkeeperAddr);
-        IPosition position = IPosition(positionFactory.createPosition());
+        IPosition position = IPosition(positionFactory.createClone());
         vm.prank(bookkeeperAddr);
         position.deploy(ASSETS[loanAssetIdx], positionAmount, "");
 

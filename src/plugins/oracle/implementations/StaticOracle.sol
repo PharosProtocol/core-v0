@@ -9,7 +9,7 @@ import {Asset} from "src/libraries/LibUtils.sol";
 /*
  * This is a contract that represents one method of computing asset prices.
  */
-contract StaticPriceOracle is Oracle {
+contract StaticOracle is Oracle {
     struct Parameters {
         uint256 ratio; // amount of token / 1e18 wei
     }

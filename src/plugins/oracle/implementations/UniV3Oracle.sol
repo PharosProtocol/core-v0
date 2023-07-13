@@ -11,7 +11,7 @@ import {C} from "src/libraries/C.sol";
 import {Asset, ETH_STANDARD, ERC20_STANDARD} from "src/libraries/LibUtils.sol";
 import {LibUniswapV3} from "src/libraries/LibUniswapV3.sol";
 
-contract UniswapV3Oracle is Oracle {
+contract UniV3Oracle is Oracle {
     struct Parameters {
         bytes pathFromEth;
         bytes pathToEth;

@@ -11,7 +11,7 @@ import {Path} from "@uni-v3-periphery/libraries/path.sol";
 import {C} from "src/libraries/C.sol";
 import {LibUtils} from "src/libraries/LibUtils.sol";
 
-// reference of similar logic https://github.com/butterymoney/molten-oracle/blob/main/contracts/libraries/UniswapV3OracleConsulter.sol
+// reference of similar logic https://github.com/butterymoney/molten-oracle/blob/main/contracts/libraries/UniV3OracleConsulter.sol
 
 // SECURITY: Could really use another set of eyes on this. So much potential for arithmetic errors.
 

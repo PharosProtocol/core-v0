@@ -7,8 +7,8 @@ import "src/libraries/LibBookkeeper.sol";
 import "src/Bookkeeper.sol";
 import "src/libraries/LibUtils.sol";
 import "src/plugins/account/implementations/SoloAccount.sol";
-import "src/plugins/oracle/implementations/StaticValue.sol";
-import "src/plugins/oracle/implementations/UniswapV3Oracle.sol";
+import "src/plugins/oracle/implementations/StaticOracle.sol";
+import "src/plugins/oracle/implementations/UniV3Oracle.sol";
 import "src/plugins/assessor/implementations/StandardAssessor.sol";
 import "src/plugins/liquidator/implementations/InstantCloseTakeCollateral.sol";
 import "src/plugins/position/implementations/UniV3Hold.sol";
@@ -42,8 +42,8 @@ contract DeployScript is Script {
         // new UniV3HoldFactory(address(bookkeeper));
         new WalletFactory(address(bookkeeper));
         new StandardAssessor();
-        new StaticPriceOracle();
-        // new UniswapV3Oracle();
+        new StaticOracle();
+        // new UniV3Oracle();
 
         vm.stopBroadcast();
     }

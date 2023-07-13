@@ -11,11 +11,11 @@ import {C} from "src/libraries/C.sol";
 /**
  * Factories are implemented using the Minimal Proxy Contract standard (https://eips.ethereum.org/EIPS/eip-1167).
  * Each implementation contract (Factory) represents one interface to an external protocol.
- * Each clone represents one Position in the Factory.
+ * Each clone represents one Position of a Terminal.
  * Each implementation contract must implement the functionality of the standard Factory Interface defined here.
  * Implementations may also offer additional non-essential functionality beyond the standard interface.
  *
- * Primary use is expected to be in Terminals/Positions, which must be implemented using MPCs.
+ * Primary use is expected to be in Positions, which must be implemented using MPCs.
  *
  * This will enable several key features:
  * 1. Permissionlessness. Any user can deploy arbitrarily complex logic used to define an agreement.
@@ -29,7 +29,7 @@ abstract contract CloneFactory is AccessControl, Initializable {
     // SECURITY assumes proxy constant values are set by implementation contract
     address public immutable FACTORY_ADDRESS; // Implementation contract address
 
-    event PositionCreated(address position);
+    event CloneCreated(address clone);
 
     modifier implementationExecution() {
         require(address(this) == FACTORY_ADDRESS, "exec not allowed in proxy");
@@ -51,13 +51,13 @@ abstract contract CloneFactory is AccessControl, Initializable {
     }
 
     /*
-     * Create position (clone) that will use this Factory.
+     * Create clone that will use this Factory.
      */
-    function createPosition() external implementationExecution onlyRole(C.BOOKKEEPER_ROLE) returns (address addr) {
+    function createClone() external implementationExecution onlyRole(C.BOOKKEEPER_ROLE) returns (address addr) {
         addr = Clones.clone(address(this));
         (bool success, ) = addr.call(abi.encodeWithSignature("initialize()"));
-        require(success, "createPosition: initialize fail");
-        emit PositionCreated(addr);
+        require(success, "createClone: initialize fail");
+        emit CloneCreated(addr);
     }
 
     /*
@@ -67,7 +67,7 @@ abstract contract CloneFactory is AccessControl, Initializable {
      */
     function initialize() external initializer proxyExecution {
         require(msg.sender == FACTORY_ADDRESS, "sender != impl contract");
-        _setupRole(C.ADMIN_ROLE, BOOKKEEPER_ADDRESS); // Position role set
+        _setupRole(C.ADMIN_ROLE, BOOKKEEPER_ADDRESS); // Clone role set
     }
 
     receive() external payable {}
