@@ -29,6 +29,10 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
     string public constant PROTOCOL_NAME = "pharos";
     string public constant PROTOCOL_VERSION = "0.1.0";
 
+    // AUDIT: reading/writing uint256 more efficient than bool?
+    // Map indicating if a position has already been kicked.
+    mapping(bytes32 => uint256) kicked; // blueprintHash => 0/1 bool
+
     event OrderFilled(SignedBlueprint agreement, bytes32 orderBlueprintHash, address taker);
     event LiquidationKicked(address liquidator, address position);
 
@@ -137,6 +141,7 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         position.transferContract(msg.sender);
     }
 
+    // NOTE will need to implement an unkick function to enable soft or partial liquidations.
     function kick(
         SignedBlueprint calldata agreementBlueprint
     ) external nonReentrant verifySignature(agreementBlueprint) {
@@ -144,8 +149,12 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         // require(blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "BKKIBDT"); // decoding will fail
         Agreement memory agreement = abi.decode(blueprintData, (Agreement));
         IPosition position = IPosition(agreement.position.addr);
+        if (kicked[agreementBlueprint.blueprintHash] > 0) {
+            revert("kick: already kicked");
+        }
+        kicked[agreementBlueprint.blueprintHash] = 1;
 
-        require(LibBookkeeper.isLiquidatable(agreement), "kick: Position not liquidatable");
+        require(LibBookkeeper.isLiquidatable(agreement), "kick: not liquidatable");
 
         IAccount(agreement.borrowerAccount.addr).unloadToPosition(
             agreement.position.addr,
