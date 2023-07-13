@@ -13,7 +13,7 @@ import {LibUtils} from "src/libraries/LibUtils.sol";
 
 // reference of similar logic https://github.com/butterymoney/molten-oracle/blob/main/contracts/libraries/UniswapV3OracleConsulter.sol
 
-// NOTE: Could really use another set of eyes on this. So much potential for arithmetic errors.
+// SECURITY: Could really use another set of eyes on this. So much potential for arithmetic errors.
 
 /// @notice Utilities for using Uniswap V3 as an oracle.
 library LibUniswapV3 {
@@ -26,7 +26,7 @@ library LibUniswapV3 {
         return (getPathTWAP(path, amount, 0));
     }
 
-    /// @dev Probably not cheap for long paths, due to repeated external calls.
+    /// @dev Probably not cheap for long paths.
     function getPathTWAP(bytes memory path, uint256 amount, uint32 twapTime) internal view returns (uint256) {
         // Optimize for bad sol loop init var memory handling
         address tokenIn;

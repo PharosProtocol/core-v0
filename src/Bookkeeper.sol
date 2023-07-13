@@ -17,19 +17,8 @@ import {Asset, LibUtils, ETH_STANDARD} from "src/libraries/LibUtils.sol";
 // NOTE bookkeeper will be far more difficult to update / fix / expand than any of the plugins. For this reason
 //      simplicity should be aggressively pursued.
 //      It should also *not* have any asset transfer logic, bc then it requires compatibility with any assets that
-//      plugins might implement.
+//      plugins might implement. The exception is cost assessment, which is known to be in erc20/eth.
 
-// NOTE enabling partial fills would benefit from on-chain validation of orders so that each taker does not need
-//      to pay gas to independently verify. Verified orders could be signed by Tractor.
-
-/**
- * @notice An Order is a standing offer to take one side of a position within a set of parameters. Orders can
- *  represent both lenders and borrowers. Capital to back an order is held in an Account, though the Account may
- *  not have enough assets.
- *
- *  An Order can be created at no cost by signing a transaction with the signature of the Order. An Operator can
- *  create a compatible Position between two compatible Orders, which will be verified at Position creation.
- */
 contract Bookkeeper is Tractor, ReentrancyGuard {
     enum BlueprintDataType {
         NULL,
@@ -44,9 +33,6 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
     event LiquidationKicked(address liquidator, address position);
 
     constructor() Tractor(PROTOCOL_NAME, PROTOCOL_VERSION) {}
-
-    // receive() external {}
-    // fallback() external {}
 
     function fillOrder(
         Fill calldata fill,

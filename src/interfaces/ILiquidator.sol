@@ -16,17 +16,15 @@ import {Asset} from "src/libraries/LibUtils.sol";
  * by the bookkeeper kick function.
  * Each implementation contract must implement the functionality of the standard Liquidator Interface defined here.
  * Implementations may also offer additional non-essential functionality beyond the standard interface.
+ *
+ * It is not necessary to standardize the entire liquidation flow through this interface because the
+ * liquidation logic will be executed by independent users, rather than the bookkeeper or other plugins. It is
+ * possible to implement an arbitrarily complex interface with calls being made directly to the liquidator contract.
  */
 
-// It is not necessary to standardize the entire liquidation flow through this interface because the
-// liquidation logic will be executed by independent users, rather than the bookkeeper or other plugins. It is
-// possible to implement an arbitrarily complex interface with calls being made directly to the liquidator contract.
-// Access control can be handled by roles, rather than signatures.
-// function liquidate(Agreement memory agreement) external;
-// function getRewardValue(Agreement calldata agreement) external view returns (uint256);
-
 interface ILiquidator {
-    /// @notice Handles receipt of a position that the bookkeeper has passed along for liquidation.
+    /// @notice handles receipt of a position that the bookkeeper has passed along for liquidation.
+    /// @notice may also perform the actual liquidation.
     function receiveKick(address kicker, Agreement calldata agreement) external;
 
     function canHandleAssets(

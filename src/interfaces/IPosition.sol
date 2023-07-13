@@ -9,11 +9,14 @@ import {Asset} from "src/libraries/LibUtils.sol";
 
 /*
  * Each Position represents one deployment of capital through a factory.
- * Position status is determined by address assignment to ADMIN_ROLE.
+ * The Position and all of its assets are fully under the control of the admin role. Expected admins are the
+ * the bookkeeper during healthy deployment, the borrower after happy close, the liquidator plugin during
+ * liquidation, and the liquidator user after successful liquidation.
  */
 
 interface IPosition is IAccessControl {
     /// @notice Deploy capital into the defined position.
+    /// @dev Called at thee implementation contract (terminal).
     function deploy(Asset calldata asset, uint256 amount, bytes calldata parameters) external;
 
     /// @notice Admin close position and leave assets in position MPC contract.
@@ -43,5 +46,4 @@ interface IPosition is IAccessControl {
         bytes calldata data,
         bool delegateCall
     ) external payable returns (bool, bytes memory);
-    // function removeEth(address payable recipient) external // ONLY_ROLE(BOOKKEEPER_ROLE)
 }

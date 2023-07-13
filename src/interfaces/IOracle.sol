@@ -5,15 +5,8 @@ pragma solidity 0.8.19;
 import {Asset} from "src/libraries/LibUtils.sol";
 
 /**
- * Oracles are used to assess the value of assets.
- * Each Type of an Oracle is permissionlessly deployed as an independent contract and represents one computation
- * method for valuing assets. Each instance of an Oracle Type is defined by an arbitrary set of parameters and
- * values a single type of asset, defined by the parameters.
- * Each Oracle Type implementation must implement the functionality of the standard Oracle Interface defined here.
- * Implementations may also offer additional non-essential functionality beyond the standard interface.
+ * Oracles are used to assess the value of assets denoted in ETH.
  */
-
-// NOTE use ETH as reference asset. but doesn't have to be ETH.
 
 interface IOracle {
     /// @notice manipulation-resistant approximate ETH amount of equivalent value. Used to determine fill terms.

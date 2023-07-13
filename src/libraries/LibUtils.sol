@@ -14,10 +14,8 @@ bytes3 constant ERC20_STANDARD = bytes3(uint24(20));
 bytes3 constant ERC721_STANDARD = bytes3(uint24(721));
 bytes3 constant ERC1155_STANDARD = bytes3(uint24(1155));
 
-/// @notice Represents a single type of asset. Notice that standard = 1 represents ETH.
-///         Designed initially to support ETH, ERC20, ERC721, ERC1155. May work for others.
 struct Asset {
-    bytes3 standard; // id of token standard. Using ERC#, but can be arbitrary.
+    bytes3 standard; // id of token standard.
     address addr;
     uint8 decimals; // 20
     uint256 id; // 721, 1155

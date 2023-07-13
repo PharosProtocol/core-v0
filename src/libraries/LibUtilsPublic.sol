@@ -17,8 +17,8 @@ library LibUtilsPublic {
         require(success, "ethCallTransfer failed");
     }
 
-    // SECURITY NOTE: did not account for fee on transfer ERC20s. Either need to update logic or restrict to non-fee ERC20s.
-    //                Probably easiest to do the later and treat fee-based erc20s as a different asset type.
+    // SECURITY NOTE: did not account for fee on transfer ERC20s. Either need to update logic or restrict to
+    //                non-fee ERC20s.
 
     /// @notice Transfers tokens from msg.sender to a recipient.
     function safeErc20Transfer(address token, address to, uint256 amount) public {
