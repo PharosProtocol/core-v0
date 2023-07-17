@@ -34,6 +34,7 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
     mapping(bytes32 => uint256) kicked; // blueprintHash => 0/1 bool
 
     event OrderFilled(SignedBlueprint agreement, bytes32 orderBlueprintHash, address taker);
+    event PositionExited(SignedBlueprint agreement, Asset costAsset, uint256 cost);
     event LiquidationKicked(address liquidator, address position);
 
     constructor() Tractor(PROTOCOL_NAME, PROTOCOL_VERSION) {}
@@ -140,6 +141,8 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
 
         // Marks position as closed from Bookkeeper pov.
         position.transferContract(msg.sender);
+
+        emit PositionExited(agreementBlueprint, costAsset, cost);
     }
 
     // NOTE will need to implement an unkick function to enable soft or partial liquidations.
