@@ -73,10 +73,14 @@ library LibUniswapV3 {
         if (twapTime == 0) {
             (, arithmeticMeanTick, , , , , ) = IUniswapV3PoolState(pool).slot0();
         } else {
-            require(LibUtils.isDeployedContract(pool), "no pool/contract at address");
-            require(OracleLibrary.getOldestObservationSecondsAgo(pool) >= twapTime, "pool observations too young"); // ensure needed data is available
-            (, , , uint16 observationCardinality, , , ) = IUniswapV3PoolState(pool).slot0();
-            require(observationCardinality >= twapTime / 12, "pool cardinality too low"); // shortest case scenario should always cover twap time
+            // Useful revert details, but redundant with default behavior.
+            // require(LibUtils.isDeployedContract(pool), "no pool/contract at address");
+
+            // These checks are insightful, but they are all redundant with uni lib age reverting check in consult().
+            // require(OracleLibrary.getOldestObservationSecondsAgo(pool) >= twapTime, "pool observations too young"); // ensure needed data is available
+            // (, , , uint16 observationCardinality, , , ) = IUniswapV3PoolState(pool).slot0();
+            // require(observationCardinality >= twapTime / C.BLOCK_TIME, "pool cardinality too low"); // shortest case scenario should always cover twap time
+
             (arithmeticMeanTick, ) = OracleLibrary.consult(pool, twapTime);
         }
     }

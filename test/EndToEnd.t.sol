@@ -146,7 +146,7 @@ contract EndToEndTest is TestUtils {
 
         // Move time and block forward arbitrarily.
         vm.warp(block.timestamp + 5 days);
-        vm.roll(block.number + (5 days / 12));
+        vm.roll(block.number + (5 days / C.BLOCK_TIME));
 
         // Borrower exits position. Send cost in eth because on local fork no value of assets occurs but cost increases.
         // uint256 cost = IAssessor(agreement.assessor.addr).getCost(agreement);
