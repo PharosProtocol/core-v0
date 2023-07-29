@@ -5,7 +5,6 @@ pragma solidity 0.8.19;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {IAccount} from "src/interfaces/IAccount.sol";
-import {IndexPair, PluginReference} from "src/libraries/LibBookkeeper.sol";
 
 // Significant security risk to represent eth this way? Could wrap it instead.
 // https://twitter.com/pashovkrum/status/1637722714772258817?s=20
@@ -20,6 +19,11 @@ struct Asset {
     uint8 decimals; // 20
     uint256 id; // 721, 1155
     bytes data; // 721, 1155, arbitrary
+}
+
+struct PluginRef {
+    address addr;
+    bytes parameters;
 }
 
 library LibUtils {
@@ -52,9 +56,14 @@ library LibUtils {
         }
     }
 
+    function isEqAsset(Asset memory asset0, Asset memory asset1) internal pure returns (bool) {
+        if (keccak256(abi.encode(asset0)) == keccak256(abi.encode(asset1))) return true;
+        return false;
+    }
+
     function isValidLoanAssetAsCost(Asset memory loanAsset, Asset memory costAsset) internal pure returns (bool) {
         if (loanAsset.standard != ERC20_STANDARD) return false;
-        if (keccak256(abi.encode(loanAsset)) != keccak256(abi.encode(costAsset))) return false;
+        if (!isEqAsset(loanAsset, costAsset)) return false;
         return true;
     }
 }

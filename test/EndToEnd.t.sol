@@ -29,7 +29,7 @@ import {UniV3HoldFactory} from "src/plugins/position/implementations/UniV3Hold.s
 import {WalletFactory} from "src/plugins/position/implementations/Wallet.sol";
 
 import {Bookkeeper} from "src/Bookkeeper.sol";
-import {IndexPair, PluginReference, BorrowerConfig, Order, Fill, Agreement} from "src/libraries/LibBookkeeper.sol";
+import {IndexPair, BorrowerConfig, Order, Fill, Agreement} from "src/libraries/LibBookkeeper.sol";
 
 import {TestUtils} from "test/TestUtils.sol";
 
@@ -146,7 +146,7 @@ contract EndToEndTest is TestUtils {
 
         // Move time and block forward arbitrarily.
         vm.warp(block.timestamp + 5 days);
-        vm.roll(block.number + (5 days / 12));
+        vm.roll(block.number + (5 days / C.BLOCK_TIME));
 
         // Borrower exits position. Send cost in eth because on local fork no value of assets occurs but cost increases.
         // uint256 cost = IAssessor(agreement.assessor.addr).getCost(agreement);
@@ -270,10 +270,7 @@ contract EndToEndTest is TestUtils {
 
     function createOrder(SoloAccount.Parameters memory accountParams) private view returns (Order memory) {
         // Set individual structs here for cleanliness and solidity ease.
-        PluginReference memory account = PluginReference({
-            addr: address(accountPlugin),
-            parameters: abi.encode(accountParams)
-        });
+        PluginRef memory account = PluginRef({addr: address(accountPlugin), parameters: abi.encode(accountParams)});
         // Solidity array syntax is so bad D:
         address[] memory fillers = new address[](0);
         uint256[] memory minLoanAmounts = new uint256[](2);
@@ -283,8 +280,8 @@ contract EndToEndTest is TestUtils {
         loanAssets[0] = WETH_ASSET;
         Asset[] memory collAssets = new Asset[](1);
         collAssets[0] = USDC_ASSET;
-        PluginReference[] memory loanOracles = new PluginReference[](1);
-        // loanOracles[0] = PluginReference({
+        PluginRef[] memory loanOracles = new PluginRef[](1);
+        // loanOracles[0] = PluginRef({
         //     addr: address(uniOraclePlugin),
         //     parameters: abi.encode(
         //         UniV3Oracle.Parameters({
@@ -294,7 +291,7 @@ contract EndToEndTest is TestUtils {
         //         })
         //         )
         // });
-        loanOracles[0] = PluginReference({
+        loanOracles[0] = PluginRef({
             addr: address(staticOracle),
             parameters: abi.encode(StaticOracle.Parameters({ratio: 1 * (10 ** C.ETH_DECIMALS)}))
         });
@@ -307,8 +304,8 @@ contract EndToEndTest is TestUtils {
             IOracle(loanOracles[0].addr).getResistantAmount(60 * (10 ** C.ETH_DECIMALS), loanOracles[0].parameters)
         );
 
-        PluginReference[] memory collOracles = new PluginReference[](1);
-        collOracles[0] = PluginReference({
+        PluginRef[] memory collOracles = new PluginRef[](1);
+        collOracles[0] = PluginRef({
             addr: address(staticOracle),
             parameters: abi.encode(StaticOracle.Parameters({ratio: 2000 * (10 ** C.USDC_DECIMALS)}))
         });
@@ -324,7 +321,7 @@ contract EndToEndTest is TestUtils {
         // factories[0] = address(uniV3HoldFactory);
         factories[0] = address(walletFactory);
 
-        PluginReference memory assessor = PluginReference({
+        PluginRef memory assessor = PluginRef({
             addr: address(assessorPlugin),
             parameters: abi.encode(
                 StandardAssessor.Parameters({
@@ -335,7 +332,7 @@ contract EndToEndTest is TestUtils {
                 })
             )
         });
-        PluginReference memory liquidator = PluginReference({addr: address(liquidatorPlugin), parameters: ""});
+        PluginRef memory liquidator = PluginRef({addr: address(liquidatorPlugin), parameters: ""});
 
         // Lender creates an offer.
         return
@@ -376,7 +373,7 @@ contract EndToEndTest is TestUtils {
 
         return
             Fill({
-                account: PluginReference({addr: address(accountPlugin), parameters: abi.encode(borrowerAccountParams)}),
+                account: PluginRef({addr: address(accountPlugin), parameters: abi.encode(borrowerAccountParams)}),
                 loanAmount: 2e18, // must be valid with init CR and available collateral value
                 takerIdx: 0,
                 loanAssetIdx: 0,

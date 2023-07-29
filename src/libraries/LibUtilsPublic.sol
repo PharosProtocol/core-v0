@@ -6,7 +6,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /*
  * This util functions are public so that they can be called from decoded calldata. Specifically this pattern
- * is used with position passthrough functions.
+ * is used with position passthrough functions. Ostensibly the same functions are available elsewhere.
  */
 
 library LibUtilsPublic {

@@ -17,7 +17,7 @@ import {MockPosition} from "test/mocks/MockPosition.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
 import {C} from "src/libraries/C.sol";
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
-import {Asset, ETH_STANDARD, ERC20_STANDARD, PluginReference} from "src/libraries/LibUtils.sol";
+import {Asset, ETH_STANDARD, ERC20_STANDARD, PluginRef} from "src/libraries/LibUtils.sol";
 import {StandardAssessor} from "src/plugins/assessor/implementations/StandardAssessor.sol";
 
 contract StandardAssessorTest is Test {
@@ -63,7 +63,7 @@ contract StandardAssessorTest is Test {
             interestRatio: interestRatio,
             profitShareRatio: profitShareRatio
         });
-        agreement.assessor = PluginReference({addr: address(assessorPlugin), parameters: abi.encode(parameters)});
+        agreement.assessor = PluginRef({addr: address(assessorPlugin), parameters: abi.encode(parameters)});
         (asset, cost) = assessorPlugin.getCost(agreement, position.getCloseAmount(agreement.position.parameters));
     }
 

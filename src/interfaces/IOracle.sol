@@ -13,16 +13,11 @@ interface IOracle {
     function getResistantValue(uint256 amount, bytes calldata parameters) external view returns (uint256 ethAmount);
 
     /// @notice instantaneous ETH amount of equivalent value. Used to determine liquidations.
-    /// @dev reverts if asset not compatible with parameters.
+    /// @dev spot price used for liquidation check only.
     function getSpotValue(uint256 amount, bytes calldata parameters) external view returns (uint256 ethAmount);
 
     /// @notice instantaneous amount of asset equivalent to given eth amount.
-    /// @dev reverts if asset not compatible with parameters.
     function getResistantAmount(uint256 ethAmount, bytes calldata parameters) external view returns (uint256);
 
     function canHandleAsset(Asset calldata asset, bytes calldata parameters) external view returns (bool);
-
-    // // NOTE
-    // // Is it possible to use arbitrary reference asset, as long as both oracles have the same reference asset?
-    // function referenceAsset(bytes calldata parameters) external view returns (Asset memory asset);
 }
