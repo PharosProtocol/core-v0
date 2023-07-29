@@ -25,7 +25,6 @@ import {C} from "src/libraries/C.sol";
  */
 
 abstract contract CloneFactory is AccessControl, Initializable {
-    address public immutable BOOKKEEPER_ADDRESS;
     // SECURITY assumes proxy constant values are set by implementation contract
     address public immutable FACTORY_ADDRESS; // Implementation contract address
 
@@ -42,20 +41,19 @@ abstract contract CloneFactory is AccessControl, Initializable {
     }
 
     /// @dev constructor only called in implementation contract, not clones
-    constructor(address bookkeeperAddr) {
+    constructor() {
         // Do not allow initialization in implementation contract.
         _disableInitializers(); // redundant with proxyExecution modifier?
-        BOOKKEEPER_ADDRESS = bookkeeperAddr;
         FACTORY_ADDRESS = address(this);
-        _setupRole(C.BOOKKEEPER_ROLE, BOOKKEEPER_ADDRESS); // Factory role set
     }
 
     /*
-     * Create clone that will use this Factory.
+     * Create clone from this Factory.
      */
-    function createClone() external implementationExecution onlyRole(C.BOOKKEEPER_ROLE) returns (address addr) {
+    function createClone() external implementationExecution returns (address addr) {
+        // NOTE SECURITY anyone can create a clone, so cannot assume clones are legit use.
         addr = Clones.clone(address(this));
-        (bool success, ) = addr.call(abi.encodeWithSignature("initialize()"));
+        (bool success, ) = addr.call(abi.encodeWithSignature("initialize(address)", msg.sender));
         require(success, "createClone: initialize fail");
         emit CloneCreated(addr);
     }
@@ -65,9 +63,9 @@ abstract contract CloneFactory is AccessControl, Initializable {
      * Cannot do role check modifier here because state not yet set
      * NOTE "When used with inheritance, manual care must be taken to not invoke a parent initializer twice, or to ensure that all initializers are idempotent" <- idk what this is about, but sounds relevant.
      */
-    function initialize() external initializer proxyExecution {
+    function initialize(address admin) external initializer proxyExecution {
         require(msg.sender == FACTORY_ADDRESS, "sender != impl contract");
-        _setupRole(C.ADMIN_ROLE, BOOKKEEPER_ADDRESS); // Clone role set
+        _setupRole(C.ADMIN_ROLE, admin); // Clone role set
     }
 
     receive() external payable {}

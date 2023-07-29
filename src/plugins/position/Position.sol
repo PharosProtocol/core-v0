@@ -22,7 +22,7 @@ import {CloneFactory} from "src/plugins/CloneFactory.sol";
 abstract contract Position is IPosition, CloneFactory {
     event ControlTransferred(address previousController, address newController);
 
-    constructor(address bookkeeperAddr) CloneFactory(bookkeeperAddr) {
+    constructor(address bookkeeperAddr) CloneFactory() {
         // _setupRole
         // _setupRole
     }
