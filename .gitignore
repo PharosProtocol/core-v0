@@ -11,6 +11,7 @@ lib/.DS_Store
 # Dev files
 dev_doc.txt
 .vscode/
+audit.md
 
 # Ignores development broadcast logs
 !broadcast
