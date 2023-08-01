@@ -5,10 +5,10 @@ pragma solidity 0.8.19;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {C} from "src/libraries/C.sol";
-import {Asset, ETH_STANDARD, ERC20_STANDARD, LibUtils} from "src/libraries/LibUtils.sol";
+import {Asset, ETH_STANDARD, ERC20_STANDARD, LibUtils, PluginRef} from "src/libraries/LibUtils.sol";
 import {LibUtilsPublic} from "src/libraries/LibUtilsPublic.sol";
 import {Liquidator} from "../Liquidator.sol";
-import {Agreement, PluginReference} from "src/libraries/LibBookkeeper.sol";
+import {Agreement} from "src/libraries/LibBookkeeper.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
 import {IAssessor} from "src/interfaces/IAssessor.sol";
 import {IAccount} from "src/interfaces/IAccount.sol";
@@ -102,7 +102,7 @@ abstract contract InstantErc20 is Liquidator {
     /// @notice Load assets from position to an account.
     function _loadFromPosition(
         IPosition position,
-        PluginReference memory account,
+        PluginRef memory account,
         Asset memory asset,
         uint256 amount
     ) private {

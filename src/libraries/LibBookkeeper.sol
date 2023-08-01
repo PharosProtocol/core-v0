@@ -6,16 +6,11 @@ import {IPosition} from "src/interfaces/IPosition.sol";
 import {IOracle} from "src/interfaces/IOracle.sol";
 import {IAssessor} from "src/interfaces/IAssessor.sol";
 import {C} from "src/libraries/C.sol";
-import {Asset, ETH_STANDARD, LibUtils} from "src/libraries/LibUtils.sol";
+import {Asset, ETH_STANDARD, LibUtils, PluginRef} from "src/libraries/LibUtils.sol";
 
 struct IndexPair {
     uint128 offer;
     uint128 request;
-}
-
-struct PluginReference {
-    address addr;
-    bytes parameters;
 }
 
 /// @notice terms shared between Offers and Requests.
@@ -27,11 +22,11 @@ struct Order {
     uint256 maxDuration;
     uint256 minCollateralRatio;
     // Plugins
-    PluginReference account;
-    PluginReference assessor;
-    PluginReference liquidator;
-    PluginReference[] loanOracles;
-    PluginReference[] collOracles;
+    PluginRef account;
+    PluginRef assessor;
+    PluginRef liquidator;
+    PluginRef[] loanOracles;
+    PluginRef[] collOracles;
     address[] factories;
     // Sided config
     bool isOffer;
@@ -45,7 +40,7 @@ struct BorrowerConfig {
 
 /// @notice Taker defined Position configuration that is compatible with an offer or a request.
 struct Fill {
-    PluginReference account;
+    PluginRef account;
     uint256 loanAmount; // should be valid with both minFillRatios and account balances
     uint256 takerIdx; // ignored if no taker allowlist.
     uint256 loanAssetIdx; // need to verify with the oracle
@@ -72,14 +67,14 @@ struct Agreement {
     Asset collAsset;
     uint256 minCollateralRatio; // Position value / collateral value
     uint256 maxDuration;
-    PluginReference lenderAccount;
-    PluginReference borrowerAccount;
-    PluginReference assessor;
-    PluginReference liquidator;
-    PluginReference loanOracle;
-    PluginReference collOracle;
+    PluginRef lenderAccount;
+    PluginRef borrowerAccount;
+    PluginRef assessor;
+    PluginRef liquidator;
+    PluginRef loanOracle;
+    PluginRef collOracle;
     address factory;
-    PluginReference position; // addr set by bookkeeper.
+    PluginRef position; // addr set by bookkeeper.
     uint256 deploymentTime; // set by bookkeeper
 }
 
@@ -96,6 +91,10 @@ library LibBookkeeper {
             borrowerConfig = fill.borrowerConfig;
         }
 
+        require(
+            !LibUtils.isEqAsset(order.loanAssets[fill.loanAssetIdx], order.collAssets[fill.collAssetIdx]),
+            "loan & coll asset cannot be same"
+        );
         require(fill.loanAmount >= order.minLoanAmounts[fill.loanAssetIdx], "loanAmount too small");
         require(borrowerConfig.initCollateralRatio >= order.minCollateralRatio, "initCollateralRatio too small");
 
