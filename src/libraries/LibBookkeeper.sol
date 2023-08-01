@@ -91,10 +91,6 @@ library LibBookkeeper {
             borrowerConfig = fill.borrowerConfig;
         }
 
-        require(
-            !LibUtils.isEqAsset(order.loanAssets[fill.loanAssetIdx], order.collAssets[fill.collAssetIdx]),
-            "loan & coll asset cannot be same"
-        );
         require(fill.loanAmount >= order.minLoanAmounts[fill.loanAssetIdx], "loanAmount too small");
         require(borrowerConfig.initCollateralRatio >= order.minCollateralRatio, "initCollateralRatio too small");
 
