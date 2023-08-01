@@ -8,6 +8,7 @@ import "src/Bookkeeper.sol";
 import "src/libraries/LibUtils.sol";
 import "src/plugins/account/implementations/SoloAccount.sol";
 import "src/plugins/oracle/implementations/StaticOracle.sol";
+import "src/plugins/oracle/implementations/SpicyOracle.sol";
 import "src/plugins/oracle/implementations/UniV3Oracle.sol";
 import "src/plugins/assessor/implementations/StandardAssessor.sol";
 import "src/plugins/liquidator/implementations/InstantCloseTakeCollateral.sol";
@@ -44,6 +45,7 @@ contract DeployScript is Script {
         new StandardAssessor();
         new StaticOracle();
         // new UniV3Oracle();
+        new SpicyOracle();
 
         vm.stopBroadcast();
     }
