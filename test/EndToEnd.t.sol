@@ -69,27 +69,27 @@ contract EndToEndTest is TestUtils {
 
     function setUp() public {
         vm.recordLogs();
-        vm.createSelectFork(vm.rpcUrl("mainnet"), 17186176);
+        // vm.createSelectFork(vm.rpcUrl("mainnet"), 17186176);
         // vm.createSelectFork(vm.rpcUrl("goerli"), ); // NOTE ensure this is more recent than deployments.
-        // vm.createSelectFork(vm.rpcUrl("sepolia"), 3784874); // NOTE ensure this is more recent than deployments.
+        vm.createSelectFork(vm.rpcUrl("sepolia"), 4024632); // NOTE ensure this is more recent than deployments.
 
         // // For local deploy of contracts latest local changes.
-        bookkeeper = IBookkeeper(address(new Bookkeeper()));
-        accountPlugin = IAccount(address(new SoloAccount(address(bookkeeper))));
-        assessorPlugin = IAssessor(address(new StandardAssessor()));
-        liquidatorPlugin = ILiquidator(address(new InstantCloseTakeCollateral(address(bookkeeper))));
-        staticOracle = IOracle(address(new StaticOracle()));
-        walletFactory = IPosition(address(new WalletFactory(address(bookkeeper))));
+        // bookkeeper = IBookkeeper(address(new Bookkeeper()));
+        // accountPlugin = IAccount(address(new SoloAccount(address(bookkeeper))));
+        // assessorPlugin = IAssessor(address(new StandardAssessor()));
+        // liquidatorPlugin = ILiquidator(address(new InstantCloseTakeCollateral(address(bookkeeper))));
+        // staticOracle = IOracle(address(new StaticOracle()));
+        // walletFactory = IPosition(address(new WalletFactory(address(bookkeeper))));
         // uniOraclePlugin = IOracle(address(new UniV3Oracle()));
         // uniV3HoldFactory = IPosition(address(new UniV3HoldFactory(address(bookkeeper))));
 
         // For use with pre deployed contracts.
-        // bookkeeper = IBookkeeper();
-        // accountPlugin = IAccount();
-        // assessorPlugin = IAssessor();
-        // liquidatorPlugin = ILiquidator();
-        // staticOracle = IOracle(); // static price
-        // walletFactory = IPosition();
+        bookkeeper = IBookkeeper(0x96DEA1646129fF9637CE5cCE81E65559af172b92);
+        accountPlugin = IAccount(0x225D9FaD9081F0E67dD5E4b93E26e85E8F70a9aE);
+        assessorPlugin = IAssessor(0x5F5baC1aEF241eB4CB0B484bF68d104B00E1F98E);
+        liquidatorPlugin = ILiquidator(0x1bdD37aFC33C59D0B1572b23B9188531d6aA7cda);
+        staticOracle = IOracle(0xeE3B0F63eB134a06833b72082362c0a1Ed80B717); // static price
+        walletFactory = IPosition(0x51b245b41037B966e8709B622Ee735a653e3d40d);
         // uniOraclePlugin = IOracle(); // static prices
         // uniV3HoldFactory = IPosition();
     }
