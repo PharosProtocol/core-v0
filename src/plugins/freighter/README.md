@@ -19,3 +19,6 @@ erc20 before being transferred to the Terminal.
 
 ## Design
 - It is not safe for the bookkeeper to (delegate) call Freighters bc the bk contains shared state.
+- All assets, loan and collateral, are moved to position at agreement time. This is obviously gas intensive and
+in many cases wasteful, however it is necessary to maintain appropriate separation of assets by agreement and
+strictly limit user risk to the agreements they have explicitly participated in.
