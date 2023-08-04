@@ -53,9 +53,9 @@ abstract contract CloneFactory is AccessControl, Initializable {
     /*
      * Create clone that will use this Factory.
      */
-    function createClone() external implementationExecution onlyRole(C.BOOKKEEPER_ROLE) returns (address addr) {
+    function createClone() external payable implementationExecution onlyRole(C.BOOKKEEPER_ROLE) returns (address addr) {
         addr = Clones.clone(address(this));
-        (bool success, ) = addr.call(abi.encodeWithSignature("initialize()"));
+        (bool success, ) = addr.call{value: msg.value}(abi.encodeWithSignature("initialize()"));
         require(success, "createClone: initialize fail");
         emit CloneCreated(addr);
     }
@@ -65,10 +65,13 @@ abstract contract CloneFactory is AccessControl, Initializable {
      * Cannot do role check modifier here because state not yet set
      * NOTE "When used with inheritance, manual care must be taken to not invoke a parent initializer twice, or to ensure that all initializers are idempotent" <- idk what this is about, but sounds relevant.
      */
-    function initialize() external initializer proxyExecution {
+    function initialize(bytes calldata initData) external payable initializer proxyExecution {
         require(msg.sender == FACTORY_ADDR, "sender != impl contract");
         _setupRole(C.ADMIN_ROLE, BOOKKEEPER_ADDR); // Clone role set. May change.
+        _initialize(initData);
     }
+
+    function _initialize(bytes calldata initData) internal virtual;
 
     receive() external payable {}
 }

@@ -9,44 +9,45 @@ import {IFreighter} from "src/interfaces/IFreighter.sol";
 import {Asset, PluginRef} from "src/libraries/LibUtils.sol";
 import {C} from "src/libraries/C.sol";
 
-abstract contract AssetHolder is AccessControl {
-    enum PluginCategory {
-        NULL,
-        PORT,
-        TERMINAL
-    }
+abstract contract AssetHolder is AccessControl, CloneFactory {
+    AddrCategory public immutable addrCategory;
 
-    PluginCategory public immutable pluginCategory;
-
-    constructor(address bookkeeperAddr, PluginCategory category) {
-        _setupRole(C.BOOKKEEPER_ROLE, bookkeeperAddr);
-        pluginCategory = category;
+    constructor(address bookkeeperAddr, AddrCategory category) CloneFactory(bookkeeperAddr) {
+        addrCategory = category;
     }
 
     function processReceipt(
         PluginRef calldata freighter,
         Asset calldata asset,
         uint256 amount,
-        bytes calldata parameters
-    ) external onlyRole(C.BOOKKEEPER_ROLE) {
-        _processReceipt(asset, amount, parameters);
+        bool isColl
+    ) external proxyExecution onlyRole(C.BOOKKEEPER_ROLE) {
+        _processReceipt(freighter, asset, amount, isColl);
+    }
+
+    function _processReceipt(
+        PluginRef calldata freighter,
+        Asset calldata asset,
+        uint256 amount,
+        bool isColl
+    ) internal proxyExecution {
+        // __processReceipt(asset, amount, parameters);
 
         // Allow the freighter to handle asset-specific logic in the state space of the holding plugin.
         bytes memory callData;
-        if (pluginCategory == PluginCategory.PORT) {
+        if (addrCategory == AddrCategory.PORT) {
             callData = abi.encodeWithSelector(
                 IFreighter.portReceiptCallback.selector,
                 asset,
                 amount,
-                pluginCategory,
                 freighter.parameters
             );
-        } else if (pluginCategory == PluginCategory.TERMINAL) {
+        } else if (addrCategory == AddrCategory.TERMINAL) {
             callData = abi.encodeWithSelector(
-                IFreighter.terminalReceiptCallback.selector,
+                IFreighter.termReceiptCallback.selector,
                 asset,
                 amount,
-                pluginCategory,
+                isColl,
                 freighter.parameters
             );
         } else {
@@ -57,6 +58,6 @@ abstract contract AssetHolder is AccessControl {
         require(success, "failed freighter callback");
     }
 
-    /// @notice Plugin reacts to the receipt of assets. Optional.
-    function _processReceipt(Asset calldata asset, uint256 amount, bytes calldata parameters) internal virtual;
+    // /// @notice Plugin reacts to the receipt of assets. Optional.
+    // function __processReceipt(Asset calldata asset, uint256 amount, bytes calldata parameters) internal virtual;
 }
