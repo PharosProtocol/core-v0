@@ -12,9 +12,10 @@ runs = 256 # default == 256
 depth = 15 # default == 15
 
 [rpc_endpoints]
-mainnet = "${ALCHEMY_ETH_API_URL}" 
-goerli = "${GOERLI_RPC_URL}" 
-sepolia = "${SEPOLIA_RPC_URL}" 
+mainnet = "${ALCHEMY_ETH_API_URL}"
+arbitrum_one = "${ARBITRUM_ONE_RPC_URL}"
+sepolia = "${SEPOLIA_RPC_URL}"
+goerli = "${GOERLI_RPC_URL}"
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
 

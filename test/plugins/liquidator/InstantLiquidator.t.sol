@@ -45,7 +45,7 @@ contract InstantLiquidatorTest is TestUtils {
     // invoked before each test case is run
     function setUp() public {
         vm.recordLogs();
-        vm.createSelectFork(vm.rpcUrl("mainnet"), 17092863);
+        vm.createSelectFork(vm.rpcUrl(TC.CHAIN_NAME), TC.BLOCK_NUMBER);
 
         SoloAccount accountContract = new SoloAccount(bookkeeperAddr);
         accountPlugin = IAccount(accountContract);

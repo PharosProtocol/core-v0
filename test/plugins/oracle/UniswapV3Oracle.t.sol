@@ -31,7 +31,11 @@ contract UniV3OracleTest is Test {
         vm.recordLogs();
         // NOTE not compatible on Georli or Sepolia, due to lack of Uni V3 pools.
         // requires fork at known time so valuations are known. uni quote of eth ~= $1,919.37
-        vm.createSelectFork(vm.rpcUrl("mainnet"), 17598691); // test begins at end of block.
+        // test begins at end of block.
+        vm.createSelectFork(vm.rpcUrl(TC.CHAIN_NAME), TC.BLOCK_NUMBER); // NOTE ensure this is more recent than deployments.
+
+        assertEq(C.ETH_DECIMALS, 18, "test not compatible with alternative ETH decimal configurations.");
+        assertEq(TC.USDC_DECIMALS, 6, "test not compatible with alternative USDC decimal configurations.");
 
         oraclePlugin = new UniV3Oracle();
     }
@@ -55,9 +59,16 @@ contract UniV3OracleTest is Test {
         console.log("value: %s", value);
         console.log("spot value: %s", spotValue);
         console.log("amount: %s", amount);
-        assertEq(value, 1035687345973702558);
-        assertEq(spotValue, 1036308913755103976);
-        assertEq(amount, 1911822141);
+
+        // Exact expected amount with vary with chain and block number.
+        // Instead use 2023 common sense range of ETH price.
+        assertGt(value, 1e18, "Eth resistant value too low");
+        assertLt(value, 3e18, "Eth resistant value too high");
+        assertGt(spotValue, 1e18, "Eth spot value too low");
+        assertLt(spotValue, 3e18, "Eth spot value too low");
+        assertTrue(value != spotValue, "resistant value matches spot value. unlikely, but possible.");
+        assertGt(amount, 1000e6, "USDC amount too low");
+        assertLt(amount, 3000e6, "USDC amount too high");
     }
 
     // NOTE could add fuzzed path with some creativity.
@@ -84,8 +95,7 @@ contract UniV3OracleTest is Test {
         // uint256 expectedAmount = FullMath.mulDivRoundingUp(
         //     baseAmount, (C.RATIO_FACTOR - params.params.stepSlippage) ** 2, C.RATIO_FACTOR ** 2
         // );
-
-        // AUDIT NOTE seems to no way to exctly match rounding.
+        // AUDIT NOTE seems to no way to exactly match rounding...
         if (newAmount != expectedAmount && newAmount != expectedAmount - 1) {
             console.log("newAmount: %s", newAmount);
             console.log("expectedAmount: %s", expectedAmount);
@@ -93,6 +103,10 @@ contract UniV3OracleTest is Test {
         }
         // assertEq(newAmount, expectedAmount);
 
-        assertGt(spotValue, value);
+        assertLt(value, (baseAmount * 1e18) / 1000e6, "Eth resistant value too low");
+        assertGt(value, (baseAmount * 1e18) / 3000e6, "Eth resistant value too high");
+        assertLt(spotValue, (baseAmount * 1e18) / 1000e6, "Eth spot value too low");
+        assertGt(spotValue, (baseAmount * 1e18) / 3000e6, "Eth spot value too low");
+        assertTrue(value != spotValue, "resistant value matches spot value. unlikely, but possible.");
     }
 }
