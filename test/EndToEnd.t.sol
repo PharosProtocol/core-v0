@@ -33,7 +33,8 @@ import {IndexPair, PluginReference, BorrowerConfig, Order, Fill, Agreement} from
 
 import {TestUtils} from "test/TestUtils.sol";
 
-import "src/libraries/C.sol";
+import {C} from "src/libraries/C.sol";
+import {TC} from "test/TC.sol";
 import "src/libraries/LibUtils.sol";
 
 contract EndToEndTest is TestUtils {
@@ -54,7 +55,7 @@ contract EndToEndTest is TestUtils {
 
     // Asset ETH_ASSET = Asset({standard: ETH_STANDARD, addr: address(0), id: 0, data: ""});
     Asset WETH_ASSET = Asset({standard: ERC20_STANDARD, addr: C.WETH, decimals: 18, id: 0, data: ""});
-    Asset USDC_ASSET = Asset({standard: ERC20_STANDARD, addr: C.USDC, decimals: C.USDC_DECIMALS, id: 0, data: ""});
+    Asset USDC_ASSET = Asset({standard: ERC20_STANDARD, addr: TC.USDC, decimals: TC.USDC_DECIMALS, id: 0, data: ""});
 
     uint256 LENDER_PRIVATE_KEY = 111;
     uint256 BORROWER_PRIVATE_KEY = 222;
@@ -64,7 +65,7 @@ contract EndToEndTest is TestUtils {
     constructor() {
         // ASSETS.push(Asset({standard: ETH_STANDARD, addr: address(0), id: 0, data: ""})); // Tests expect 0 index to be ETH
         ASSETS.push(Asset({standard: ERC20_STANDARD, addr: C.WETH, decimals: 18, id: 0, data: ""})); // Tests expect 0 index to be WETH
-        ASSETS.push(Asset({standard: ERC20_STANDARD, addr: C.USDC, decimals: C.USDC_DECIMALS, id: 0, data: ""})); // Tests expect 1 index to be an ERC20
+        ASSETS.push(Asset({standard: ERC20_STANDARD, addr: TC.USDC, decimals: TC.USDC_DECIMALS, id: 0, data: ""})); // Tests expect 1 index to be an ERC20
     }
 
     function setUp() public {
@@ -111,7 +112,7 @@ contract EndToEndTest is TestUtils {
         assertEq(accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 10e18);
         assertEq(
             accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
-            5_000 * (10 ** C.USDC_DECIMALS)
+            5_000 * (10 ** TC.USDC_DECIMALS)
         );
 
         Order memory order = createOrder(lenderAccountParams);
@@ -138,7 +139,7 @@ contract EndToEndTest is TestUtils {
         assertEq(accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 8e18);
         assertLt(
             accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
-            5_000 * (10 ** C.USDC_DECIMALS)
+            5_000 * (10 ** TC.USDC_DECIMALS)
         );
         assertGt(accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 0);
 
@@ -155,9 +156,9 @@ contract EndToEndTest is TestUtils {
 
         // Approve position to use funds to fulfil obligation to lender. Borrower loses money :(
         wethDeal(borrower, 12e18);
-        deal(USDC_ASSET.addr, borrower, 5_000 * (10 ** C.USDC_DECIMALS), true);
+        deal(USDC_ASSET.addr, borrower, 5_000 * (10 ** TC.USDC_DECIMALS), true);
         vm.prank(borrower);
-        IERC20(C.USDC).approve(agreement.position.addr, 5_000 * (10 ** C.USDC_DECIMALS));
+        IERC20(TC.USDC).approve(agreement.position.addr, 5_000 * (10 ** TC.USDC_DECIMALS));
         vm.prank(borrower);
         IERC20(C.WETH).approve(agreement.position.addr, 12e18);
         vm.prank(borrower);
@@ -170,7 +171,7 @@ contract EndToEndTest is TestUtils {
         );
         assertEq(
             accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
-            5000 * (10 ** C.USDC_DECIMALS),
+            5000 * (10 ** TC.USDC_DECIMALS),
             "borrow act funds missing"
         );
 
@@ -195,7 +196,7 @@ contract EndToEndTest is TestUtils {
         assertEq(accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 10e18);
         assertEq(
             accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
-            5_000 * (10 ** C.USDC_DECIMALS)
+            5_000 * (10 ** TC.USDC_DECIMALS)
         );
 
         Order memory order = createOrder(lenderAccountParams);
@@ -218,7 +219,7 @@ contract EndToEndTest is TestUtils {
         assertEq(accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 8e18);
         assertLt(
             accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
-            5_000 * (10 ** C.USDC_DECIMALS)
+            5_000 * (10 ** TC.USDC_DECIMALS)
         );
         assertGt(accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 0);
 
@@ -236,9 +237,9 @@ contract EndToEndTest is TestUtils {
         // Approve position to use funds to fulfil obligation to lender. Borrower loses money :(
         vm.deal(liquidator, 2e18);
         wethDeal(liquidator, 12e18);
-        // deal(USDC_ASSET.addr, liquidator, 5_000 * (10 ** C.USDC_DECIMALS), true);
+        // deal(USDC_ASSET.addr, liquidator, 5_000 * (10 ** TC.USDC_DECIMALS), true);
         // vm.prank(liquidator);
-        // IERC20(C.USDC).approve(address(liquidatorPlugin), 5_000 * (10 ** C.USDC_DECIMALS));
+        // IERC20(TC.USDC).approve(address(liquidatorPlugin), 5_000 * (10 ** TC.USDC_DECIMALS));
         // NOTE that the liquidator has to approve the position to spend their assets. meaning liquidators likely will not be willing to liquidate unverified positions.
         vm.prank(liquidator);
         IERC20(C.WETH).approve(address(agreement.position.addr), 12e18); // exact amount determined from prev runs
@@ -248,7 +249,7 @@ contract EndToEndTest is TestUtils {
         assertGe(accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 10e18);
         assertLt(
             accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
-            5_000 * (10 ** C.USDC_DECIMALS)
+            5_000 * (10 ** TC.USDC_DECIMALS)
         );
         assertGt(IERC20(USDC_ASSET.addr).balanceOf(liquidator), 0);
 
@@ -258,13 +259,13 @@ contract EndToEndTest is TestUtils {
     function fundAccount(SoloAccount.Parameters memory accountParams) private {
         vm.deal(accountParams.owner, 2e18);
         wethDeal(accountParams.owner, 12e18);
-        deal(USDC_ASSET.addr, accountParams.owner, 5_000 * (10 ** C.USDC_DECIMALS), true);
+        deal(USDC_ASSET.addr, accountParams.owner, 5_000 * (10 ** TC.USDC_DECIMALS), true);
 
         vm.startPrank(accountParams.owner);
         IERC20(C.WETH).approve(address(accountPlugin), 10e18);
         accountPlugin.loadFromUser(WETH_ASSET, 10e18, abi.encode(accountParams));
-        IERC20(C.USDC).approve(address(accountPlugin), 5_000 * (10 ** C.USDC_DECIMALS));
-        accountPlugin.loadFromUser(USDC_ASSET, 5_000 * (10 ** C.USDC_DECIMALS), abi.encode(accountParams));
+        IERC20(TC.USDC).approve(address(accountPlugin), 5_000 * (10 ** TC.USDC_DECIMALS));
+        accountPlugin.loadFromUser(USDC_ASSET, 5_000 * (10 ** TC.USDC_DECIMALS), abi.encode(accountParams));
         vm.stopPrank();
     }
 
@@ -278,7 +279,7 @@ contract EndToEndTest is TestUtils {
         address[] memory fillers = new address[](0);
         uint256[] memory minLoanAmounts = new uint256[](2);
         minLoanAmounts[0] = 1e18;
-        minLoanAmounts[1] = 1000 * (10 ** C.USDC_DECIMALS);
+        minLoanAmounts[1] = 1000 * (10 ** TC.USDC_DECIMALS);
         Asset[] memory loanAssets = new Asset[](1);
         loanAssets[0] = WETH_ASSET;
         Asset[] memory collAssets = new Asset[](1);
@@ -288,8 +289,8 @@ contract EndToEndTest is TestUtils {
         //     addr: address(uniOraclePlugin),
         //     parameters: abi.encode(
         //         UniV3Oracle.Parameters({
-        //             pathFromEth: abi.encodePacked(C.USDC, uint24(500), C.WETH),
-        //             pathToEth: abi.encodePacked(C.WETH, uint24(500), C.USDC),
+        //             pathFromEth: abi.encodePacked(TC.USDC, uint24(500), C.WETH),
+        //             pathToEth: abi.encodePacked(C.WETH, uint24(500), TC.USDC),
         //             twapTime: 300
         //         })
         //         )
@@ -310,11 +311,11 @@ contract EndToEndTest is TestUtils {
         PluginReference[] memory collOracles = new PluginReference[](1);
         collOracles[0] = PluginReference({
             addr: address(staticOracle),
-            parameters: abi.encode(StaticOracle.Parameters({ratio: 2000 * (10 ** C.USDC_DECIMALS)}))
+            parameters: abi.encode(StaticOracle.Parameters({ratio: 2000 * (10 ** TC.USDC_DECIMALS)}))
         });
         console.log(
             "eth value of 1000 usdc: %s",
-            staticOracle.getSpotValue(1000 * (10 ** C.USDC_DECIMALS), collOracles[0].parameters)
+            staticOracle.getSpotValue(1000 * (10 ** TC.USDC_DECIMALS), collOracles[0].parameters)
         );
         console.log(
             "usdc amount for 60 eth: %s",

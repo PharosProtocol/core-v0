@@ -10,6 +10,7 @@ import "@uni-v3-periphery/libraries/PoolAddress.sol";
 import {Path} from "@uni-v3-periphery/libraries/path.sol";
 
 import {C} from "src/libraries/C.sol";
+import {TC} from "test/TC.sol";
 import {UniV3Oracle} from "src/plugins/oracle/implementations/UniV3Oracle.sol";
 
 contract UniV3OracleTest is Test {
@@ -38,8 +39,8 @@ contract UniV3OracleTest is Test {
     function test_UniV3Oracle() public {
         // Uniswap v3 USDC:WETH pool - https://info.uniswap.org/#/pools/0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640
         UniV3Oracle.Parameters memory params = UniV3Oracle.Parameters({
-            pathFromEth: abi.encodePacked(C.WETH, uint24(500), C.USDC), // addr, uint24, addr, uint24, addr ...
-            pathToEth: abi.encodePacked(C.USDC, uint24(500), C.WETH),
+            pathFromEth: abi.encodePacked(C.WETH, uint24(500), TC.USDC), // addr, uint24, addr, uint24, addr ...
+            pathToEth: abi.encodePacked(TC.USDC, uint24(500), C.WETH),
             twapTime: 300,
             stepSlippage: uint64(C.RATIO_FACTOR / 200)
         });
@@ -66,8 +67,8 @@ contract UniV3OracleTest is Test {
         baseAmount = bound(baseAmount, 1000e6, 1_000_000e6);
         // Uniswap v3 USDC:WETH pool - https://info.uniswap.org/#/pools/0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640
         UniV3Oracle.Parameters memory params = UniV3Oracle.Parameters({
-            pathFromEth: abi.encodePacked(C.WETH, uint24(500), C.USDC), // addr, uint24, addr, uint24, addr ...
-            pathToEth: abi.encodePacked(C.USDC, uint24(500), C.WETH),
+            pathFromEth: abi.encodePacked(C.WETH, uint24(500), TC.USDC), // addr, uint24, addr, uint24, addr ...
+            pathToEth: abi.encodePacked(TC.USDC, uint24(500), C.WETH),
             twapTime: 300,
             stepSlippage: uint64(C.RATIO_FACTOR / 200)
         });
