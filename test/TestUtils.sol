@@ -6,6 +6,7 @@ pragma solidity 0.8.19;
 import "@forge-std/Test.sol";
 
 import {C} from "src/libraries/C.sol";
+import {TC} from "test/TC.sol";
 import {IWETH9} from "src/interfaces/external/IWETH9.sol";
 import {Asset, ETH_STANDARD, ERC20_STANDARD} from "src/libraries/LibUtils.sol";
 
@@ -58,7 +59,7 @@ contract HandlerUtils is TestUtils {
     constructor() {
         // ASSETS.push(Asset({standard: ETH_STANDARD, addr: address(0), id: 0, data: ""})); // Tests expect 0 index to be ETH
         assets.push(Asset({standard: ERC20_STANDARD, addr: C.WETH, decimals: 18, id: 0, data: ""})); // Tests expect 0 index to be WETH
-        assets.push(Asset({standard: ERC20_STANDARD, addr: C.USDC, decimals: C.USDC_DECIMALS, id: 0, data: ""})); // Tests expect 1 index to be an ERC20
+        assets.push(Asset({standard: ERC20_STANDARD, addr: TC.USDC, decimals: TC.USDC_DECIMALS, id: 0, data: ""})); // Tests expect 1 index to be an ERC20
     }
 
     modifier createActor() {

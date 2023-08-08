@@ -14,6 +14,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {HandlerUtils} from "test/TestUtils.sol";
 import {TestUtils} from "test/TestUtils.sol";
 import {C} from "src/libraries/C.sol";
+import {TC} from "test/TC.sol";
 import {Asset, ETH_STANDARD, ERC20_STANDARD} from "src/libraries/LibUtils.sol";
 import {SoloAccount} from "src/plugins/account/implementations/SoloAccount.sol";
 
@@ -28,7 +29,7 @@ contract AccountTest is TestUtils {
     constructor() {
         // ASSETS.push(Asset({standard: ETH_STANDARD, addr: address(0), id: 0, data: ""})); // Tests expect 0 index to be ETH
         ASSETS.push(Asset({standard: ERC20_STANDARD, addr: C.WETH, decimals: 18, id: 0, data: ""})); // Tests expect 0 index to be WETH
-        ASSETS.push(Asset({standard: ERC20_STANDARD, addr: C.USDC, decimals: C.USDC_DECIMALS, id: 0, data: ""})); // Tests expect 1 index to be an ERC20
+        ASSETS.push(Asset({standard: ERC20_STANDARD, addr: TC.USDC, decimals: TC.USDC_DECIMALS, id: 0, data: ""})); // Tests expect 1 index to be an ERC20
     }
 
     // invoked before each test case is run
@@ -148,7 +149,7 @@ contract Handler is Test, HandlerUtils {
     constructor() {
         // ASSETS.push(Asset({standard: ETH_STANDARD, decimals: 18, addr: address(0), id: 0, data: ""}));
         ASSETS.push(Asset({standard: ERC20_STANDARD, addr: C.WETH, decimals: 18, id: 0, data: ""}));
-        ASSETS.push(Asset({standard: ERC20_STANDARD, decimals: C.USDC_DECIMALS, addr: C.USDC, id: 0, data: ""}));
+        ASSETS.push(Asset({standard: ERC20_STANDARD, decimals: TC.USDC_DECIMALS, addr: TC.USDC, id: 0, data: ""}));
         assetBalances = new uint256[](ASSETS.length);
         accountPlugin = new SoloAccount(address(1));
     }
@@ -179,7 +180,7 @@ contract Handler is Test, HandlerUtils {
 
         vm.prank(currentActor);
         accountPlugin.loadFromUser{value: value}(asset, amount, parameters);
-        
+
         assetBalances[assetIdx] += amount;
     }
 

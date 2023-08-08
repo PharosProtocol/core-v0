@@ -19,6 +19,7 @@ import {IAssessor} from "src/interfaces/IAssessor.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
 import {ILiquidator} from "src/interfaces/ILiquidator.sol";
 import {C} from "src/libraries/C.sol";
+import {TC} from "test/TC.sol";
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
 import {Asset, ERC20_STANDARD} from "src/libraries/LibUtils.sol";
 import {SoloAccount} from "src/plugins/account/implementations/SoloAccount.sol";
@@ -38,7 +39,7 @@ contract InstantLiquidatorTest is TestUtils {
     constructor() {
         ASSETS.push(Asset({standard: ERC20_STANDARD, addr: C.WETH, decimals: 18, id: 0, data: ""})); // Tests expect 0 index to be WETH
         // NOTE why is USDC breaking? And why does USDC look like it is using a proxy wrapper contract...?
-        // ASSETS.push(Asset({standard: ERC20_STANDARD, addr: C.USDC, decimals: C.USDC_DECIMALS, id: 0, data: ""})); // Tests expect 1 index to be an ERC20}
+        // ASSETS.push(Asset({standard: ERC20_STANDARD, addr: TC.USDC, decimals: TC.USDC_DECIMALS, id: 0, data: ""})); // Tests expect 1 index to be an ERC20}
     }
 
     // invoked before each test case is run
