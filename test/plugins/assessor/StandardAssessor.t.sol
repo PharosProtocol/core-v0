@@ -15,6 +15,7 @@ import {HandlerUtils} from "test/TestUtils.sol";
 import {MockPosition} from "test/mocks/MockPosition.sol";
 
 import {IPosition} from "src/interfaces/IPosition.sol";
+import {TC} from "test/TC.sol";
 import {C} from "src/libraries/C.sol";
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
 import {Asset, ETH_STANDARD, ERC20_STANDARD, PluginReference} from "src/libraries/LibUtils.sol";
@@ -29,9 +30,8 @@ contract StandardAssessorTest is Test {
     // invoked before each test case is run
     function setUp() public {
         vm.recordLogs();
-        // // requires fork
-        // vm.activeFork();
-        vm.createSelectFork(vm.rpcUrl("mainnet"), 17092863); // seems that test begin at end of block.
+        // seems that test begin at end of block.
+        vm.createSelectFork(vm.rpcUrl(TC.CHAIN_NAME), TC.BLOCK_NUMBER);
         assessorPlugin = new StandardAssessor();
     }
 
@@ -44,10 +44,10 @@ contract StandardAssessorTest is Test {
         uint256 timePassed
     ) private returns (Asset memory asset, uint256 cost) {
         Asset memory mockAsset;
-        MockPosition positionFactory = new MockPosition(address(0));
-        vm.prank(address(0));
+        MockPosition positionFactory = new MockPosition(address(1));
+        vm.prank(address(1));
         position = IPosition(positionFactory.createClone());
-        vm.prank(address(0));
+        vm.prank(address(1));
         position.deploy(mockAsset, (loanAmount * currentValueRatio) / C.RATIO_FACTOR, "");
 
         Agreement memory agreement;

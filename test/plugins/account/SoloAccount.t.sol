@@ -35,7 +35,7 @@ contract AccountTest is TestUtils {
     // invoked before each test case is run
     function setUp() public {
         vm.recordLogs();
-        vm.createSelectFork(vm.rpcUrl("mainnet"), 17092863);
+        vm.createSelectFork(vm.rpcUrl(TC.CHAIN_NAME), TC.BLOCK_NUMBER);
         accountPlugin = new SoloAccount(address(1));
     }
 
@@ -221,7 +221,7 @@ contract InvariantAccountTest is Test {
     // invoked before each test case is run
     function setUp() public {
         vm.recordLogs();
-        vm.createSelectFork(vm.rpcUrl("mainnet"), 17092863);
+        vm.createSelectFork(vm.rpcUrl(TC.CHAIN_NAME), TC.BLOCK_NUMBER);
         handler = new Handler();
 
         // vm.targetContract(address(handler)); // how to do in 0.2.0?
