@@ -23,3 +23,6 @@ broadcast/deploy.s.sol/11155111/*
 
 # Dotenv file
 .env
+
+# other
+*.pem
