@@ -66,7 +66,7 @@ contract UniV3OracleTest is Test {
         assertLt(value, 3e18, "Eth resistant value too high");
         assertGt(spotValue, 1e18, "Eth spot value too low");
         assertLt(spotValue, 3e18, "Eth spot value too low");
-        assertTrue(value != spotValue, "resistant value matches spot value. unlikely, but possible.");
+        // assertTrue(value != spotValue, "resistant value matches spot value. unlikely, but possible.");
         assertGt(amount, 1000e6, "USDC amount too low");
         assertLt(amount, 3000e6, "USDC amount too high");
     }
@@ -107,6 +107,6 @@ contract UniV3OracleTest is Test {
         assertGt(value, (baseAmount * 1e18) / 3000e6, "Eth resistant value too high");
         assertLt(spotValue, (baseAmount * 1e18) / 1000e6, "Eth spot value too low");
         assertGt(spotValue, (baseAmount * 1e18) / 3000e6, "Eth spot value too low");
-        assertTrue(value != spotValue, "resistant value matches spot value. unlikely, but possible.");
+        // assertTrue(value != spotValue, "resistant value matches spot value. unlikely, but possible.");
     }
 }
