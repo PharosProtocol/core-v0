@@ -6,7 +6,7 @@ import {IUniswapV3Pool} from "@uni-v3-core/interfaces/IUniswapV3Pool.sol";
 import {IUniswapV3PoolState} from "@uni-v3-core/interfaces/pool/IUniswapV3PoolState.sol";
 import {PoolAddress} from "@uni-v3-periphery/libraries/PoolAddress.sol";
 import {OracleLibrary} from "@uni-v3-periphery/libraries/OracleLibrary.sol";
-import {Path} from "@uni-v3-periphery/libraries/path.sol";
+import {Path} from "@uni-v3-periphery/libraries/Path.sol";
 
 import {C} from "src/libraries/C.sol";
 import {LibUtils} from "src/libraries/LibUtils.sol";

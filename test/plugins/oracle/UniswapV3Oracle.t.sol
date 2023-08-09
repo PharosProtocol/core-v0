@@ -7,7 +7,7 @@ import "@forge-std/Test.sol";
 
 import {console} from "@forge-std/console.sol";
 import "@uni-v3-periphery/libraries/PoolAddress.sol";
-import {Path} from "@uni-v3-periphery/libraries/path.sol";
+import {Path} from "@uni-v3-periphery/libraries/Path.sol";
 
 import {C} from "src/libraries/C.sol";
 import {TC} from "test/TC.sol";

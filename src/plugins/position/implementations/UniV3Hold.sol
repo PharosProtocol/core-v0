@@ -5,7 +5,7 @@ pragma solidity 0.8.19;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ISwapRouter} from "@uni-v3-periphery/interfaces/ISwapRouter.sol";
 import {BytesLib} from "@uni-v3-periphery/libraries/BytesLib.sol";
-import {Path} from "@uni-v3-periphery/libraries/path.sol";
+import {Path} from "@uni-v3-periphery/libraries/Path.sol";
 import {CallbackValidation} from "@uni-v3-periphery/libraries/CallbackValidation.sol";
 
 import {IAccount} from "src/interfaces/IAccount.sol";

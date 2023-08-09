@@ -4,7 +4,7 @@ pragma solidity 0.8.19;
 
 import {Oracle} from "../Oracle.sol";
 
-import {Path} from "@uni-v3-periphery/libraries/path.sol";
+import {Path} from "@uni-v3-periphery/libraries/Path.sol";
 import {BytesLib} from "@uni-v3-periphery/libraries/BytesLib.sol";
 
 import {C} from "src/libraries/C.sol";
