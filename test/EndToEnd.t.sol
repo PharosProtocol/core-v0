@@ -135,6 +135,11 @@ contract EndToEndTest is TestUtils {
         vm.prank(borrower);
         bookkeeper.fillOrder(fill, orderSignedBlueprint);
 
+        fill.loanAmount = 1e18 / 5;
+        vm.expectRevert("calm down fren. we just testing. keep loan value at or below 0.1 ETH");
+        vm.prank(borrower);
+        bookkeeper.fillOrder(fill, orderSignedBlueprint);
+
         assertEq(accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 10e18 - LOAN_AMOUNT);
         assertLt(
             accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),

@@ -86,7 +86,7 @@ struct Agreement {
 library LibBookkeeper {
     /// @notice verify that a fill is valid for an order.
     /// @dev Reverts with reason if not valid.
-    function verifyFill(Fill calldata fill, Order memory order) internal pure {
+    function verifyFill(Fill calldata fill, Order memory order) internal view {
         BorrowerConfig memory borrowerConfig;
         if (!order.isOffer) {
             require(!fill.isOfferFill, "offer fill of offer");
@@ -102,6 +102,16 @@ library LibBookkeeper {
         // NOTE this would be the right place to verify modules are compatible with agreement. Current
         //      design allows users to make invalid combinations and leaves compatibility checks up to
         //      UI/user. This is not great but fine because both users must explicitly agree to terms.
+
+        // NOTE v0.1 TESTING RESTRICTIONS.
+        //      THESE ARE TEMPORARY.
+        require(
+            IOracle(order.loanOracles[fill.loanOracleIdx].addr).getSpotValue(
+                fill.loanAmount,
+                order.loanOracles[fill.loanOracleIdx].parameters
+            ) <= 1e18 / 10,
+            "calm down fren. we just testing. keep loan value at or below 0.1 ETH"
+        );
     }
 
     /// @dev assumes compatibility between match, offer, and request already verified.
