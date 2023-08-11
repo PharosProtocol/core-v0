@@ -60,6 +60,7 @@ contract EndToEndTest is TestUtils {
     uint256 LENDER_PRIVATE_KEY = 111;
     uint256 BORROWER_PRIVATE_KEY = 222;
     uint256 LIQUIDATOR_PRIVATE_KEY = 333;
+    uint256 LOAN_AMOUNT = 1e18 / 20;
     Asset[] ASSETS;
 
     constructor() {
@@ -134,7 +135,7 @@ contract EndToEndTest is TestUtils {
         vm.prank(borrower);
         bookkeeper.fillOrder(fill, orderSignedBlueprint);
 
-        assertEq(accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 8e18);
+        assertEq(accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 10e18 - LOAN_AMOUNT);
         assertLt(
             accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
             5_000 * (10 ** TC.USDC_DECIMALS)
@@ -214,7 +215,7 @@ contract EndToEndTest is TestUtils {
         vm.prank(borrower);
         bookkeeper.fillOrder(fill, orderSignedBlueprint);
 
-        assertEq(accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 8e18);
+        assertEq(accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 10e18 - LOAN_AMOUNT);
         assertLt(
             accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
             5_000 * (10 ** TC.USDC_DECIMALS)
@@ -276,7 +277,7 @@ contract EndToEndTest is TestUtils {
         // Solidity array syntax is so bad D:
         address[] memory fillers = new address[](0);
         uint256[] memory minLoanAmounts = new uint256[](2);
-        minLoanAmounts[0] = 1e18;
+        minLoanAmounts[0] = 1e18 / 100;
         minLoanAmounts[1] = 1000 * (10 ** TC.USDC_DECIMALS);
         Asset[] memory loanAssets = new Asset[](1);
         loanAssets[0] = WETH_ASSET;
@@ -295,21 +296,18 @@ contract EndToEndTest is TestUtils {
         // });
         loanOracles[0] = PluginReference({
             addr: address(staticOracle),
-            parameters: abi.encode(StaticOracle.Parameters({ratio: 1 * (10 ** C.ETH_DECIMALS)}))
+            parameters: abi.encode(StaticOracle.Parameters({ratio: 1e18}))
         });
-        console.log(
-            "eth value of 1000 eth: %s",
-            staticOracle.getSpotValue(1000 * (10 ** C.ETH_DECIMALS), loanOracles[0].parameters)
-        );
+        console.log("eth spot value of 1000 eth: %s", staticOracle.getSpotValue(1000e18, loanOracles[0].parameters));
         console.log(
             "eth amount for 60 eth: %s",
-            IOracle(loanOracles[0].addr).getResistantAmount(60 * (10 ** C.ETH_DECIMALS), loanOracles[0].parameters)
+            IOracle(loanOracles[0].addr).getResistantAmount(60e18, loanOracles[0].parameters)
         );
 
         PluginReference[] memory collOracles = new PluginReference[](1);
         collOracles[0] = PluginReference({
             addr: address(staticOracle),
-            parameters: abi.encode(StaticOracle.Parameters({ratio: 2000 * (10 ** TC.USDC_DECIMALS)}))
+            parameters: abi.encode(StaticOracle.Parameters({ratio: (10 ** TC.USDC_DECIMALS) * 2000}))
         });
         console.log(
             "eth value of 1000 usdc: %s",
@@ -317,7 +315,7 @@ contract EndToEndTest is TestUtils {
         );
         console.log(
             "usdc amount for 60 eth: %s",
-            IOracle(loanOracles[0].addr).getResistantAmount(60 * (10 ** C.ETH_DECIMALS), collOracles[0].parameters)
+            IOracle(loanOracles[0].addr).getResistantAmount(60e18, collOracles[0].parameters)
         );
         address[] memory factories = new address[](1);
         // factories[0] = address(uniV3HoldFactory);
@@ -369,14 +367,14 @@ contract EndToEndTest is TestUtils {
         //     )
         // });
         BorrowerConfig memory borrowerConfig = BorrowerConfig({
-            initCollateralRatio: (C.RATIO_FACTOR * 11) / 10, // 110%
+            initCollateralRatio: (C.RATIO_FACTOR * 15) / 10, // 150%
             positionParameters: abi.encode(WalletFactory.Parameters({recipient: borrowerAccountParams.owner}))
         });
 
         return
             Fill({
                 account: PluginReference({addr: address(accountPlugin), parameters: abi.encode(borrowerAccountParams)}),
-                loanAmount: 2e18, // must be valid with init CR and available collateral value
+                loanAmount: LOAN_AMOUNT, // must be valid with init CR and available collateral value
                 takerIdx: 0,
                 loanAssetIdx: 0,
                 collAssetIdx: 0,
