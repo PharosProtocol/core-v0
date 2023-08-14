@@ -136,6 +136,7 @@ library LibBookkeeper {
         agreement.loanAmount = fill.loanAmount;
     }
 
+    // NOTE should make this public, without increasing lib gas cost
     /// @notice Is the position defined by an agreement up for liquidation and not yet kicked
     /// @dev liquidation based on CR or duration limit
     function isLiquidatable(Agreement memory agreement) internal view returns (bool) {
