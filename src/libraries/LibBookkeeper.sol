@@ -171,6 +171,8 @@ library LibBookkeeper {
             agreement.collOracle.parameters
         );
 
+        // NOTE WARNING FUNDERBRKER - CR calc can create negative numbers. This code cannot deal. Update.
+
         uint256 collateralRatio = (C.RATIO_FACTOR * outstandingValue) / collValue;
 
         if (collateralRatio < agreement.minCollateralRatio) {
