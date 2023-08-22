@@ -7,9 +7,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {C} from "src/libraries/C.sol";
 import {IWETH9} from "src/interfaces/external/IWETH9.sol";
 // import {IFreighter} from "src/interfaces/IFreighter.sol";
-import {AddrCategory, Asset} from "src/libraries/LibUtils.sol";
-
-// NOTE need to implement support for inline ETH wrapping
+import {Asset, AssetState} from "src/libraries/LibUtils.sol";
 
 // Supports:
 // Rebasing tokens
@@ -20,36 +18,37 @@ import {AddrCategory, Asset} from "src/libraries/LibUtils.sol";
 /// @notice Freight for moving ERC20 tokens.
 /// @dev adheres to IFreighter interface.
 library ERC20Freighter {
+    function balance(Asset calldata asset, AssetState calldata, bytes calldata) external view returns (uint256) {
+        return IERC20(asset.addr).balanceOf(address(this));
+    }
+
     /// @dev user eoa must approve erc20 transfer before calling this.
-    function pullToPort(address from, Asset calldata asset, uint256 amount, bytes calldata) external payable {
+    function pull(
+        address from,
+        Asset calldata asset,
+        uint256 amount,
+        AssetState calldata,
+        bytes calldata
+    ) external payable {
         _safeErc20TransferFrom(asset.addr, from, address(this), amount);
     }
 
     /// @dev user eoa must approve erc20 transfer before calling this.
-    function pullToTerminal(address from, Asset calldata asset, uint256 amount, bytes calldata) external payable {
-        _safeErc20TransferFrom(asset.addr, from, address(this), amount);
-    }
-
-    function pushFromPort(address to, Asset calldata asset, uint256 amount, bytes calldata) external {
-        _safeErc20Transfer(asset.addr, to, amount);
-    }
-
-    function pushFromTerminal(address to, Asset calldata asset, uint256 amount, bytes calldata) external {
+    function push(address to, Asset calldata asset, uint256 amount, AssetState calldata, bytes calldata) external {
         _safeErc20Transfer(asset.addr, to, amount);
     }
 
     // NOTE security how is correctness of amount ensured? bk?
-    function portReceiptCallback(Asset calldata asset, uint256 amount, bytes calldata) external {
-        // Allows for 1 txn deposit of eth to use as weth.
-        if (msg.value == amount && asset.addr == C.WETH) {
+    function processReceipt(
+        Asset calldata asset,
+        uint256 amount,
+        AssetState calldata fromState,
+        AssetState calldata,
+        bytes calldata
+    ) external {
+        if (fromState == AssetState.USER && msg.value == amount && asset.addr == C.WETH) {
             IWETH9(C.WETH).deposit{value: msg.value}();
         }
-    }
-
-    function termReceiptCallback(Asset calldata asset, uint256 amount, bool, bytes calldata) external {}
-
-    function getBalance(address addr, Asset calldata asset, AddrCategory, bytes calldata) external view {
-        return IERC20(asset.addr).balanceOf(addr);
     }
 
     // SECURITY NOTE: did not account for fee on transfer ERC20s. Either need to update logic or restrict to

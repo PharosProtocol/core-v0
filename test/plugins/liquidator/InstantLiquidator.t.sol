@@ -84,7 +84,7 @@ contract InstantLiquidatorTest is TestUtils {
         // string memory revertMsg =
         //     string.concat("AccessControl: account ", Strings.toHexString(uint160(address(this)), 20));
         // revertMsg = string.concat(revertMsg, " is missing role ");
-        // revertMsg = string.concat(revertMsg, Strings.toHexString(uint256(C.ADMIN_ROLE), 32));
+        // revertMsg = string.concat(revertMsg, Strings.toHexString(uint256(C.CONTROLLER_ROLE), 32));
 
         // Set assessor and cost.
         MockAssessor assessorContract = new MockAssessor(ASSETS[loanAssetIdx], cost);
@@ -178,6 +178,6 @@ contract InstantLiquidatorTest is TestUtils {
         // );
 
         // Control of position is sender.
-        assertTrue(position.hasRole(C.ADMIN_ROLE, msg.sender));
+        assertTrue(position.hasRole(C.CONTROLLER_ROLE, msg.sender));
     }
 }

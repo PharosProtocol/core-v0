@@ -15,14 +15,14 @@ abstract contract Assessor is IAssessor {
     function getCost(
         Agreement calldata agreement,
         uint256 currentAmount
-    ) external view returns (Asset memory asset, uint256 amount) {
-        (asset, amount) = _getCost(agreement, currentAmount);
-        // Invariant check.
-        require(asset.standard == ETH_STANDARD || asset.standard == ERC20_STANDARD, "getCost: invalid asset");
+    ) external view returns (PluginRef calldata freighter, Asset memory asset, uint256 amount) {
+        (freighter, asset, amount) = _getCost(agreement, currentAmount);
+        // // Must be divisible asset
+        // require(asset.standard == ETH_STANDARD || asset.standard == ERC20_STANDARD, "getCost: invalid asset");
     }
 
     function _getCost(
         Agreement calldata agreement,
         uint256 currentAmount
-    ) internal view virtual returns (Asset memory asset, uint256 amount);
+    ) internal view virtual returns (PluginRef calldata freighter, Asset memory asset, uint256 amount);
 }

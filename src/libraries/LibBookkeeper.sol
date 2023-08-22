@@ -27,6 +27,8 @@ struct Order {
     PluginRef liquidator;
     PluginRef[] loanOracles;
     PluginRef[] collOracles;
+    PluginRef loanFreighter;
+    PluginRef collFreighter;
     address[] factories;
     // Sided config
     bool isOffer;
@@ -79,6 +81,11 @@ struct Agreement {
 }
 
 library LibBookkeeper {
+    // NOTE cannot verify order, bc they are signed off chain.
+    // /// @notice verify that an order is validly configured.
+    // function verifyOrder(Order calldata order) internal pure {
+    // }
+
     /// @notice verify that a fill is valid for an order.
     /// @dev Reverts with reason if not valid.
     function verifyFill(Fill calldata fill, Order memory order) internal pure {
@@ -91,6 +98,8 @@ library LibBookkeeper {
             borrowerConfig = fill.borrowerConfig;
         }
 
+        // NOTE SECURITY should ensure filling bytes are reasonable size to prevent gas griefing
+
         require(fill.loanAmount >= order.minLoanAmounts[fill.loanAssetIdx], "loanAmount too small");
         require(borrowerConfig.initCollateralRatio >= order.minCollateralRatio, "initCollateralRatio too small");
 
@@ -98,7 +107,7 @@ library LibBookkeeper {
         //      design allows users to make invalid combinations and leaves compatibility checks up to
         //      UI/user. This is not great but fine because both users must explicitly agree to terms.
     }
-
+        
     /// @dev assumes compatibility between match, offer, and request already verified.
     /// @dev does not fill position address, as it is not known until deployment.
     function agreementFromOrder(
@@ -151,7 +160,7 @@ library LibBookkeeper {
             revert("isLiquidatable: invalid asset");
         }
         uint256 collValue = IOracle(agreement.collOracle.addr).getSpotValue(
-            agreement.collAmount,
+            agreement.collAmount, // TODO change to be dynamic balance in contract?
             agreement.collOracle.parameters
         );
 

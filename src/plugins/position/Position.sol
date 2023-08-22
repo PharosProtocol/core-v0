@@ -11,7 +11,7 @@ import {IPosition} from "src/interfaces/IPosition.sol";
 import {C} from "src/libraries/C.sol";
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
 import {Asset} from "src/libraries/LibUtils.sol";
-import {CloneFactory} from "src/plugins/CloneFactory.sol";
+import {AssetHolder} from "src/plugins/AssetHolder.sol";
 
 // Implementation should not allow user to enter a position in such a way that they
 // would be unable to exit. Lender does not necessarily agree to the parameters, so they
@@ -19,64 +19,70 @@ import {CloneFactory} from "src/plugins/CloneFactory.sol";
 // TODO SECURITY this is probably possible in current Uni Hold Position impl. Need to verify exit
 // path at enter time.
 
-abstract contract Position is IPosition, CloneFactory {
+abstract contract Position is IPosition, AssetHolder {
     event ControlTransferred(address previousController, address newController);
 
-    constructor(address bookkeeperAddr) CloneFactory(bookkeeperAddr) {
-        // _setupRole
-        // _setupRole
-    }
+    constructor(address bookkeeperAddr) AssetHolder(bookkeeperAddr, category) {}
 
-    function deploy(
-        Asset calldata asset,
-        uint256 amount,
-        bytes calldata parameters
-    ) external override proxyExecution onlyRole(C.ADMIN_ROLE) {
-        _deploy(asset, amount, parameters);
-    }
-
-    function _deploy(Asset calldata asset, uint256 amount, bytes calldata parameters) internal virtual;
-
-    function close(
-        address sender,
-        Agreement calldata agreement
-    ) external override proxyExecution onlyRole(C.ADMIN_ROLE) returns (uint256) {
-        return _close(sender, agreement);
-    }
-
-    function distribute(
-        address sender,
-        uint256 lenderAmount,
-        Agreement calldata agreement
-    ) external payable override proxyExecution onlyRole(C.ADMIN_ROLE) {
-        return _distribute(sender, lenderAmount, agreement);
-    }
+    /// @notice Do nothing.
+    function _initialize(bytes calldata initData) internal override {}
 
     function getCloseAmount(bytes calldata parameters) external view override proxyExecution returns (uint256) {
         return _getCloseAmount(parameters);
     }
 
-    /// @notice Close position and distribute assets. Give borrower MPC control.
-    /// @dev All asset management must be done within this call, else bk would need to have asset-specific knowledge.
-    function _close(address sender, Agreement calldata agreement) internal virtual returns (uint256);
+    function deploy(Agreement calldata agreement) external override proxyExecution onlyRole(C.CONTROLLER_ROLE) {
+        _deploy(agreement);
+    }
 
-    function _distribute(address sender, uint256 lenderAmount, Agreement calldata agreement) internal virtual;
+    function close(
+        address sender,
+        Agreement calldata agreement
+    ) external override proxyExecution onlyRole(C.CONTROLLER_ROLE) returns (uint256) {
+        return _close(sender, agreement);
+    }
+
+    // function distribute(
+    //     address to,
+    //     PluginRef calldata freighter,
+    //     Asset calldata asset,
+    //     uint256 amount,
+    //     AssetState calldata fromState,
+    //     bytes calldata parameters
+    // ) external payable override proxyExecution onlyRole(C.CONTROLLER_ROLE) {
+    //     _distribute(to, freighter, asset, amount, fromState, parameters);
+    //     push(to, freighter, asset, amount, fromState, parameters);
+    // }
 
     function _getCloseAmount(bytes calldata parameters) internal view virtual returns (uint256);
 
+    function _deploy(Agreement calldata agreement) internal virtual;
+
+    function _close(address sender, Agreement calldata agreement) internal virtual returns (uint256);
+
+    // function _distribute(
+    //     address to,
+    //     PluginRef calldata freighter,
+    //     Asset calldata asset,
+    //     uint256 amount,
+    //     AssetState calldata fromState,
+    //     bytes calldata parameters
+    // ) internal virtual;
+
     // SECURITY Hello auditors. This feels risky.
-    function transferContract(address controller) external override proxyExecution onlyRole(C.ADMIN_ROLE) {
-        grantRole(C.ADMIN_ROLE, controller);
-        renounceRole(C.ADMIN_ROLE, msg.sender);
+    function transferContract(address controller) external override proxyExecution onlyRole(C.CONTROLLER_ROLE) {
+        _grantRole(C.CONTROLLER_ROLE, controller);
+        _revokeRole(C.CONTROLLER_ROLE, msg.sender);
 
         emit ControlTransferred(msg.sender, controller);
     }
 
+    // SECURITY Hello auditors. This also is a point of risk.
     function passThrough(
         address payable destination,
         bytes calldata data,
         bool delegateCall
-    ) external payable proxyExecution onlyRole(C.ADMIN_ROLE) returns (bool, bytes memory) {
+    ) external payable proxyExecution onlyRole(C.CONTROLLER_ROLE) returns (bool, bytes memory) {
         if (!delegateCall) {
             return destination.call{value: msg.value}(data);
         } else {

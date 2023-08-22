@@ -67,7 +67,7 @@ abstract contract CloneFactory is AccessControl, Initializable {
      */
     function initialize(bytes calldata initData) external payable initializer proxyExecution {
         require(msg.sender == FACTORY_ADDR, "sender != impl contract");
-        _setupRole(C.ADMIN_ROLE, BOOKKEEPER_ADDR); // Clone role set. May change.
+        _setupRole(C.CONTROLLER_ROLE, BOOKKEEPER_ADDR); // Clone role set. May change.
         _initialize(initData);
     }
 

@@ -19,6 +19,11 @@ import {Asset, LibUtils, ETH_STANDARD} from "src/libraries/LibUtils.sol";
 //      It should also *not* have any asset transfer logic, bc then it requires compatibility with any assets that
 //      plugins might implement. The exception is cost assessment, which is known to be in erc20/eth.
 
+// NOTE SECURITY bookkeeper cannot make any delegate external calls to unknown code bc it contains shared state.
+//      extreme caution should be taken for standard external calls.
+// NOTE this means no calls to freighters.
+// NOTE it also means oracles cannot be implemented as libraries...? UNLESS USING STATICCALL
+
 contract Bookkeeper is Tractor, ReentrancyGuard {
     enum BlueprintDataType {
         NULL,
@@ -27,17 +32,19 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
     }
 
     string public constant PROTOCOL_NAME = "pharos";
-    string public constant PROTOCOL_VERSION = "0.1.0";
+    string public constant PROTOCOL_VERSION = "0.2.0";
 
     // AUDIT: reading/writing uint256 more efficient than bool?
     // Map indicating if a position has already been kicked.
-    mapping(bytes32 => uint256) kicked; // blueprintHash => 0/1 bool
+    mapping(bytes32 => uint256) public kicked; // blueprintHash => 0/1 bool
 
     event OrderFilled(SignedBlueprint agreement, bytes32 orderBlueprintHash, address taker);
     event PositionExited(SignedBlueprint agreement, Asset costAsset, uint256 cost);
     event LiquidationKicked(address liquidator, address position);
 
     constructor() Tractor(PROTOCOL_NAME, PROTOCOL_VERSION) {}
+
+    // function addAssetsToPlugin() // port or terminal top up
 
     function fillOrder(
         Fill calldata fill,
@@ -48,15 +55,9 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         require(uint8(blueprintDataType) == uint8(BlueprintDataType.ORDER), "BKDTMM");
 
         // Verify publishers own accounts. May or may not be EOA.
-        require(
-            msg.sender == IAccount(fill.account.addr).getOwner(fill.account.parameters),
-            "fillOrder: Taker != msg.sender"
-        );
+        require(msg.sender == IAccount(fill.account.addr).owner(), "fillOrder: Taker != msg.sender");
         Order memory order = abi.decode(blueprintData, (Order));
-        require(
-            orderBlueprint.blueprint.publisher == IAccount(order.account.addr).getOwner(order.account.parameters),
-            "BKPOMM"
-        );
+        require(orderBlueprint.blueprint.publisher == IAccount(order.account.addr).owner(), "BKPOMM");
         if (order.fillers.length > 0) {
             require(order.fillers[fill.takerIdx] == msg.sender, "Bookkeeper: Invalid taker");
         }
@@ -94,6 +95,7 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         emit OrderFilled(signedBlueprint, orderBlueprint.blueprintHash, msg.sender);
     }
 
+    // NOTE AUDIT verify works with ETH
     // NOTE CEI?
     function exitPosition(
         SignedBlueprint calldata agreementBlueprint
@@ -101,46 +103,108 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         (bytes1 blueprintDataType, bytes memory blueprintData) = unpackDataField(agreementBlueprint.blueprint.data);
         require(blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "exitPosition: Invalid data type");
         Agreement memory agreement = abi.decode(blueprintData, (Agreement));
-        require(
-            msg.sender == IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters),
-            "exitPosition: sender!=borrower"
-        );
+        require(msg.sender == IAccount(agreement.borrowerAccount.addr).owner(), "exitPosition: sender!=borrower");
 
         // All asset management must be done within this call, else bk would need to have asset-specific knowledge.
         IPosition position = IPosition(agreement.position.addr);
         uint256 closedAmount = position.close(msg.sender, agreement);
 
-        (Asset memory costAsset, uint256 cost) = IAssessor(agreement.assessor.addr).getCost(agreement, closedAmount);
+        uint256 loanAssetAmountOwed = agreement.loanAmount;
 
-        uint256 lenderOwed = agreement.loanAmount;
-        uint256 distributeValue;
-        // If cost asset is same erc20 as loan asset.
-        if (LibUtils.isValidLoanAssetAsCost(agreement.loanAsset, costAsset)) {
-            lenderOwed += cost;
-            distributeValue = msg.value;
-        }
-        // If cost in eth but loan asset is not eth.
-        else if (costAsset.standard == ETH_STANDARD) {
-            require(msg.value == cost, "exitPosition: msg.value mismatch");
-            IAccount(agreement.lenderAccount.addr).loadFromPosition{value: msg.value}(
-                costAsset,
-                cost,
-                agreement.lenderAccount.parameters
-            );
+        // f = IFreighter(agreement.loanFreighter.addr);
+        t = IPosition(agreement.position.addr);
+        lp = IAccount(agreement.lenderAccount.addr);
+
+        (PluginRef memory costFreighter, Asset memory costAsset, uint256 costAmount) = IAssessor(
+            agreement.assessor.addr
+        ).getCost(agreement, closedAmount);
+
+        // Expected use with ETH and ERC20s
+        if (isSameAssetConfig(loanAsset, costAsset)) {
+            loanAssetAmountOwed += cost;
         } else {
-            revert("exitPosition: invalid cost asset");
+            lp.pull(msg.sender, costFreighter, costAsset, costAmount, AssetState.PORT);
+            lp.processReceipt(costFreighter, costAsset, costAmount, AssetState.USER, AssetState.PORT);
         }
 
-        position.distribute{value: distributeValue}(msg.sender, lenderOwed, agreement);
+        // If cost asset is same erc20 as loan asset.
+        // if (LibUtils.isValidLoanAssetAsCost(agreement.loanAsset, costAsset)) {
 
-        IAccount(agreement.borrowerAccount.addr).unlockCollateral(
-            agreement.collAsset,
-            agreement.collAmount,
-            agreement.borrowerAccount.parameters
+        // NOTE two possible paradigms to impl here:
+        // 1. Use preset amounts, found in agreement to determine position balance. This requires pos to static throughout life. This allows terminals to never need to pull.
+        // 2. Use real time balances, which allows users to add/remove collateral from position. This requires pulling into terminals.
+
+        // Pay lender.
+        // Deficit loan asset comes from sender.
+        if (closedAmount < loanAssetAmountOwed) {
+            t.pull(
+                msg.sender,
+                agreement.loanFreighter,
+                agreement.loanAsset,
+                loanAssetAmountOwed - closedAmount,
+                AssetState.TERMINAL_LOAN
+            );
+            t.processReceipt(
+                agreement.loanFreighter,
+                agreement.loanAsset,
+                loanAssetAmountOwed - closedAmount,
+                AssetState.USER,
+                AssetState.TERMINAL_LOAN
+            );
+        }
+        t.push(
+            agreement.lenderAccount,
+            agreement.loanFreighter,
+            agreement.loanAsset,
+            loanAssetAmountOwed,
+            AssetState.TERMINAL_LOAN
+        );
+        lp.processReceipt(
+            agreement.loanFreighter,
+            agreement.loanAsset,
+            loanAssetAmountOwed,
+            AssetState.TERMINAL_LOAN,
+            AssetState.PORT
         );
 
-        // Marks position as closed from Bookkeeper pov.
-        position.transferContract(msg.sender);
+        // Excess loan asset goes to borrower.
+        if (closeAmount > loanAssetAmountOwed) {
+            t.push(
+                agreement.borrowerAccount,
+                agreement.loanFreighter,
+                agreement.loanAsset,
+                closeAmount - loanAssetAmountOwed,
+                AssetState.TERMINAL_LOAN
+            );
+            lp.processReceipt(
+                agreement.loanFreighter,
+                agreement.loanAsset,
+                closeAmount - loanAssetAmountOwed,
+                AssetState.TERMINAL_LOAN,
+                AssetState.PORT
+            );
+        }
+
+        // All collateral asset goes to borrower.
+        t.push(
+            agreement.borrowerAccount,
+            agreement.collFreighter,
+            agreement.collAsset,
+            agreement.collAmount,
+            AssetState.TERMINAL_LOAN
+        );
+        lp.processReceipt(
+            agreement.collFreighter,
+            agreement.collAsset,
+            agreement.collAmount,
+            AssetState.TERMINAL_LOAN,
+            AssetState.PORT
+        );
+
+        // SECURITY implications of position continuing to exist?
+        // NOTE mostly unnecessary and not gas cheap.
+        // // Marks position as closed from Bookkeeper pov.
+        // position.transferContract(msg.sender);
 
         emit PositionExited(agreementBlueprint, costAsset, cost);
     }
@@ -181,24 +245,36 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         (bool success, bytes memory data) = agreement.factory.call(abi.encodeWithSignature("createClone()"));
         require(success, "BKFCP");
         agreement.position.addr = abi.decode(data, (address));
-        IAccount(agreement.lenderAccount.addr).unloadToPosition(
+        IPosition position = IPosition(agreement.position.addr);
+        IAccount(agreement.lenderAccount.addr).sendToPosition(
             agreement.position.addr,
+            agreement.loanFreighter.addr,
             agreement.loanAsset,
             agreement.loanAmount,
-            false,
-            agreement.lenderAccount.parameters
+            agreement.loanFreighter.parameters
         );
-        // NOTE lots of gas savings if collateral can be kept in borrower account until absolutely necessary.
-        IAccount(agreement.borrowerAccount.addr).lockCollateral(
+        position.processReceipt(
+            agreement.loanFreighter,
+            agreement.loanAsset,
+            agreement.loanAmount,
+            AssetState.PORT,
+            AssetState.TERMINAL_LOAN
+        );
+        IAccount(agreement.borrowerAccount.addr).sendToPosition(
+            agreement.position.addr,
+            agreement.collFreighter.addr,
             agreement.collAsset,
             agreement.collAmount,
-            agreement.borrowerAccount.parameters
+            agreement.collFreighter.parameters
         );
-        IPosition(agreement.position.addr).deploy(
-            agreement.loanAsset,
-            agreement.loanAmount,
-            agreement.position.parameters
+        position.processReceipt(
+            agreement.collFreighter,
+            agreement.collAsset,
+            agreement.collAmount,
+            AssetState.PORT,
+            AssetState.TERMINAL_COLL
         );
+        position.deploy(agreement);
     }
 
     // TODO implement the verification

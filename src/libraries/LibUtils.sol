@@ -13,6 +13,11 @@ bytes3 constant ERC20_STANDARD = bytes3(uint24(20));
 bytes3 constant ERC721_STANDARD = bytes3(uint24(721));
 bytes3 constant ERC1155_STANDARD = bytes3(uint24(1155));
 
+struct PluginRef {
+    address addr;
+    bytes parameters;
+}
+
 struct Asset {
     bytes3 standard; // id of token standard.
     address addr;
@@ -21,9 +26,11 @@ struct Asset {
     bytes data; // 721, 1155, arbitrary
 }
 
-struct PluginRef {
-    address addr;
-    bytes parameters;
+enum AssetState {
+    USER,
+    PORT,
+    TERMINAL_LOAN,
+    TERMINAL_COLL
 }
 
 library LibUtils {
@@ -56,14 +63,16 @@ library LibUtils {
         }
     }
 
-    function isEqAsset(Asset memory asset0, Asset memory asset1) internal pure returns (bool) {
+    // NOTE SECURITY this checks exact match, but the same asset could be represented by 2 different structs and
+    //      would behave the both for same.
+    function isSameAssetConfig(Asset memory asset0, Asset memory asset1) internal pure returns (bool) {
         if (keccak256(abi.encode(asset0)) == keccak256(abi.encode(asset1))) return true;
         return false;
     }
 
     function isValidLoanAssetAsCost(Asset memory loanAsset, Asset memory costAsset) internal pure returns (bool) {
         if (loanAsset.standard != ERC20_STANDARD) return false;
-        if (!isEqAsset(loanAsset, costAsset)) return false;
+        if (!isSameAssetConfig(loanAsset, costAsset)) return false;
         return true;
     }
 }

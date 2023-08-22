@@ -61,7 +61,7 @@ contract AccountTest is TestUtils {
 
         // Define account instance.
         bytes memory parameters = abi.encode(SoloAccount.Parameters({owner: msg.sender, salt: "salt"}));
-        assertEq(accountPlugin.getOwner(parameters), msg.sender);
+        assertEq(accountPlugin.owner(parameters), msg.sender);
 
         // Fail to add WETH because balance too low.
         vm.expectRevert();

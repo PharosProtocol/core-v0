@@ -19,7 +19,7 @@ interface IAssessor {
     function getCost(
         Agreement calldata agreement,
         uint256 currentAmount
-    ) external view returns (Asset memory asset, uint256 amount);
+    ) external view returns (PluginRef memory freighter, Asset memory asset, uint256 amount);
 
     function canHandleAsset(Asset calldata asset, bytes calldata parameters) external view returns (bool);
 }

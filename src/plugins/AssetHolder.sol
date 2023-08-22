@@ -6,58 +6,60 @@ import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
 import {IAssetHolder} from "src/interfaces/IAssetHolder.sol";
 import {IFreighter} from "src/interfaces/IFreighter.sol";
-import {Asset, PluginRef} from "src/libraries/LibUtils.sol";
+import {Asset, AssetState, PluginRef} from "src/libraries/LibUtils.sol";
 import {C} from "src/libraries/C.sol";
 
+/// @notice this very verbose abstract contract exists to allow for the use of the freighter logic in the state
+///         space of Ports and Terminals. Every function is a wrapper for a freighter library function.
 abstract contract AssetHolder is AccessControl, CloneFactory {
-    AddrCategory public immutable addrCategory;
+    constructor(address handlerAddr, address bookkeeperAddr) CloneFactory(bookkeeperAddr) {}
 
-    constructor(address bookkeeperAddr, AddrCategory category) CloneFactory(bookkeeperAddr) {
-        addrCategory = category;
+    function balance(
+        PluginRef calldata freighter,
+        Asset calldata asset,
+        AssetState calldata state
+    ) public view proxyExecution returns (uint256) {
+        IFreighter(freighter.addr).balance(asset, state, freighter.parameters);
+    }
+
+    function pull(
+        address from,
+        PluginRef calldata freighter,
+        Asset calldata asset,
+        uint256 amount,
+        AssetState calldata toState
+    ) external payable proxyExecution onlyRole(C.CONTROLLER_ROLE) {
+        IFreighter(freighter.addr).pull(from, asset, amount, toState, freighter.parameters);
+    }
+
+    function push(
+        address to,
+        PluginRef calldata freighter,
+        Asset calldata asset,
+        uint256 amount,
+        AssetState calldata fromState
+    ) external proxyExecution onlyRole(C.CONTROLLER_ROLE) {
+        IFreighter(freighter.addr).push(to, asset, amount, fromState, freighter.parameters);
     }
 
     function processReceipt(
         PluginRef calldata freighter,
         Asset calldata asset,
         uint256 amount,
-        bool isColl
-    ) external proxyExecution onlyRole(C.BOOKKEEPER_ROLE) {
-        _processReceipt(freighter, asset, amount, isColl);
+        AssetState calldata fromState,
+        AssetState calldata toState
+    ) external proxyExecution onlyRole(C.CONTROLLER_ROLE) {
+        IFreighter(freighter.addr).processReceipt(asset, amount, fromState, toState, freighter.parameters);
+        // _processReceipt(freighter, asset, amount, state);
     }
 
-    function _processReceipt(
-        PluginRef calldata freighter,
-        Asset calldata asset,
-        uint256 amount,
-        bool isColl
-    ) internal proxyExecution {
-        // __processReceipt(asset, amount, parameters);
-
-        // Allow the freighter to handle asset-specific logic in the state space of the holding plugin.
-        bytes memory callData;
-        if (addrCategory == AddrCategory.PORT) {
-            callData = abi.encodeWithSelector(
-                IFreighter.portReceiptCallback.selector,
-                asset,
-                amount,
-                freighter.parameters
-            );
-        } else if (addrCategory == AddrCategory.TERMINAL) {
-            callData = abi.encodeWithSelector(
-                IFreighter.termReceiptCallback.selector,
-                asset,
-                amount,
-                isColl,
-                freighter.parameters
-            );
-        } else {
-            revert("invalid receipt plugin category");
-        }
-
-        (bool success, ) = freighter.addr.delegatecall(callData);
-        require(success, "failed freighter callback");
-    }
-
-    // /// @notice Plugin reacts to the receipt of assets. Optional.
-    // function __processReceipt(Asset calldata asset, uint256 amount, bytes calldata parameters) internal virtual;
+    // function _processReceipt(
+    //     PluginRef calldata freighter,
+    //     Asset calldata asset,
+    //     uint256 amount,
+    //     AssetState calldata fromState,
+    //     AssetState calldata toState
+    // ) internal proxyExecution {
+    //     IFreighter(freighter.addr).receiptCallback(asset, amount, state, freighter.parameters);
+    // }
 }

@@ -9,6 +9,9 @@ can be trusted by modules (after reviewing verified source code ofc).
 Each plugin is a standalone contract meant to perform one duty of loan management. They can be permissionlessly
 deployed by anyone and therefore cannot be trusted. See more in `src/modules/README.md`. This permissionless use of solidity code by the protocol is a large part of what makes Pharos novel and extremely customizable.
 
+## Design
+- Many plugin categories would make more sense being implemented as a library, but solidity libraries do not offer
+inheritance that is necessary to set shared modifiers for all plugin implementations or other universal logic.
 
 # Security 
 
@@ -24,6 +27,10 @@ regardless of implementation.
 entrust safety of any assets outside of the agreement to depend on safe implementation of the other plugins.
 - It is possible that a module cannot handle an agreement and locks up. It is expected that the user / UI does
 not create an invalid offer / agreement.
+
+- all *standard* user-facing calls live inside of the bookkeeper
+- ^^ => all *standard* external plugin calls should be bookkeeper only 
+- non-standard calls may be implemented in certain plugin types and directly accessible to external users
 
 ## Outstanding Thoughts and Questions
 

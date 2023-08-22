@@ -10,5 +10,11 @@ If a User wants a Terminal, or any component using the terminal, to appear in th
 ### Verification
 In order for a Terminal to be marked as verified in the Modulend marketplace it must first be audited by a trusted third party to ensure that it conforms to standards and its operation is secure and authentic.
 
+## Design
+- Positions are MPCs
+- Positions should *not* assume to know all sources of funds. Funds may appear unexpectedly from profits, token
+rebasing, unknown plugin implementations, or other asset-specific behavior.
+- TODO what if borrowers can send collateral assets directly to the position to improve health?
+
 ## Examples
-This directory contains example implementations of Terminals. These examples will be deployed and useable through Modulus.
+This directory contains example implementations of Terminals. These examples will be deployed and useable through Pharos.

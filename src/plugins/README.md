@@ -69,3 +69,9 @@ just cause stuck positions as indicator may come too late.
 // Ex) Assessor:deterministic_cost, Account:assessor_updater, position:imperfect_exit_amount
 // Not covered by this design is where a plugin adds a tag that indicates *incompatibility* with another plugin bc
 // existing plugins would not be aware of newly implemented incompatibility tags.
+
+## Factories and Clones
+
+### Gas
+- ERC20 transfer (push) has 2 storage updates, transferFrom has at most 3. thus locking acct vs pushing assets to
+    position at position creation time saves ~1 storage update of gas at significant complexity cost/risk.

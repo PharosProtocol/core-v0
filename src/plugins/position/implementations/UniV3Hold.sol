@@ -40,6 +40,8 @@ struct SwapCallbackData {
 
 // NOTE for sake of efficiency, should split into multi-hop and single pool paths.
 
+// NOTE need to account for situation when collateral asset == held asset.
+
 contract UniV3HoldFactory is Position {
     struct Parameters {
         bytes enterPath;
@@ -57,17 +59,17 @@ contract UniV3HoldFactory is Position {
     using Path for bytes;
     using BytesLib for bytes;
 
-    constructor(address protocolAddr) Position(protocolAddr) {}
+    constructor(address bookkeeperAddr) Position(bookkeeperAddr) {}
 
-    function canHandleAsset(Asset calldata asset, bytes calldata parameters) external pure override returns (bool) {
-        Parameters memory params = abi.decode(parameters, (Parameters));
-        if (asset.standard != ERC20_STANDARD) return false;
-        // if (params.enterPath.numPools() > 1) return false;
-        // if (params.exitPath.numPools() > 1) return false;
-        if (asset.addr != params.enterPath.toAddress(0)) return false;
-        if (asset.addr != params.exitPath.toAddress(params.exitPath.length - 20)) return false;
-        return true;
-    }
+    // function canHandleAsset(Asset calldata asset, bytes calldata parameters) external pure override returns (bool) {
+    //     Parameters memory params = abi.decode(parameters, (Parameters));
+    //     if (asset.standard != ERC20_STANDARD) return false;
+    //     // if (params.enterPath.numPools() > 1) return false;
+    //     // if (params.exitPath.numPools() > 1) return false;
+    //     if (asset.addr != params.enterPath.toAddress(0)) return false;
+    //     if (asset.addr != params.exitPath.toAddress(params.exitPath.length - 20)) return false;
+    //     return true;
+    // }
 
     /**
      * @notice Send ERC20 assets that Uniswap expects for swap.

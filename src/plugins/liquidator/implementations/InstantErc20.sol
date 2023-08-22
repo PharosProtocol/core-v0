@@ -26,7 +26,7 @@ abstract contract InstantErc20 is Liquidator {
     function _liquidate(address sender, Agreement calldata agreement, bool closePosition) internal {
         // require(liquidating[agreement.position.addr], "position not in liquidation phase");
 
-        IPosition position = IPosition(agreement.position.addr);
+        IPosition t = IPosition(agreement.position.addr);
 
         /**
          * Collateral Asset *
@@ -37,27 +37,12 @@ abstract contract InstantErc20 is Liquidator {
         if (agreement.collAmount < rewardCollAmount) rewardCollAmount = agreement.collAmount;
         // Reward goes direct to liquidator.
         if (rewardCollAmount > 0) {
-            // d4e3bdb6: LibUtilsPublic.safeErc20Transfer(address,address,uint256)
-            (bool success, ) = IPosition(agreement.position.addr).passThrough(
-                payable(address(LibUtilsPublic)),
-                abi.encodeWithSelector(
-                    LibUtilsPublic.safeErc20Transfer.selector,
-                    agreement.collAsset.addr,
-                    sender,
-                    rewardCollAmount
-                ),
-                true
-            );
-            require(success, "Failed send coll to liquidator");
+            t.push(sender, agreement.collFreighter, agreement.collAsset, rewardCollAmount, AssetState.TERMINAL_COLL);
         }
         // Spare collateral goes back to borrower.
         if (agreement.collAmount > rewardCollAmount) {
-            _loadFromPosition(
-                position,
-                agreement.borrowerAccount,
-                agreement.collAsset,
-                agreement.collAmount - rewardCollAmount
-            );
+            t.push(agreement.borrowerAccount, agreement.collFreighter, agreement.collAsset, agreement.collAmount - rewardCollAmount, AssetState.TERMINAL_COLL);
+            bk.fwd_processReceipt()...;
         }
 
         /**
@@ -72,24 +57,30 @@ abstract contract InstantErc20 is Liquidator {
             closeAmount = position.getCloseAmount(agreement.position.parameters);
         }
         // Split loan asset in position between lender and borrower. Lender gets priority.
-        (Asset memory costAsset, uint256 cost) = IAssessor(agreement.assessor.addr).getCost(agreement, closeAmount);
-        uint256 lenderOwed = agreement.loanAmount;
-        if (LibUtils.isValidLoanAssetAsCost(agreement.loanAsset, costAsset)) {
-            lenderOwed += cost;
-        } else if (costAsset.standard == ETH_STANDARD) {
-            require(msg.value == cost, "_liquidate: value mismatch");
-            IAccount(agreement.lenderAccount.addr).loadFromPosition{value: cost}(
-                costAsset,
-                cost,
-                agreement.lenderAccount.parameters
-            );
+        (PluginRef memory costFreighter, Asset memory costAsset, uint256 costAmount) = IAssessor(agreement.assessor.addr).getCost(agreement, closeAmount);
+        uint256 loanAssetAmountOwed = agreement.loanAmount;
+        
+        // Expected use with ETH and ERC20s
+        if (isSameAssetConfig(loanAsset, costAsset)) {
+            loanAssetAmountOwed += cost;
+        } else {
+            lp.pull(msg.sender, costFreighter, costAsset, costAmount, AssetState.PORT);
+            bk.fwd_professReceipt(costFreighter, costAsset, costAmount, AssetState.USER, AssetState.PORT);
         }
-        // SECURITY are these else revert checks necessary?
-        else {
-            revert("_liquidate: invalid cost asset");
+
+        uint256 terminalBalance = t.balance(agreement.loanFreighter, agreement.loanAsset, AssetState.TERMINAL_LOAN);
+
+        if (loanAssetAmountOwed > terminalBalance) {
+            t.pull(agreement.lenderAccount, agreement.loanFreighter, agreement.loanAsset, loanAssetAmountOwed - terminalBalance, AssetState.TERMINAL_LOAN);
         }
-        // Call distribute after handling collateral assets in case collateral asset is same as loan asset.
-        position.distribute(sender, lenderOwed, agreement);
+
+        // To lender.
+        t.push(agreement.lenderAccount, agreement.loanFreighter, agreement.loanAsset, loanAssetAmountOwed, AssetState.TERMINAL_LOAN);
+        
+        // To borrower.
+        if (terminalBalance > loanAssetAmountOwed) {
+            t.push(agreement.borrowerAccount, agreement.loanFreighter, agreement.loanAsset, terminalBalance - loanAssetAmountOwed, AssetState.TERMINAL_LOAN);
+        }        
 
         position.transferContract(sender);
 
@@ -122,18 +113,12 @@ abstract contract InstantErc20 is Liquidator {
             false
         );
         require(success, "Failed load from position");
+
+        position.push(
     }
 
     /// @notice Returns amount of collateral asset that is due to the liquidator.
     /// @dev may return a number that is larger than the total collateral amount.
     function getRewardCollAmount(Agreement memory agreement) public view virtual returns (uint256 rewardCollAmount);
 
-    function canHandleAssets(
-        Asset calldata loanAsset,
-        Asset calldata collAsset,
-        bytes calldata
-    ) external pure override returns (bool) {
-        if (loanAsset.standard == ERC20_STANDARD && collAsset.standard == ERC20_STANDARD) return true;
-        return false;
-    }
 }

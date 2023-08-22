@@ -26,7 +26,7 @@ contract StandardAssessor is Assessor {
     function _getCost(
         Agreement calldata agreement,
         uint256 currentAmount
-    ) internal view override returns (Asset memory asset, uint256 amount) {
+    ) internal view override returns (PluginRef calldata freighter, Asset memory asset, uint256 amount) {
         Parameters memory params = abi.decode(agreement.assessor.parameters, (Parameters));
         uint256 originationFee = (agreement.loanAmount * params.originationFeeRatio) / C.RATIO_FACTOR;
         uint256 interest = (agreement.loanAmount *
@@ -37,7 +37,7 @@ contract StandardAssessor is Assessor {
             ? ((currentAmount - lenderAmount) * params.profitShareRatio) / C.RATIO_FACTOR
             : 0;
 
-        return (params.asset, originationFee + interest + profitShare);
+        return (agreement.loanFreighter, params.asset, originationFee + interest + profitShare);
     }
 
     // Although the assessor is not moving assets around, this assessment only makes sense with divisible assets.

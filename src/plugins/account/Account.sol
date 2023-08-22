@@ -5,93 +5,94 @@ pragma solidity 0.8.19;
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-import {C} from "src/libraries/C.sol";
-import {Asset} from "src/libraries/LibUtils.sol";
 import {IAccount} from "src/interfaces/IAccount.sol";
+import {C} from "src/libraries/C.sol";
+import {Asset, PluginRef} from "src/libraries/LibUtils.sol";
+import {AssetHolder} from "src/plugins/AssetHolder.sol";
 
-abstract contract Account is IAccount, AccessControl, ReentrancyGuard {
-    event LoadedFromUser(Asset asset, uint256 amount, bytes parameters);
-    event LoadedFromPosition(Asset asset, uint256 amount, bytes parameters);
-    event UnloadedToUser(Asset asset, uint256 amount, bytes parameters);
-    event UnloadedToPosition(address position, Asset asset, uint256 amount, bool isLockedColl, bytes parameters);
-    event LockedCollateral(Asset asset, uint256 amount, bytes parameters);
-    event UnlockedCollateral(Asset asset, uint256 amount, bytes parameters);
+abstract contract Account is IAccount, ReentrancyGuard, AssetHolder {
+    address public owner;
 
-    constructor(address bookkeeperAddr) {
-        _setupRole(C.BOOKKEEPER_ROLE, bookkeeperAddr);
-    }
+    event Loaded(address from, Asset asset, uint256 amount, bytes parameters);
+    event Unloaded(Asset asset, uint256 amount, bytes parameters);
+    event SentToPosition(address position, Asset asset, uint256 amount, bytes parameters);
 
-    function loadFromUser(
+    /// @dev Constructor is executed on implementation contract.
+    constructor(address bookkeeperAddr) AssetHolder(bookkeeperAddr, category) {}
+
+    // // NOTE need to deterministically predict clone addr so user can approve transfer
+    // /// @dev Does not need to be redefined in each impl.
+    // function loadViaBookkeeper(
+    //     address sender,
+    //     PluginRef calldata freighter,
+    //     Asset calldata asset,
+    //     uint256 amount,
+    //     bytes calldata parameters
+    // ) external payable onlyRole(C.BOOKKEEPER_ROLE) {
+    //     _load(sender, freighter, asset, amount, parameters);
+    //     _processReceipt(freighter, asset, amount, false);
+    //     emit Loaded(asset, amount, parameters);
+    // }
+
+    function load(
+        address from,
+        PluginRef calldata freighter,
         Asset calldata asset,
         uint256 amount,
         bytes calldata parameters
-    ) external payable override nonReentrant {
-        _loadFromUser(asset, amount, parameters);
-        emit LoadedFromUser(asset, amount, parameters);
+    ) external payable override onlyRole(C.BOOKKEEPER_ROLE) {
+        _load(from, freighter, asset, amount, parameters);
+        pull(from, freighter, asset, amount, AssetState.PORT, parameters);
+        _processReceipt(freighter, asset, amount, AssetState.USER, AssetState.PORT);
+        emit Loaded(asset, amount, parameters);
     }
 
-    function loadFromPosition(
-        Asset calldata asset,
-        uint256 amount,
-        bytes calldata parameters
-    ) external payable override nonReentrant {
-        _loadFromPosition(asset, amount, parameters);
-        emit LoadedFromPosition(asset, amount, parameters);
-    }
-
-    function unloadToUser(
+    function unload(
+        address to,
+        PluginRef calldata freighter,
         Asset calldata asset,
         uint256 amount,
         bytes calldata parameters
     ) external override nonReentrant {
-        _unloadToUser(asset, amount, parameters);
-        emit UnloadedToUser(asset, amount, parameters);
+        _unload(freighter, asset, amount, parameters);
+        push(to, freighter, asset, amount, AssetState.PORT);
+        emit Unloaded(asset, amount, parameters);
     }
 
-    function unloadToPosition(
-        address position,
-        Asset calldata asset,
-        uint256 amount,
-        bool isLockedColl,
-        bytes calldata parameters
-    ) external override onlyRole(C.BOOKKEEPER_ROLE) {
-        _unloadToPosition(position, asset, amount, isLockedColl, parameters);
-        emit UnloadedToPosition(position, asset, amount, isLockedColl, parameters);
-    }
-
-    function lockCollateral(
+    function sendToPosition(
+        address to,
+        PluginRef calldata freighter,
         Asset calldata asset,
         uint256 amount,
         bytes calldata parameters
     ) external override onlyRole(C.BOOKKEEPER_ROLE) {
-        _lockCollateral(asset, amount, parameters);
-        emit LockedCollateral(asset, amount, parameters);
+        _sendToPosition(position, freighter, asset, amount, parameters);
+        push(to, freighter, asset, amount, AssetState.PORT);
+        emit SentToPosition(position, asset, amount, parameters);
     }
 
-    function unlockCollateral(
+    function _load(
+        address from,
+        PluginRef calldata freighter,
         Asset calldata asset,
         uint256 amount,
-        bytes calldata parameters
-    ) external override onlyRole(C.BOOKKEEPER_ROLE) {
-        _unlockCollateral(asset, amount, parameters);
-        emit UnlockedCollateral(asset, amount, parameters);
-    }
-
-    function _loadFromUser(Asset calldata asset, uint256 amount, bytes calldata parameters) internal virtual;
-
-    function _loadFromPosition(Asset calldata asset, uint256 amount, bytes calldata parameters) internal virtual;
-
-    function _unloadToUser(Asset calldata asset, uint256 amount, bytes calldata parameters) internal virtual;
-
-    function _unloadToPosition(
-        address position,
-        Asset calldata asset,
-        uint256 amount,
-        bool isLockedColl,
         bytes calldata parameters
     ) internal virtual;
 
-    function _lockCollateral(Asset calldata asset, uint256 amount, bytes calldata parameters) internal virtual;
+    function _unload(
+        address to,
+        PluginRef calldata freighter,
+        Asset calldata asset,
+        uint256 amount,
+        bytes calldata parameters
+    ) internal virtual;
 
-    function _unlockCollateral(Asset calldata asset, uint256 amount, bytes calldata parameters) internal virtual;
+    function _sendToPosition(
+        address to,
+        PluginRef calldata freighter,
+        Asset calldata asset,
+        uint256 amount,
+        AssetState calldata toState,
+        bytes calldata parameters
+    ) internal virtual;
 }

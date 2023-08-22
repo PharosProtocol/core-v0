@@ -2,8 +2,6 @@
 
 pragma solidity 0.8.19;
 
-import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
-
 import {C} from "src/libraries/C.sol";
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
@@ -26,10 +24,4 @@ interface ILiquidator {
     /// @notice handles receipt of a position that the bookkeeper has passed along for liquidation.
     /// @notice may also perform the actual liquidation.
     function receiveKick(address kicker, Agreement calldata agreement) external;
-
-    function canHandleAssets(
-        Asset calldata loanAsset,
-        Asset calldata collAsset,
-        bytes calldata parameters
-    ) external view returns (bool);
 }
