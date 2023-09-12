@@ -2,78 +2,78 @@
 
 pragma solidity 0.8.19;
 
-import {C} from "src/libraries/C.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {IWETH9} from "src/interfaces/external/IWETH9.sol";
+
+import {C} from "src/libraries/C.sol";
 import {Account} from "../Account.sol";
+import {IWETH9} from "src/interfaces/external/IWETH9.sol";
+import {Asset, ERC20_STANDARD, LibUtils} from "src/libraries/LibUtils.sol";
 import {LibUtilsPublic} from "src/libraries/LibUtilsPublic.sol";
-import {LibUtils} from "src/libraries/LibUtils.sol";
 
+// SECURITY although unlikely, in the extreme situation of bad debt it is possible that a position never closes and
+//          returns assets to the account. Although *if* a position does close it will always close with the amount
+//          dictated by loan amount + assessor cost. Though, a malicious terminal could be designed to return less. When
+//          less is returned, what will happen to uninvolved lenders using the same account contract? Does this
+//          allow a bad actor to extract assets from a shared account contract instance by taking both sides
+//          of an agreement with a malicious terminal?
+//          No. At least it is safe for Solo Account, because balances are handled per user. This may be a security
+//          driver for implementing accounts as MPCs though.
+
+/**
+ * Account for holding ERC20 assets, to use for either lending or borrowing through an Agreement.
+ * ~ Not compatible with other asset types ~
+ */
 contract SoloAccount is Account {
-
-    struct Asset {
-        address addr;
-        uint8 decimals;
-    }
-
     struct Parameters {
         address owner;
+        // An owner-unique id for this account.
         bytes32 salt;
     }
 
-    mapping(bytes32 => mapping(address => uint256)) private unlockedBalances;
+    mapping(bytes32 => mapping(bytes32 => uint256)) private unlockedBalances; // account id => asset hash => amount
 
     constructor(address bookkeeperAddr) Account(bookkeeperAddr) {}
 
-    function _transferAsset(Asset memory asset, address from, address to, uint256 amount) private {
-        if (from == address(this)) {
-            require(IERC20(asset.addr).transfer(to, amount), "Transfer failed");
-        } else {
-            require(IERC20(asset.addr).transferFrom(from, address(this), amount), "Transfer failed");
-        }
-    }
-
-    function _loadFromUser(Asset memory asset, uint256 amount, bytes memory parameters) internal override {
+    function _loadFromUser(Asset calldata asset, uint256 amount, bytes calldata parameters) internal override {
         _load(asset, amount, parameters);
     }
 
-    function _loadFromPosition(Asset memory asset, uint256 amount, bytes memory parameters) internal override {
+    function _loadFromPosition(Asset calldata asset, uint256 amount, bytes calldata parameters) internal override {
         _load(asset, amount, parameters);
     }
 
-    function _load(Asset memory asset, uint256 amount, bytes memory parameters) private {
+    function _load(Asset calldata asset, uint256 amount, bytes calldata parameters) private {
         Parameters memory params = abi.decode(parameters, (Parameters));
         bytes32 id = _getId(params.owner, params.salt);
+        bytes32 assetHash = keccak256(abi.encode(asset));
+        unlockedBalances[id][assetHash] = LibUtils.addWithMsg(
+            unlockedBalances[id][assetHash],
+            amount,
+            "_load: balance too large"
+        );
 
-        unlockedBalances[id][asset.addr] += amount;
-
-        if (asset.addr == C.WETH && msg.value > 0) {
-            require(msg.value == amount, "ETH amount mismatch");
+        if (msg.value > 0 && asset.addr == C.WETH) {
+            assert(msg.value == amount);
             IWETH9(C.WETH).deposit{value: msg.value}();
         } else {
-            _transferAsset(asset, msg.sender, address(this), amount);
+            LibUtilsPublic.safeErc20TransferFrom(asset.addr, msg.sender, address(this), amount);
         }
     }
 
-    function _unloadToUser(Asset memory asset, uint256 amount, bytes memory parameters) internal override {
-    Parameters memory params = abi.decode(parameters, (Parameters));
-    require(msg.sender == params.owner, "unload: not owner");
-    
-    bytes32 id = _getId(params.owner, params.salt);
-    bytes32 assetHash = keccak256(abi.encode(asset));
-
-    require(unlockedBalances[id][assetHash] >= amount, "_unloadToUser: balance too low");
-    unlockedBalances[id][assetHash] -= amount;
-
-    if (asset.addr == C.WETH) {
-        IWETH9(C.WETH).withdraw(amount);
-        payable(msg.sender).transfer(amount);
-    } else {
-        _transferAsset(asset, address(this), msg.sender, amount);
+    function _unloadToUser(Asset calldata asset, uint256 amount, bytes calldata parameters) internal override {
+        Parameters memory params = abi.decode(parameters, (Parameters));
+        require(msg.sender == params.owner, "unload: not owner");
+        bytes32 id = _getId(params.owner, params.salt);
+        bytes32 assetHash = keccak256(abi.encode(asset));
+        unlockedBalances[id][assetHash] = LibUtils.subWithMsg(
+            unlockedBalances[id][assetHash],
+            amount,
+            "_unloadToUser: balance too low"
+        );
+        LibUtilsPublic.safeErc20Transfer(asset.addr, msg.sender, amount);
     }
-}
 
- function _unloadToPosition(
+    function _unloadToPosition(
         address position,
         Asset calldata asset,
         uint256 amount,
@@ -151,9 +151,3 @@ contract SoloAccount is Account {
         return keccak256(abi.encodePacked(owner, salt));
     }
 }
-    
-
-
-
-
-
