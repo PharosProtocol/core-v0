@@ -6,7 +6,7 @@ import {IPosition} from "src/interfaces/IPosition.sol";
 import {IOracle} from "src/interfaces/IOracle.sol";
 import {IAssessor} from "src/interfaces/IAssessor.sol";
 import {C} from "src/libraries/C.sol";
-import {Asset, ETH_STANDARD, LibUtils} from "src/libraries/LibUtils.sol";
+import {LibUtils} from "src/libraries/LibUtils.sol";
 
 struct IndexPair {
     uint128 offer;
@@ -21,8 +21,8 @@ struct PluginReference {
 /// @notice terms shared between Offers and Requests.
 struct Order {
     uint256[] minLoanAmounts; // idx parity with loanAssets
-    Asset[] loanAssets;
-    Asset[] collAssets;
+    bytes[] loanAssets;
+    bytes[] collAssets;
     address[] fillers;
     uint256 maxDuration;
     uint256 minCollateralRatio;
@@ -68,8 +68,8 @@ struct Agreement {
     // uint256 bookkeeperVersion;
     uint256 loanAmount;
     uint256 collAmount;
-    Asset loanAsset;
-    Asset collAsset;
+    bytes loanAsset;
+    bytes collAsset;
     uint256 minCollateralRatio; // Position value / collateral value
     uint256 maxDuration;
     PluginReference lenderAccount;
@@ -147,7 +147,7 @@ library LibBookkeeper {
         if (block.timestamp > agreement.deploymentTime + agreement.maxDuration) return true;
 
         uint256 exitAmount = position.getCloseAmount(agreement.position.parameters);
-        (Asset memory costAsset, uint256 cost) = IAssessor(agreement.assessor.addr).getCost(agreement, exitAmount);
+        (bytes memory costAsset, uint256 cost) = IAssessor(agreement.assessor.addr).getCost(agreement, exitAmount);
 
         uint256 outstandingValue;
         if (LibUtils.isValidLoanAssetAsCost(agreement.loanAsset, costAsset)) {

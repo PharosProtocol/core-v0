@@ -12,7 +12,7 @@ import {ILiquidator} from "src/interfaces/ILiquidator.sol";
 import {IAssessor} from "src/interfaces/IAssessor.sol";
 import {C} from "src/libraries/C.sol";
 import {Order, Fill, Agreement, LibBookkeeper} from "src/libraries/LibBookkeeper.sol";
-import {Asset, LibUtils, ETH_STANDARD} from "src/libraries/LibUtils.sol";
+import {LibUtils} from "src/libraries/LibUtils.sol";
 
 // NOTE bookkeeper will be far more difficult to update / fix / expand than any of the plugins. For this reason
 //      simplicity should be aggressively pursued.
@@ -109,7 +109,7 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         IPosition position = IPosition(agreement.position.addr);
         uint256 closedAmount = position.close(msg.sender, agreement);
 
-        (Asset memory costAsset, uint256 cost) = IAssessor(agreement.assessor.addr).getCost(agreement, closedAmount);
+        (bytes memory costAsset, uint256 cost) = IAssessor(agreement.assessor.addr).getCost(agreement, closedAmount);
 
         uint256 lenderOwed = agreement.loanAmount;
         uint256 distributeValue;
@@ -142,36 +142,36 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         position.transferContract(msg.sender);
     }
 
-    // NOTE will need to implement an unkick function to enable soft or partial liquidations.
-    function kick(
-        SignedBlueprint calldata agreementBlueprint
-    ) external nonReentrant verifySignature(agreementBlueprint) {
-        (, bytes memory blueprintData) = unpackDataField(agreementBlueprint.blueprint.data);
-        // require(blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "BKKIBDT"); // decoding will fail
-        Agreement memory agreement = abi.decode(blueprintData, (Agreement));
-        IPosition position = IPosition(agreement.position.addr);
-        if (kicked[agreementBlueprint.blueprintHash] > 0) {
-            revert("kick: already kicked");
-        }
-        kicked[agreementBlueprint.blueprintHash] = 1;
+    // // NOTE will need to implement an unkick function to enable soft or partial liquidations.
+    // function kick(
+    //     SignedBlueprint calldata agreementBlueprint
+    // ) external nonReentrant verifySignature(agreementBlueprint) {
+    //     (, bytes memory blueprintData) = unpackDataField(agreementBlueprint.blueprint.data);
+    //     // require(blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "BKKIBDT"); // decoding will fail
+    //     Agreement memory agreement = abi.decode(blueprintData, (Agreement));
+    //     IPosition position = IPosition(agreement.position.addr);
+    //     if (kicked[agreementBlueprint.blueprintHash] > 0) {
+    //         revert("kick: already kicked");
+    //     }
+    //     kicked[agreementBlueprint.blueprintHash] = 1;
 
-        require(LibBookkeeper.isLiquidatable(agreement), "kick: not liquidatable");
+    //     require(LibBookkeeper.isLiquidatable(agreement), "kick: not liquidatable");
 
-        IAccount(agreement.borrowerAccount.addr).unloadToPosition(
-            agreement.position.addr,
-            agreement.collAsset,
-            agreement.collAmount,
-            true,
-            agreement.borrowerAccount.parameters
-        );
+    //     IAccount(agreement.borrowerAccount.addr).unloadToPosition(
+    //         agreement.position.addr,
+    //         agreement.collAsset,
+    //         agreement.collAmount,
+    //         true,
+    //         agreement.borrowerAccount.parameters
+    //     );
 
-        // Transfer ownership of the position to the liquidator, which includes collateral.
-        position.transferContract(agreement.liquidator.addr);
-        emit LiquidationKicked(agreement.liquidator.addr, agreement.position.addr);
+    //     // Transfer ownership of the position to the liquidator, which includes collateral.
+    //     position.transferContract(agreement.liquidator.addr);
+    //     emit LiquidationKicked(agreement.liquidator.addr, agreement.position.addr);
 
-        // Allow liquidator to react to kick.
-        ILiquidator(agreement.liquidator.addr).receiveKick(msg.sender, agreement);
-    }
+    //     // Allow liquidator to react to kick.
+    //     ILiquidator(agreement.liquidator.addr).receiveKick(msg.sender, agreement);
+    // }
 
     // NOTE this function succinctly represents a lot of the inefficiency of a plugin system design.
     function _createFundEnterPosition(Agreement memory agreement) private {
