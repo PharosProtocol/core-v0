@@ -10,7 +10,6 @@ import {IAssessor} from "src/interfaces/IAssessor.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
 import {C} from "src/libraries/C.sol";
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
-import {Asset} from "src/libraries/LibUtils.sol";
 import {CloneFactory} from "src/plugins/CloneFactory.sol";
 
 // Implementation should not allow user to enter a position in such a way that they
@@ -28,14 +27,14 @@ abstract contract Position is IPosition, CloneFactory {
     }
 
     function deploy(
-        Asset calldata asset,
+        bytes calldata assetData,
         uint256 amount,
         bytes calldata parameters
     ) external override proxyExecution onlyRole(C.ADMIN_ROLE) {
-        _deploy(asset, amount, parameters);
+        _deploy(assetData, amount, parameters);
     }
 
-    function _deploy(Asset calldata asset, uint256 amount, bytes calldata parameters) internal virtual;
+    function _deploy(bytes calldata assetData, uint256 amount, bytes calldata parameters) internal virtual;
 
     function close(
         address sender,

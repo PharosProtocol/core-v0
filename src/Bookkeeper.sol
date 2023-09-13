@@ -80,7 +80,7 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
             collateralValue = (loanValue * order.borrowerConfig.initCollateralRatio) / C.RATIO_FACTOR;
             agreement.position.parameters = order.borrowerConfig.positionParameters;
         }
-        agreement.collAmount = IOracle(agreement.collOracle.addr).getResistantAmount(
+        agreement.collAmount = IOracle(agreement.collOracle.addr).getResistantValue(
             collateralValue,
             agreement.collOracle.parameters
         );
@@ -109,69 +109,52 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         IPosition position = IPosition(agreement.position.addr);
         uint256 closedAmount = position.close(msg.sender, agreement);
 
-        (bytes memory costAsset, uint256 cost) = IAssessor(agreement.assessor.addr).getCost(agreement, closedAmount);
+        ( uint256 cost) = IAssessor(agreement.assessor.addr).getCost(agreement, closedAmount);
 
         uint256 lenderOwed = agreement.loanAmount;
         uint256 distributeValue;
         // If cost asset is same erc20 as loan asset.
-        if (LibUtils.isValidLoanAssetAsCost(agreement.loanAsset, costAsset)) {
             lenderOwed += cost;
             distributeValue = msg.value;
-        }
-        // If cost in eth but loan asset is not eth.
-        else if (costAsset.standard == ETH_STANDARD) {
-            require(msg.value == cost, "exitPosition: msg.value mismatch");
-            IAccount(agreement.lenderAccount.addr).loadFromPosition{value: msg.value}(
-                costAsset,
-                cost,
-                agreement.lenderAccount.parameters
-            );
-        } else {
-            revert("exitPosition: invalid cost asset");
-        }
 
         position.distribute{value: distributeValue}(msg.sender, lenderOwed, agreement);
 
-        IAccount(agreement.borrowerAccount.addr).unlockCollateral(
-            agreement.collAsset,
-            agreement.collAmount,
-            agreement.borrowerAccount.parameters
-        );
+        
 
         // Marks position as closed from Bookkeeper pov.
         position.transferContract(msg.sender);
     }
 
-    // // NOTE will need to implement an unkick function to enable soft or partial liquidations.
-    // function kick(
-    //     SignedBlueprint calldata agreementBlueprint
-    // ) external nonReentrant verifySignature(agreementBlueprint) {
-    //     (, bytes memory blueprintData) = unpackDataField(agreementBlueprint.blueprint.data);
-    //     // require(blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "BKKIBDT"); // decoding will fail
-    //     Agreement memory agreement = abi.decode(blueprintData, (Agreement));
-    //     IPosition position = IPosition(agreement.position.addr);
-    //     if (kicked[agreementBlueprint.blueprintHash] > 0) {
-    //         revert("kick: already kicked");
-    //     }
-    //     kicked[agreementBlueprint.blueprintHash] = 1;
+    // NOTE will need to implement an unkick function to enable soft or partial liquidations.
+    function kick(
+        SignedBlueprint calldata agreementBlueprint
+    ) external nonReentrant verifySignature(agreementBlueprint) {
+        (, bytes memory blueprintData) = unpackDataField(agreementBlueprint.blueprint.data);
+        // require(blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "BKKIBDT"); // decoding will fail
+        Agreement memory agreement = abi.decode(blueprintData, (Agreement));
+        IPosition position = IPosition(agreement.position.addr);
+        require(LibBookkeeper.isLiquidatable(agreement), "kick: not liquidatable");
 
-    //     require(LibBookkeeper.isLiquidatable(agreement), "kick: not liquidatable");
+        if (kicked[agreementBlueprint.blueprintHash] > 0) {
+            revert("kick: already kicked");
+        }
+        kicked[agreementBlueprint.blueprintHash] = 1;
 
-    //     IAccount(agreement.borrowerAccount.addr).unloadToPosition(
-    //         agreement.position.addr,
-    //         agreement.collAsset,
-    //         agreement.collAmount,
-    //         true,
-    //         agreement.borrowerAccount.parameters
-    //     );
 
-    //     // Transfer ownership of the position to the liquidator, which includes collateral.
-    //     position.transferContract(agreement.liquidator.addr);
-    //     emit LiquidationKicked(agreement.liquidator.addr, agreement.position.addr);
+        IAccount(agreement.borrowerAccount.addr).unloadToPosition(
+            agreement.position.addr,
+            agreement.collAsset,
+            agreement.collAmount,
+            agreement.borrowerAccount.parameters
+        );
 
-    //     // Allow liquidator to react to kick.
-    //     ILiquidator(agreement.liquidator.addr).receiveKick(msg.sender, agreement);
-    // }
+        // Transfer ownership of the position to the liquidator, which includes collateral.
+        position.transferContract(agreement.liquidator.addr);
+        emit LiquidationKicked(agreement.liquidator.addr, agreement.position.addr);
+
+        // Allow liquidator to react to kick.
+        ILiquidator(agreement.liquidator.addr).receiveKick(msg.sender, agreement);
+    }
 
     // NOTE this function succinctly represents a lot of the inefficiency of a plugin system design.
     function _createFundEnterPosition(Agreement memory agreement) private {
@@ -182,15 +165,9 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
             agreement.position.addr,
             agreement.loanAsset,
             agreement.loanAmount,
-            false,
             agreement.lenderAccount.parameters
         );
         // NOTE lots of gas savings if collateral can be kept in borrower account until absolutely necessary.
-        IAccount(agreement.borrowerAccount.addr).lockCollateral(
-            agreement.collAsset,
-            agreement.collAmount,
-            agreement.borrowerAccount.parameters
-        );
         IPosition(agreement.position.addr).deploy(
             agreement.loanAsset,
             agreement.loanAmount,

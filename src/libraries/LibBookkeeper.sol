@@ -147,25 +147,14 @@ library LibBookkeeper {
         if (block.timestamp > agreement.deploymentTime + agreement.maxDuration) return true;
 
         uint256 exitAmount = position.getCloseAmount(agreement.position.parameters);
-        (bytes memory costAsset, uint256 cost) = IAssessor(agreement.assessor.addr).getCost(agreement, exitAmount);
+        ( uint256 cost) = IAssessor(agreement.assessor.addr).getCost(agreement, exitAmount);
 
         uint256 outstandingValue;
-        if (LibUtils.isValidLoanAssetAsCost(agreement.loanAsset, costAsset)) {
-            if (cost > exitAmount) return true;
-            outstandingValue = IOracle(agreement.loanOracle.addr).getSpotValue(
+        outstandingValue = IOracle(agreement.loanOracle.addr).getSpotValue(
                 exitAmount - cost,
                 agreement.loanOracle.parameters
             );
-        } else if (costAsset.standard == ETH_STANDARD) {
-            uint256 positionValue = IOracle(agreement.loanOracle.addr).getSpotValue(
-                exitAmount,
-                agreement.loanOracle.parameters
-            );
-            if (positionValue > cost) return true;
-            outstandingValue = positionValue - cost;
-        } else {
-            revert("isLiquidatable: invalid asset");
-        }
+
         uint256 collValue = IOracle(agreement.collOracle.addr).getSpotValue(
             agreement.collAmount,
             agreement.collOracle.parameters

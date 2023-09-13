@@ -3,8 +3,6 @@
 pragma solidity 0.8.19;
 
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
-import {Asset} from "src/libraries/LibUtils.sol";
-
 /**
  * Assessors are used to determine the cost a borrower must pay to the lender for a loan.
  *
@@ -19,7 +17,5 @@ interface IAssessor {
     function getCost(
         Agreement calldata agreement,
         uint256 currentAmount
-    ) external view returns (Asset memory asset, uint256 amount);
-
-    function canHandleAsset(Asset calldata asset, bytes calldata parameters) external view returns (bool);
+    ) external view returns ( uint256 amount);
 }

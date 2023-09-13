@@ -5,8 +5,6 @@ pragma solidity 0.8.19;
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
-import {Asset} from "src/libraries/LibUtils.sol";
-
 /*
  * Each Position represents one deployment of capital through a factory.
  * The Position and all of its assets are fully under the control of the admin role. Expected admins are the
@@ -17,7 +15,7 @@ import {Asset} from "src/libraries/LibUtils.sol";
 interface IPosition is IAccessControl {
     /// @notice Deploy capital into the defined position.
     /// @dev Called at thee implementation contract (terminal).
-    function deploy(Asset calldata asset, uint256 amount, bytes calldata parameters) external;
+    function deploy(bytes calldata assetData, uint256 amount, bytes calldata parameters) external;
 
     /// @notice Admin close position and leave assets in position MPC contract.
     function close(address sender, Agreement calldata agreement) external returns (uint256);
@@ -35,7 +33,7 @@ interface IPosition is IAccessControl {
     /// @dev Do not set admin role to prevent liquidator from pushing the position back into the protocol.
     function transferContract(address controller) external;
 
-    function canHandleAsset(Asset calldata asset, bytes calldata parameters) external pure returns (bool);
+    function canHandleAsset(bytes calldata assetData, bytes calldata parameters) external pure returns (bool);
 
     // SECURITY is it correct that internal/private functions cannot be reached with this passthrough?
     /// @notice Pass through function to allow the position to interact with other contracts after liquidation.

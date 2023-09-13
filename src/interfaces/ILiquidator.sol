@@ -7,8 +7,6 @@ import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {C} from "src/libraries/C.sol";
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
-import {Asset} from "src/libraries/LibUtils.sol";
-
 /**
  * Liquidators are used to dismantle a kicked Position and return capital to Lender and Borrower. Liquidators will be
  * compensated based on the configuration of the Liquidator.
@@ -27,9 +25,4 @@ interface ILiquidator {
     /// @notice may also perform the actual liquidation.
     function receiveKick(address kicker, Agreement calldata agreement) external;
 
-    function canHandleAssets(
-        Asset calldata loanAsset,
-        Asset calldata collAsset,
-        bytes calldata parameters
-    ) external view returns (bool);
 }
