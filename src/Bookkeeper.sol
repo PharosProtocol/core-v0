@@ -14,11 +14,6 @@ import {C} from "src/libraries/C.sol";
 import {Order, Fill, Agreement, LibBookkeeper} from "src/libraries/LibBookkeeper.sol";
 import {LibUtils} from "src/libraries/LibUtils.sol";
 
-// NOTE bookkeeper will be far more difficult to update / fix / expand than any of the plugins. For this reason
-//      simplicity should be aggressively pursued.
-//      It should also *not* have any asset transfer logic, bc then it requires compatibility with any assets that
-//      plugins might implement. The exception is cost assessment, which is known to be in erc20/eth.
-
 contract Bookkeeper is Tractor, ReentrancyGuard {
     enum BlueprintDataType {
         NULL,
