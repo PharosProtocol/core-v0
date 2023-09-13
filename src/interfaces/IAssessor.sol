@@ -9,7 +9,6 @@ import {Agreement} from "src/libraries/LibBookkeeper.sol";
 interface IAssessor {
     /// @notice Returns the cost of a loan (not including principle)
     function getCost(
-        Agreement calldata agreement,
-        uint256 currentAmount
+        Agreement calldata agreement
     ) external view returns ( uint256 amount);
 }

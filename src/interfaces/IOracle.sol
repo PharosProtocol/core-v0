@@ -4,10 +4,10 @@ pragma solidity 0.8.19;
 
 
 interface IOracle {
-    /// @notice manipulation-resistant price.
-    function getResistantValue(uint256 amount, bytes calldata parameters) external view returns (uint256 ethAmount);
+    /// @notice price used to open loans, typically a manipulation-resistant price.
+    function getOpenPrice( bytes calldata parameters) external view returns (uint256 );
 
-    /// @notice spot price. 
-    function getSpotValue(uint256 amount, bytes calldata parameters) external view returns (uint256 ethAmount);
+    /// @notice price used to liquidate loans, typically spot price. 
+    function getClosePrice( bytes calldata parameters) external view returns (uint256 );
 
 }

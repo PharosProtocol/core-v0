@@ -103,15 +103,6 @@ library LibBookkeeper {
         //      design allows users to make invalid combinations and leaves compatibility checks up to
         //      UI/user. This is not great but fine because both users must explicitly agree to terms.
 
-        // NOTE v0.1 TESTING RESTRICTIONS.
-        //      THESE ARE TEMPORARY.
-        require(
-            IOracle(order.loanOracles[fill.loanOracleIdx].addr).getSpotValue(
-                fill.loanAmount,
-                order.loanOracles[fill.loanOracleIdx].parameters
-            ) <= 1e18 / 10,
-            "calm down fren. we just testing. keep loan value at or below 0.1 ETH"
-        );
     }
 
     /// @dev assumes compatibility between match, offer, and request already verified.
@@ -150,7 +141,7 @@ library LibBookkeeper {
         ( uint256 cost) = IAssessor(agreement.assessor.addr).getCost(agreement, exitAmount);
 
         uint256 outstandingValue;
-        outstandingValue = IOracle(agreement.loanOracle.addr).getSpotValue(
+        outstandingValue = IOracle(agreement.loanOracle.addr).getClosePrice(
                 exitAmount - cost,
                 agreement.loanOracle.parameters
             );
