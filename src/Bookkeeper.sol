@@ -58,8 +58,7 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         LibBookkeeper.verifyFill(fill, order);
         Agreement memory agreement = LibBookkeeper.agreementFromOrder(fill, order);
 
-        uint256 loanValue = IOracle(agreement.loanOracle.addr).getResistantValue(
-            agreement.loanAmount,
+        uint256 loanValue = IOracle(agreement.loanOracle.addr).getOpenPrice(
             agreement.loanOracle.parameters
         );
         uint256 collateralValue;
@@ -75,8 +74,7 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
             collateralValue = (loanValue * order.borrowerConfig.initCollateralRatio) / C.RATIO_FACTOR;
             agreement.position.parameters = order.borrowerConfig.positionParameters;
         }
-        agreement.collAmount = IOracle(agreement.collOracle.addr).getResistantValue(
-            collateralValue,
+        agreement.collAmount = IOracle(agreement.collOracle.addr).getOpenPrice(
             agreement.collOracle.parameters
         );
         // Set Position data that cannot be computed off chain by caller.
@@ -104,7 +102,7 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         IPosition position = IPosition(agreement.position.addr);
         uint256 closedAmount = position.close(msg.sender, agreement);
 
-        ( uint256 cost) = IAssessor(agreement.assessor.addr).getCost(agreement, closedAmount);
+        ( uint256 cost) = IAssessor(agreement.assessor.addr).getCost(agreement);
 
         uint256 lenderOwed = agreement.loanAmount;
         uint256 distributeValue;

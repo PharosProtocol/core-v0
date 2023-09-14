@@ -23,9 +23,9 @@ struct Order {
     uint256[] minLoanAmounts; // idx parity with loanAssets
     bytes[] loanAssets;
     bytes[] collAssets;
+    uint256[] minCollateralRatio;
     address[] fillers;
     uint256 maxDuration;
-    uint256 minCollateralRatio;
     // Plugins
     PluginReference account;
     PluginReference assessor;
@@ -50,8 +50,6 @@ struct Fill {
     uint256 takerIdx; // ignored if no taker allowlist.
     uint256 loanAssetIdx; // need to verify with the oracle
     uint256 collAssetIdx; // need to verify with the oracle
-    uint256 loanOracleIdx;
-    uint256 collOracleIdx;
     uint256 factoryIdx;
     // Sided config
     bool isOfferFill;
@@ -97,7 +95,7 @@ library LibBookkeeper {
         }
 
         require(fill.loanAmount >= order.minLoanAmounts[fill.loanAssetIdx], "loanAmount too small");
-        require(borrowerConfig.initCollateralRatio >= order.minCollateralRatio, "initCollateralRatio too small");
+        require(borrowerConfig.initCollateralRatio >= order.minCollateralRatio[fill.collAssetIdx], "initCollateralRatio too small");
 
         // NOTE this would be the right place to verify modules are compatible with agreement. Current
         //      design allows users to make invalid combinations and leaves compatibility checks up to
@@ -116,12 +114,11 @@ library LibBookkeeper {
         agreement.maxDuration = order.maxDuration;
         agreement.assessor = order.assessor;
         agreement.liquidator = order.liquidator;
-        agreement.minCollateralRatio = order.minCollateralRatio;
-
+        agreement.minCollateralRatio = order.minCollateralRatio[fill.collAssetIdx];
         agreement.loanAsset = order.loanAssets[fill.loanAssetIdx];
-        agreement.loanOracle = order.loanOracles[fill.loanOracleIdx];
+        agreement.loanOracle = order.loanOracles[fill.loanAssetIdx];
         agreement.collAsset = order.collAssets[fill.collAssetIdx];
-        agreement.collOracle = order.collOracles[fill.collOracleIdx];
+        agreement.collOracle = order.collOracles[fill.collAssetIdx];
         agreement.factory = order.factories[fill.factoryIdx];
 
         agreement.loanAmount = fill.loanAmount;
@@ -138,16 +135,14 @@ library LibBookkeeper {
         if (block.timestamp > agreement.deploymentTime + agreement.maxDuration) return true;
 
         uint256 exitAmount = position.getCloseAmount(agreement.position.parameters);
-        ( uint256 cost) = IAssessor(agreement.assessor.addr).getCost(agreement, exitAmount);
+        ( uint256 cost) = IAssessor(agreement.assessor.addr).getCost(agreement);
 
         uint256 outstandingValue;
         outstandingValue = IOracle(agreement.loanOracle.addr).getClosePrice(
-                exitAmount - cost,
                 agreement.loanOracle.parameters
             );
 
-        uint256 collValue = IOracle(agreement.collOracle.addr).getSpotValue(
-            agreement.collAmount,
+        uint256 collValue = IOracle(agreement.collOracle.addr).getClosePrice(
             agreement.collOracle.parameters
         );
 
