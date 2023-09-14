@@ -27,14 +27,12 @@ abstract contract Position is IPosition, CloneFactory {
     }
 
     function deploy(
-        bytes calldata assetData,
-        uint256 amount,
-        bytes calldata parameters
+        Agreement calldata agreement
     ) external override proxyExecution onlyRole(C.ADMIN_ROLE) {
-        _deploy(assetData, amount, parameters);
+        _deploy(agreement);
     }
 
-    function _deploy(bytes calldata assetData, uint256 amount, bytes calldata parameters) internal virtual;
+    function _deploy(Agreement calldata agreement) internal virtual;
 
     function close(
         address sender,
@@ -51,7 +49,7 @@ abstract contract Position is IPosition, CloneFactory {
         return _distribute(sender, lenderAmount, agreement);
     }
 
-    function getCloseAmount(bytes calldata parameters) external view override proxyExecution returns (uint256) {
+    function getCloseValue(bytes calldata parameters) external view override proxyExecution returns (uint256) {
         return _getCloseAmount(parameters);
     }
 

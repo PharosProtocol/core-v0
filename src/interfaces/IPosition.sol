@@ -27,7 +27,7 @@ interface IPosition is IAccessControl {
 
     /// @notice Get current exitable value of the position, denoted in loan asset.
     /// @notice Value is an estimate. Value at exit may differ slightly.
-    function getCloseAmount(bytes calldata parameters) external view returns (uint256);
+    function getCloseValue(bytes calldata parameters) external view returns (uint256);
 
     /// @notice Transfer the position to a new controller. Used for liquidations.
     /// @dev Do not set admin role to prevent liquidator from pushing the position back into the protocol.

@@ -123,7 +123,7 @@ library LibBookkeeper {
         // If past expiration, liquidatable.
         if (block.timestamp > agreement.deploymentTime + agreement.maxDuration) return true;
 
-        uint256 closeAmount = position.getCloseAmount(agreement.position.parameters);
+        uint256 closeAmount = position.getCloseValue(agreement.position.parameters);
         //openLoanValue is loan value + cost of loan
         uint256 openLoanValue = agreement.loanAmount * IOracle(agreement.loanOracle.addr).getClosePrice(
                 agreement.loanOracle.parameters

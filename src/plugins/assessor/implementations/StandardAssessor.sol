@@ -27,7 +27,7 @@ contract StandardAssessor is Assessor {
         uint256 higherValue = resistantValue > spotValue ? resistantValue : spotValue;
         
         // Get currentAmount from position and convert to loanAsset
-        uint256 closeAmount = (IPosition(agreement.position.addr).getCloseAmount(agreement.position.parameters))/higherValue;
+        uint256 closeValue = (IPosition(agreement.position.addr).getCloseValue(agreement.position.parameters))/higherValue;
 
         // Calculate origination fee as value + percentage of loan amount
         uint256 originationFee = params.originationFeeValue + (agreement.loanAmount * params.originationFeePercentage / 100);
@@ -36,10 +36,10 @@ contract StandardAssessor is Assessor {
         uint256 interest = agreement.loanAmount * (block.timestamp - agreement.deploymentTime) * params.interestRate / 100;
 
         // Calculate lender amount
-        uint256 lenderAmount = originationFee + interest + agreement.loanAmount;
+        uint256 lenderValue = originationFee + interest + agreement.loanAmount;
 
         // Calculate profit share
-        uint256 profitShare = closeAmount > lenderAmount ? (closeAmount - lenderAmount) * params.profitShareRate / 100 : 0;
+        uint256 profitShare = closeValue > lenderValue ? (closeValue - lenderValue) * params.profitShareRate / 100 : 0;
 
         // Total cost
         uint256 totalCost = originationFee + interest + profitShare;
