@@ -20,7 +20,14 @@ contract StandardAssessor is Assessor {
     ) internal view override returns (uint256 amount) {
         Parameters memory params = abi.decode(agreement.assessor.parameters, (Parameters));
 
-        uint256 currentAmount = IPosition(agreement.position.addr).getCloseAmount(agreement.position.parameters);
+        // Use oracle to get the value conversion
+
+        uint256 resistantValue = IOracle(agreement.loanOracle.addr).getOpenPrice( agreement.loanOracle.parameters);
+        uint256 spotValue = IOracle(agreement.loanOracle.addr).getClosePrice( agreement.loanOracle.parameters);
+        uint256 higherValue = resistantValue > spotValue ? resistantValue : spotValue;
+        
+        // Get currentAmount from position and convert to loanAsset
+        uint256 closeAmount = (IPosition(agreement.position.addr).getCloseAmount(agreement.position.parameters))/higherValue;
 
         // Calculate origination fee as value + percentage of loan amount
         uint256 originationFee = params.originationFeeValue + (agreement.loanAmount * params.originationFeePercentage / 100);
@@ -32,15 +39,12 @@ contract StandardAssessor is Assessor {
         uint256 lenderAmount = originationFee + interest + agreement.loanAmount;
 
         // Calculate profit share
-        uint256 profitShare = currentAmount > lenderAmount ? (currentAmount - lenderAmount) * params.profitShareRate / 100 : 0;
+        uint256 profitShare = closeAmount > lenderAmount ? (closeAmount - lenderAmount) * params.profitShareRate / 100 : 0;
 
         // Total cost
         uint256 totalCost = originationFee + interest + profitShare;
 
-        // Use oracle to get the value conversion
-        uint256 resistantValue = IOracle(agreement.loanOracle.addr).getOpenPrice(totalCost, agreement.loanOracle.parameters);
-        uint256 spotValue = IOracle(agreement.loanOracle.addr).getClosePrice(totalCost, agreement.loanOracle.parameters);
-
-        return resistantValue > spotValue ? resistantValue : spotValue;
+    
+        return totalCost * higherValue;
     }
 }

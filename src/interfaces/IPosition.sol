@@ -15,7 +15,7 @@ import {Agreement} from "src/libraries/LibBookkeeper.sol";
 interface IPosition is IAccessControl {
     /// @notice Deploy capital into the defined position.
     /// @dev Called at thee implementation contract (terminal).
-    function deploy(bytes calldata assetData, uint256 amount, bytes calldata parameters) external;
+    function deploy( Agreement calldata agreement) external;
 
     /// @notice Admin close position and leave assets in position MPC contract.
     function close(address sender, Agreement calldata agreement) external returns (uint256);

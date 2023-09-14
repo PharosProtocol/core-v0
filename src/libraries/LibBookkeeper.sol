@@ -56,8 +56,6 @@ struct Fill {
     BorrowerConfig borrowerConfig; // Only set when filling Offers
 }
 
-// struct LenderConfig {}
-
 /**
  * @notice Position definition is derived from a Match and both Orders.
  * @dev Signed data structure used to store position configuration off chain, reported via events.
@@ -84,7 +82,7 @@ struct Agreement {
 library LibBookkeeper {
     /// @notice verify that a fill is valid for an order.
     /// @dev Reverts with reason if not valid.
-    function verifyFill(Fill calldata fill, Order memory order) internal view {
+    function verifyFill(Fill calldata fill, Order memory order) internal pure {
         BorrowerConfig memory borrowerConfig;
         if (!order.isOffer) {
             require(!fill.isOfferFill, "offer fill of offer");
@@ -97,10 +95,6 @@ library LibBookkeeper {
         require(fill.loanAmount >= order.minLoanAmounts[fill.loanAssetIdx], "loanAmount too small");
         require(borrowerConfig.initCollateralRatio >= order.minCollateralRatio[fill.collAssetIdx], "initCollateralRatio too small");
 
-        // NOTE this would be the right place to verify modules are compatible with agreement. Current
-        //      design allows users to make invalid combinations and leaves compatibility checks up to
-        //      UI/user. This is not great but fine because both users must explicitly agree to terms.
-
     }
 
     /// @dev assumes compatibility between match, offer, and request already verified.
@@ -110,49 +104,37 @@ library LibBookkeeper {
         Order memory order
     ) internal pure returns (Agreement memory agreement) {
         // AUDIT would this be more efficient in a single set statement, to avoid lots of zero -> non-zero changes?
-        //       i.e. agreement = Agreement({.....});
         agreement.maxDuration = order.maxDuration;
         agreement.assessor = order.assessor;
         agreement.liquidator = order.liquidator;
-        agreement.minCollateralRatio = order.minCollateralRatio[fill.collAssetIdx];
         agreement.loanAsset = order.loanAssets[fill.loanAssetIdx];
         agreement.loanOracle = order.loanOracles[fill.loanAssetIdx];
         agreement.collAsset = order.collAssets[fill.collAssetIdx];
         agreement.collOracle = order.collOracles[fill.collAssetIdx];
+        agreement.minCollateralRatio = order.minCollateralRatio[fill.collAssetIdx];
         agreement.factory = order.factories[fill.factoryIdx];
-
         agreement.loanAmount = fill.loanAmount;
     }
 
-    // NOTE should make this public, without increasing lib gas cost
-    /// @notice Is the position defined by an agreement up for liquidation and not yet kicked
     /// @dev liquidation based on CR or duration limit
     function isLiquidatable(Agreement memory agreement) internal view returns (bool) {
         IPosition position = IPosition(agreement.position.addr);
-        // if (positionValue == 0) return false;
 
         // If past expiration, liquidatable.
         if (block.timestamp > agreement.deploymentTime + agreement.maxDuration) return true;
 
-        uint256 exitAmount = position.getCloseAmount(agreement.position.parameters);
-        ( uint256 cost) = IAssessor(agreement.assessor.addr).getCost(agreement);
-
-        uint256 outstandingValue;
-        outstandingValue = IOracle(agreement.loanOracle.addr).getClosePrice(
+        uint256 closeAmount = position.getCloseAmount(agreement.position.parameters);
+        //openLoanValue is loan value + cost of loan
+        uint256 openLoanValue = agreement.loanAmount * IOracle(agreement.loanOracle.addr).getClosePrice(
                 agreement.loanOracle.parameters
-            );
+            ) + IAssessor(agreement.assessor.addr).getCost(agreement);
 
-        uint256 collValue = IOracle(agreement.collOracle.addr).getClosePrice(
-            agreement.collOracle.parameters
-        );
-
-        // NOTE WARNING FUNDERBRKER - CR calc can create negative numbers. This code cannot deal. Update.
-
-        uint256 collateralRatio = (C.RATIO_FACTOR * outstandingValue) / collValue;
+        uint256 collateralRatio = closeAmount / openLoanValue;
 
         if (collateralRatio < agreement.minCollateralRatio) {
             return true;
         }
         return false;
     }
+    
 }

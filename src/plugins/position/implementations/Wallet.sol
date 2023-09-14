@@ -28,10 +28,10 @@
 
 
 //     /// @dev assumes assets are already in Position.
-//     function _deploy(bytes calldata asset, uint256 amount, bytes calldata parameters) internal override {
-//         Parameters memory params = abi.decode(parameters, (Parameters));
+//     function _deploy(Agreement calldata agreement) internal override {
+//         Parameters memory params = abi.decode(agreement.borrowerAccount.owner, (Parameters));
 //         amountDistributed = amount;
-//         LibUtilsPublic.safeErc20Transfer(asset.addr, params.recipient, amountDistributed);
+//         LibUtilsPublic.safeErc20Transfer(agreement., params.recipient, amountDistributed);
 //     }
 
 //     function _close(address sender, Agreement calldata agreement) internal override returns (uint256 closedAmount) {
