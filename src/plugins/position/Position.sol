@@ -26,42 +26,35 @@ abstract contract Position is IPosition, CloneFactory {
         // _setupRole
     }
 
-    function deploy(
+    function open(
         Agreement calldata agreement
     ) external override proxyExecution onlyRole(C.ADMIN_ROLE) {
-        _deploy(agreement);
+        _open(agreement);
     }
 
-    function _deploy(Agreement calldata agreement) internal virtual;
 
     function close(
-        address sender,
         Agreement calldata agreement
-    ) external override proxyExecution onlyRole(C.ADMIN_ROLE) returns (uint256) {
-        return _close(sender, agreement);
+    ) external override proxyExecution onlyRole(C.ADMIN_ROLE)  {
+        return _close( agreement);
     }
 
-    function distribute(
-        address sender,
-        uint256 lenderAmount,
-        Agreement calldata agreement
-    ) external payable override proxyExecution onlyRole(C.ADMIN_ROLE) {
-        return _distribute(sender, lenderAmount, agreement);
-    }
 
     function getCloseValue(bytes calldata parameters) external view override proxyExecution returns (uint256) {
-        return _getCloseAmount(parameters);
+        return _getCloseValue(parameters);
     }
 
-    /// @notice Close position and distribute assets. Give borrower MPC control.
-    /// @dev All asset management must be done within this call, else bk would need to have asset-specific knowledge.
-    function _close(address sender, Agreement calldata agreement) internal virtual returns (uint256);
 
-    function _distribute(address sender, uint256 lenderAmount, Agreement calldata agreement) internal virtual;
+    function _open(Agreement calldata agreement) internal virtual;
 
-    function _getCloseAmount(bytes calldata parameters) internal view virtual returns (uint256);
+    function _close( Agreement calldata agreement) internal virtual;
+    
+    function _getCloseValue(bytes calldata parameters) internal view virtual returns (uint256);
+    
 
-    // SECURITY Hello auditors. This feels risky.
+
+
+    // SECURITY RISK
     function transferContract(address controller) external override proxyExecution onlyRole(C.ADMIN_ROLE) {
         grantRole(C.ADMIN_ROLE, controller);
         renounceRole(C.ADMIN_ROLE, msg.sender);

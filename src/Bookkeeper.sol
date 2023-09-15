@@ -24,12 +24,12 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
     string public constant PROTOCOL_NAME = "pharos";
     string public constant PROTOCOL_VERSION = "0.1.0";
 
-
     event OrderFilled(SignedBlueprint agreement, bytes32 orderBlueprintHash, address taker);
     event LiquidationKicked(address liquidator, address position);
 
     constructor() Tractor(PROTOCOL_NAME, PROTOCOL_VERSION) {}
 
+    // Fill Order
     function fillOrder(
         Fill calldata fill,
         SignedBlueprint calldata orderBlueprint
@@ -55,9 +55,7 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         LibBookkeeper.verifyFill(fill, order);
         Agreement memory agreement = LibBookkeeper.agreementFromOrder(fill, order);
 
-        uint256 loanValue = IOracle(agreement.loanOracle.addr).getOpenPrice(
-            agreement.loanOracle.parameters
-        );
+        uint256 loanValue = IOracle(agreement.loanOracle.addr).getOpenPrice(agreement.loanOracle.parameters);
         uint256 collateralValue;
 
         if (order.isOffer) {
@@ -71,88 +69,17 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
             collateralValue = (loanValue * order.borrowerConfig.initCollateralRatio) / C.RATIO_FACTOR;
             agreement.position.parameters = order.borrowerConfig.positionParameters;
         }
-        agreement.collAmount = IOracle(agreement.collOracle.addr).getOpenPrice(
-            agreement.collOracle.parameters
-        );
+        agreement.collAmount = IOracle(agreement.collOracle.addr).getOpenPrice(agreement.collOracle.parameters);
         // Set Position data that cannot be computed off chain by caller.
         agreement.deploymentTime = block.timestamp;
 
-        _createFundEnterPosition(agreement);
+        _openPosition(agreement);
 
         SignedBlueprint memory signedBlueprint = _signAgreement(agreement);
         emit OrderFilled(signedBlueprint, orderBlueprint.blueprintHash, msg.sender);
     }
 
-    // NOTE CEI?
-    function exitPosition(
-        SignedBlueprint calldata agreementBlueprint
-    ) external payable nonReentrant verifySignature(agreementBlueprint) {
-        (bytes1 blueprintDataType, bytes memory blueprintData) = unpackDataField(agreementBlueprint.blueprint.data);
-        require(blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "exitPosition: Invalid data type");
-        Agreement memory agreement = abi.decode(blueprintData, (Agreement));
-        require(
-            msg.sender == IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters),
-            "exitPosition: sender!=borrower"
-        );
-
-        // All asset management must be done within this call, else bk would need to have asset-specific knowledge.
-        IPosition position = IPosition(agreement.position.addr);
-        uint256 closedAmount = position.close(msg.sender, agreement);
-
-        ( uint256 cost) = IAssessor(agreement.assessor.addr).getCost(agreement);
-
-        uint256 lenderOwed = agreement.loanAmount;
-        uint256 distributeValue;
-        // If cost asset is same erc20 as loan asset.
-            lenderOwed += cost;
-            distributeValue = msg.value;
-
-        position.distribute{value: distributeValue}(msg.sender, lenderOwed, agreement);
-
-        
-
-        // Marks position as closed from Bookkeeper pov.
-        position.transferContract(msg.sender);
-    }
-
-    function triggerLiquidation(        
-        SignedBlueprint calldata agreementBlueprint
-    ) external nonReentrant verifySignature(agreementBlueprint) {
-        (, bytes memory blueprintData) = unpackDataField(agreementBlueprint.blueprint.data);
-         Agreement memory agreement = abi.decode(blueprintData, (Agreement));
-
-        require(LibBookkeeper.isLiquidatable(agreement), "kick: not liquidatable");
-
-    // Execute the liquidation
-        ILiquidator(agreement.liquidator.addr).liquidate(msg.sender, agreement);
-
-    // Recheck the liquidation condition post-liquidation
-        require(!LibBookkeeper.isLiquidatable(agreement), "Post-liquidation condition failed");
-}
-
-
-    // NOTE this function succinctly represents a lot of the inefficiency of a plugin system design.
-    function _createFundEnterPosition(Agreement memory agreement) private {
-        (bool success, bytes memory data) = agreement.factory.call(abi.encodeWithSignature("createClone()"));
-        require(success, "BKFCP");
-        agreement.position.addr = abi.decode(data, (address));
-        IAccount(agreement.lenderAccount.addr).unloadToPosition(
-            agreement.position.addr,
-            agreement.loanAsset,
-            agreement.loanAmount,
-            agreement.lenderAccount.parameters
-        );
-        IAccount(agreement.borrowerAccount.addr).unloadToPosition(
-            agreement.position.addr,
-            agreement.collAsset,
-            agreement.collAmount,
-            agreement.borrowerAccount.parameters
-        );
-        // NOTE lots of gas savings if collateral can be kept in borrower account until absolutely necessary.
-        IPosition(agreement.position.addr).deploy(agreement);
-    }
-
-    // TODO implement the verification
+    // Sign Agreement
 
     function _signAgreement(Agreement memory agreement) private returns (SignedBlueprint memory signedBlueprint) {
         // Create blueprint to store signed Agreement off chain via events.
@@ -168,12 +95,110 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         // publishBlueprint(signedBlueprint); // These verifiable blueprints will be used to interact with positions.
     }
 
-    // // fallback and receive revert by default. helpful to make reversion reason explicit?
-    // fallback() external payable {
-    //     revert("fallback function deactivated");
-    // }
+    // Open Position
+    function _openPosition(Agreement memory agreement) private {
+        (bool success, bytes memory data) = agreement.factory.call(abi.encodeWithSignature("createClone()"));
+        require(success, "factory error: create clone failed");
 
-    // receive() external payable {
-    //     revert("receive function deactivated");
-    // }
+        agreement.position.addr = abi.decode(data, (address));
+
+        uint256 lenderOriginalBalance = IAccount(agreement.lenderAccount.addr).getBalance(
+            agreement.loanAsset,
+            agreement.lenderAccount.parameters
+        );
+        uint256 borrowerOriginalBalance = IAccount(agreement.borrowerAccount.addr).getBalance(
+            agreement.collAsset,
+            agreement.borrowerAccount.parameters
+        );
+
+        IPosition(agreement.position.addr).open(agreement);
+
+        uint256 lenderNewBalance = IAccount(agreement.lenderAccount.addr).getBalance(
+            agreement.loanAsset,
+            agreement.lenderAccount.parameters
+        );
+        uint256 borrowerNewBalance = IAccount(agreement.borrowerAccount.addr).getBalance(
+            agreement.collAsset,
+            agreement.borrowerAccount.parameters
+        );
+
+        require(lenderOriginalBalance - lenderNewBalance <= agreement.loanAmount, "Too much taken from lender");
+        require(borrowerOriginalBalance - borrowerNewBalance <= agreement.collAmount, "Too much taken from borrower");
+
+        require(!LibBookkeeper.isLiquidatable(agreement), "unhealthy deployment");
+    }
+
+    // Close Position
+    mapping(bytes32 => bool) public agreementClosed;
+
+    function closePosition(
+        SignedBlueprint calldata agreementBlueprint
+    ) external payable nonReentrant verifySignature(agreementBlueprint) {
+        (bytes1 blueprintDataType, bytes memory blueprintData) = unpackDataField(agreementBlueprint.blueprint.data);
+        require(blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "closePosition: Invalid data type");
+        Agreement memory agreement = abi.decode(blueprintData, (Agreement));
+
+        bool isBorrower = msg.sender ==
+            IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters);
+        bool isLiquidatable = LibBookkeeper.isLiquidatable(agreement);
+        // Require either the sender to be the borrower or the agreement to be liquidatable
+        require(
+            isBorrower || isLiquidatable,
+            "error: Sender is neither the borrower nor the agreement is liquidatable"
+        );
+        uint256 loanCost = IAssessor(agreement.assessor.addr).getCost(agreement);
+
+        uint256 lenderOriginalBalance = IAccount(agreement.lenderAccount.addr).getBalance(
+            agreement.loanAsset,
+            agreement.lenderAccount.parameters
+        );
+
+
+        IPosition(agreement.position.addr).close(agreement);
+
+        uint256 lenderNewBalance = IAccount(agreement.lenderAccount.addr).getBalance(
+            agreement.loanAsset,
+            agreement.lenderAccount.parameters
+        );
+
+
+        require( lenderNewBalance - lenderOriginalBalance >= agreement.loanAmount +  loanCost , "Not enough to close the loan");
+
+        // Marks position as closed from Bookkeeper pov.
+        agreementClosed[keccak256(abi.encodePacked(agreement.position.addr))] = true;
+    }
+
+    // Liquidate
+    mapping(bytes32 => bool) public liquidationLock;
+
+    function triggerLiquidation(
+        SignedBlueprint calldata agreementBlueprint
+    ) external nonReentrant verifySignature(agreementBlueprint) {
+        (, bytes memory blueprintData) = unpackDataField(agreementBlueprint.blueprint.data);
+        Agreement memory agreement = abi.decode(blueprintData, (Agreement));
+        bytes32 agreementId = keccak256(abi.encode(agreement));
+
+        // Check if the loan is already closed
+        require(!agreementClosed[agreementId], "Loan already closed.");
+
+        // Ensure this agreement isn't already undergoing liquidation
+        require(!liquidationLock[agreementId], "Liquidation already in progress for this agreement.");
+
+        require(LibBookkeeper.isLiquidatable(agreement), "Loan is not eligible for liquidation");
+
+        // Set the lock
+        liquidationLock[agreementId] = true;
+
+        // Execute the liquidation
+        ILiquidator(agreement.liquidator.addr).liquidate(msg.sender, agreement);
+
+        // If the loan has been closed during the liquidation, no need to recheck its status.
+        if (!agreementClosed[agreementId]) {
+            // Recheck the liquidation condition post-liquidation
+            require(!LibBookkeeper.isLiquidatable(agreement), "Post-liquidation check failed");
+        }
+
+        // Release the lock
+        liquidationLock[agreementId] = false;
+    }
 }
