@@ -23,6 +23,7 @@ import {ILiquidator} from "src/interfaces/ILiquidator.sol";
 import {IOracle} from "src/interfaces/IOracle.sol";
 import {StandardAssessor} from "src/plugins/assessor/implementations/StandardAssessor.sol";
 import {StaticOracle} from "src/plugins/oracle/implementations/StaticOracle.sol";
+import {ChainlinkOracle} from "src/plugins/oracle/implementations/ChainlinkOracle.sol";
 import {WalletFactory} from "src/plugins/position/implementations/Wallet.sol";
 
 import {Bookkeeper} from "src/Bookkeeper.sol";
@@ -39,9 +40,8 @@ contract EndToEndTest is TestUtils {
     IAccount public accountPlugin;
     IAssessor public assessorPlugin;
     ILiquidator public liquidatorPlugin;
-    IOracle public uniOraclePlugin;
+    IOracle public chainlinkOracle;
     IOracle public staticOracle;
-    IPosition public uniV3HoldFactory;
     IPosition public walletFactory;
 
     // Mirrors OZ EIP712 impl.
@@ -80,7 +80,7 @@ contract EndToEndTest is TestUtils {
         assessorPlugin = IAssessor(address(new StandardAssessor()));
         staticOracle = IOracle(address(new StaticOracle()));
         walletFactory = IPosition(address(new WalletFactory(address(bookkeeper))));
-
+        chainlinkOracle= IOracle(address(new ChainlinkOracle()));
         // // For use with pre deployed contracts.
         // bookkeeper = IBookkeeper(0x96DEA1646129fF9637CE5cCE81E65559af172b92);
         // accountPlugin = IAccount(0x225D9FaD9081F0E67dD5E4b93E26e85E8F70a9aE);
@@ -92,10 +92,16 @@ contract EndToEndTest is TestUtils {
         // uniV3HoldFactory = IPosition();
     }
 
+
+
     // Using USDC as collateral, borrow ETH with USDC.
     function test_FillClose() public {
         address lender = vm.addr(LENDER_PRIVATE_KEY);
         address borrower = vm.addr(BORROWER_PRIVATE_KEY);
+
+        bytes memory addressAsBytes = abi.encode(address(0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419));
+        console.log("chainlink ETH",chainlinkOracle.getClosePrice(addressAsBytes) );
+
 
         SoloAccount.Parameters memory lenderAccountParams = SoloAccount.Parameters({owner: lender, salt: bytes32(0)});
         SoloAccount.Parameters memory borrowerAccountParams = SoloAccount.Parameters({

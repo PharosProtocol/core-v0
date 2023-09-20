@@ -24,8 +24,10 @@ struct Parameters {
     }
 
      function _value(address addr) private view returns (uint) {
-    (, int256 answer, , , uint80 decimals) = AggregatorV3Interface(addr).latestRoundData();
+    (, int256 answer, , ,) = AggregatorV3Interface(addr).latestRoundData();
     uint256 value;
+    uint80 decimals;
+    decimals = AggregatorV3Interface(addr).decimals();
     value = uint256(answer) * C.RATIO_FACTOR / (10**uint256(decimals)); // adjusted for 18 dec precision
     return value;
 }
