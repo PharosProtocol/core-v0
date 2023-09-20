@@ -3,5 +3,5 @@
 @tractor/=lib/tractor/
 @uni-v3-core/=lib/v3-core/contracts/
 @uni-v3-periphery/=lib/v3-periphery/contracts/
-
+@chainlink/=lib/chainlink/
 @uniswap/=lib/
