@@ -8,10 +8,7 @@ import "src/Bookkeeper.sol";
 import "src/libraries/LibUtils.sol";
 import "src/plugins/account/implementations/SoloAccount.sol";
 import "src/plugins/oracle/implementations/StaticOracle.sol";
-import "src/plugins/oracle/implementations/UniV3Oracle.sol";
 import "src/plugins/assessor/implementations/StandardAssessor.sol";
-import "src/plugins/liquidator/implementations/InstantCloseTakeCollateral.sol";
-import "src/plugins/position/implementations/UniV3Hold.sol";
 import "src/plugins/position/implementations/Wallet.sol";
 
 // To install forge/cast:
@@ -38,12 +35,13 @@ contract DeployScript is Script {
         // LibBookkeeper libBookkeeper = new LibBookkeeper();
         Bookkeeper bookkeeper = new Bookkeeper();
         new SoloAccount(address(bookkeeper));
-        new InstantCloseTakeCollateral(address(bookkeeper));
-        // new UniV3HoldFactory(address(bookkeeper));
-        new WalletFactory(address(bookkeeper));
         new StandardAssessor();
         new StaticOracle();
-        // new UniV3Oracle();
+        //new UniV3Oracle();
+        // new SpicyOracle();
+        //new UniV3HoldFactory(address(bookkeeper));
+        new WalletFactory(address(bookkeeper));
+        //new InstantCloseTakeCollateral(address(bookkeeper));
 
         vm.stopBroadcast();
     }

@@ -12,17 +12,13 @@ import {IPosition} from "src/interfaces/IPosition.sol";
 abstract contract Liquidator is ILiquidator, AccessControl {
     // mapping(bytes32 => bool) internal liquidating;
 
-    event KickReceived(address indexed position, Agreement agreement, address kicker);
-    event Liquidated(address indexed position, address indexed liquidator);
+    event Liquidation(address indexed liquidator, address indexed position);
 
     constructor(address bookkeeperAddr) {
         _setupRole(C.BOOKKEEPER_ROLE, bookkeeperAddr);
     }
 
-    function receiveKick(address kicker, Agreement calldata agreement) external onlyRole(C.BOOKKEEPER_ROLE) {
-        _receiveKick(kicker, agreement);
-        emit KickReceived(agreement.position.addr, agreement, kicker);
+    function _liquidate(address caller, Agreement calldata agreement) internal virtual {
+        emit Liquidation(caller, agreement.position.addr);
     }
-
-    function _receiveKick(address kicker, Agreement calldata agreement) internal virtual;
 }

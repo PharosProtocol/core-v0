@@ -60,3 +60,7 @@ Invariant tests consist of semi-random inputs and random function calls. Invaria
 `brownie run utils --network anvil --interactive`
 
 
+# Remote Node Testing (Anvil)
+1. Set up remote instance. Open port 8545 (in provider and on machine).
+2. Start anvil with host as `0.0.0.0`
+3. Run tests / request locally, with RPC URL of `http://{MACHINE_IP}:8545`
