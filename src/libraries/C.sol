@@ -12,10 +12,10 @@ library C {
     address internal constant UNI_V3_ROUTER = address(0xE592427A0AEce92De3Edee1F18E0157C05861564);
 
     // // MAINNET
-    // address internal constant WETH = address(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
+     address internal constant WETH = address(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
 
     // ARBITRUM
-    address internal constant WETH = address(0x82aF49447D8a07e3bd95BD0d56f35241523fBab1);
+    // address internal constant WETH = address(0x82aF49447D8a07e3bd95BD0d56f35241523fBab1);
 
     // // SEPOLIA
     // address internal constant WETH = address(0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9);

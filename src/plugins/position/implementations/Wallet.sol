@@ -9,82 +9,80 @@ import {C} from "src/libraries/C.sol";
 import {Position} from "src/plugins/position/Position.sol";
 import {IAssessor} from "src/interfaces/IAssessor.sol";
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
-
-import {Asset, ERC20_STANDARD, LibUtils} from "src/libraries/LibUtils.sol";
 import {LibUtilsPublic} from "src/libraries/LibUtilsPublic.sol";
+import {IOracle} from "src/interfaces/IOracle.sol";
+
 
 /*
- * Send assets directly to a user wallet. Used with overcollateralized loans.
+ * Send assets directly to a user wallet. Used with no leverage loans.
  */
 
-// NOTE collateralized positions are not explicitly blocked. UI/user should take care.
+// NOTE leverage loans are not explicitly blocked. UI/user should take care.
 
 contract WalletFactory is Position {
     struct Parameters {
         address recipient;
     }
 
-    uint256 public amountDistributed;
 
     constructor(address protocolAddr) Position(protocolAddr) {}
 
-    function canHandleAsset(Asset calldata asset, bytes calldata) external pure override returns (bool) {
-        if (asset.standard != ERC20_STANDARD) return false;
-        return true;
+    // another way to get recipient directly msg.sender == IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters),
+    struct Asset {
+        address addr;
+        uint8 decimals;
     }
-
     /// @dev assumes assets are already in Position.
-    function _deploy(Asset calldata asset, uint256 amount, bytes calldata parameters) internal override {
-        Parameters memory params = abi.decode(parameters, (Parameters));
-        amountDistributed = amount;
-        LibUtilsPublic.safeErc20Transfer(asset.addr, params.recipient, amountDistributed);
+    function _open(Agreement calldata agreement) internal override {
+        Parameters memory params = abi.decode(agreement.position.parameters, (Parameters));
+        Asset memory loanAsset = abi.decode(agreement.loanAsset, (Asset));
+        LibUtilsPublic.safeErc20Transfer(loanAsset.addr, params.recipient, agreement.loanAmount);
+
     }
 
-    function _close(address sender, Agreement calldata agreement) internal override returns (uint256 closedAmount) {
-        uint256 returnAmount = amountDistributed;
+    function _close( address sender, Agreement calldata agreement) internal override  {
 
-        // Positions do not typically factor in a cost, but doing so here often saves an ERC20 transfer in distribute.
-        (Asset memory costAsset, uint256 cost) = IAssessor(agreement.assessor.addr).getCost(
-            agreement,
-            amountDistributed
-        );
-        if (LibUtils.isValidLoanAssetAsCost(agreement.loanAsset, costAsset)) {
-            returnAmount += cost;
-        }
+        uint256 cost = IAssessor(agreement.assessor.addr).getCost(agreement);
+        uint256 closeAmount = agreement.loanAmount + cost * C.RATIO_FACTOR/ IOracle(agreement.loanOracle.addr).getOpenPrice( agreement.loanOracle.parameters);
+        address loanAssetAddress = abi.decode(agreement.loanAsset, (address));
+        Asset memory collAsset = abi.decode(agreement.collAsset, (Asset));
+        address collAssetAddress = collAsset.addr;
+        uint256 collAssetDecimal = collAsset.decimals;
 
-        // Borrower must have pre-approved use of erc20.
-        LibUtilsPublic.safeErc20TransferFrom(agreement.loanAsset.addr, sender, address(this), returnAmount);
 
-        return amountDistributed;
-    }
-
-    function _distribute(address sender, uint256 lenderAmount, Agreement calldata agreement) internal override {
-        IERC20 erc20 = IERC20(agreement.loanAsset.addr);
+        IERC20 erc20 = IERC20(loanAssetAddress);
         uint256 balance = erc20.balanceOf(address(this));
 
         // If there are not enough assets to pay lender, pull missing from sender.
-        if (lenderAmount > balance) {
+        if (closeAmount > balance) {
             LibUtilsPublic.safeErc20TransferFrom(
-                agreement.loanAsset.addr,
+                loanAssetAddress,
                 sender,
                 address(this),
-                lenderAmount - balance
+                closeAmount - balance
             );
         }
 
-        if (lenderAmount > 0) {
-            erc20.approve(agreement.lenderAccount.addr, lenderAmount);
+        if (closeAmount > 0) {
+            erc20.approve(agreement.lenderAccount.addr, closeAmount);
             IAccount(agreement.lenderAccount.addr).loadFromPosition(
                 agreement.loanAsset,
-                lenderAmount,
+                closeAmount,
                 agreement.lenderAccount.parameters
             );
+
         }
+        uint256 convertedAmount = agreement.collAmount * 10**(collAssetDecimal)/C.RATIO_FACTOR;
+
+        LibUtilsPublic.safeErc20Transfer(collAssetAddress, sender, convertedAmount);
+
+
     }
 
     // Public Helpers.
 
-    function _getCloseAmount(bytes calldata) internal view override returns (uint256) {
-        return amountDistributed;
+    function _getCloseValue(Agreement calldata agreement) internal view override returns (uint256) {
+        uint256 value= agreement.collAmount * IOracle(agreement.collOracle.addr).getOpenPrice( agreement.collOracle.parameters)/C.RATIO_FACTOR ;
+        return value;
     }
 }
