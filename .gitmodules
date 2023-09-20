@@ -22,6 +22,3 @@
 [submodule "lib/v3-periphery"]
 	path = lib/v3-periphery
 	url = https://github.com/funderbrker/v3-periphery
-[submodule "lib/forge-std/lib/ds-test"]
-	path = lib/forge-std/lib/ds-test
-	url = https://github.com/dapphub/ds-test/tree/e282159d5170298eb2455a6c05280ab5a73a4ef0
