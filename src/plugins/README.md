@@ -1,6 +1,6 @@
 # Plugins
 
-The plugin system is what enables pharos to be permissionless and customizable. The entire system can be thought of as a 
+The Plugin system is what enables Modulus to be permissionless and customizable. The entire system can be thought of as a 
 large number of small contracts that plug into a common orderbook via standardized and versioned interfaces. The benefits 
 of the Plugin system comes at the cost of complexity and minor additional inefficiency to the system. The plugin system
 also indirectly increases system security by distributing capital and risk across many contracts and implementations.
@@ -51,6 +51,8 @@ contract. Parameter definitions are optional.
 ~~- *Eject*: Position -> User, pushes, liquidator~~
 - honorable mention: *transferContract*: give Liquidator plugin ownership of Position
 
+## Implementing a Plugin
+are plugins expected to verify their data?
 
 ## Plugin implementation notes
 - All plugins should have a non-reverting callback implemented. This allows them to be compatible with other plugins
@@ -58,3 +60,12 @@ that use non-standard functions.
 ^^ Arguably the opposite is true. Hard revert on non-implemented functions to indicate incompatibility. But this may
 just cause stuck positions as indicator may come too late.
 
+
+// IDEA
+// Tag based compatibility system. Each plugin implementation could self select tags that represent it. The UI
+// users, and other contracts can pull these tags and use them to determine if plugins fit together for a healthy
+// agreement. This avoids the issue of new plugins being default-incompatible with all existing plugins, yet it
+// allows for intricate compatibility.
+// Ex) Assessor:deterministic_cost, Account:assessor_updater, position:imperfect_exit_amount
+// Not covered by this design is where a plugin adds a tag that indicates *incompatibility* with another plugin bc
+// existing plugins would not be aware of newly implemented incompatibility tags.

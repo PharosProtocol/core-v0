@@ -6,8 +6,7 @@ import {IPosition} from "src/interfaces/IPosition.sol";
 import {IOracle} from "src/interfaces/IOracle.sol";
 import {IAssessor} from "src/interfaces/IAssessor.sol";
 import {C} from "src/libraries/C.sol";
-import {LibUtils} from "src/libraries/LibUtils.sol";
-
+import {Asset, ETH_STANDARD, LibUtils} from "src/libraries/LibUtils.sol";
 
 struct IndexPair {
     uint128 offer;
@@ -22,12 +21,11 @@ struct PluginReference {
 /// @notice terms shared between Offers and Requests.
 struct Order {
     uint256[] minLoanAmounts; // idx parity with loanAssets
-    bytes[] loanAssets;
-    bytes[] collAssets;
-    uint256[] minCollateralRatio;
+    Asset[] loanAssets;
+    Asset[] collAssets;
     address[] fillers;
-    bool isLeverage;
     uint256 maxDuration;
+    uint256 minCollateralRatio;
     // Plugins
     PluginReference account;
     PluginReference assessor;
@@ -52,11 +50,15 @@ struct Fill {
     uint256 takerIdx; // ignored if no taker allowlist.
     uint256 loanAssetIdx; // need to verify with the oracle
     uint256 collAssetIdx; // need to verify with the oracle
+    uint256 loanOracleIdx;
+    uint256 collOracleIdx;
     uint256 factoryIdx;
     // Sided config
     bool isOfferFill;
     BorrowerConfig borrowerConfig; // Only set when filling Offers
 }
+
+// struct LenderConfig {}
 
 /**
  * @notice Position definition is derived from a Match and both Orders.
@@ -66,11 +68,10 @@ struct Agreement {
     // uint256 bookkeeperVersion;
     uint256 loanAmount;
     uint256 collAmount;
-    bytes loanAsset;
-    bytes collAsset;
+    Asset loanAsset;
+    Asset collAsset;
     uint256 minCollateralRatio; // Position value / collateral value
     uint256 maxDuration;
-    bool isLeverage;
     PluginReference lenderAccount;
     PluginReference borrowerAccount;
     PluginReference assessor;
@@ -85,7 +86,7 @@ struct Agreement {
 library LibBookkeeper {
     /// @notice verify that a fill is valid for an order.
     /// @dev Reverts with reason if not valid.
-    function verifyFill(Fill calldata fill, Order memory order) internal pure {
+    function verifyFill(Fill calldata fill, Order memory order) internal view {
         BorrowerConfig memory borrowerConfig;
         if (!order.isOffer) {
             require(!fill.isOfferFill, "offer fill of offer");
@@ -96,8 +97,21 @@ library LibBookkeeper {
         }
 
         require(fill.loanAmount >= order.minLoanAmounts[fill.loanAssetIdx], "loanAmount too small");
-        require(borrowerConfig.initCollateralRatio >= order.minCollateralRatio[fill.collAssetIdx], "initCollateralRatio too small");
+        require(borrowerConfig.initCollateralRatio >= order.minCollateralRatio, "initCollateralRatio too small");
 
+        // NOTE this would be the right place to verify modules are compatible with agreement. Current
+        //      design allows users to make invalid combinations and leaves compatibility checks up to
+        //      UI/user. This is not great but fine because both users must explicitly agree to terms.
+
+        // NOTE v0.1 TESTING RESTRICTIONS.
+        //      THESE ARE TEMPORARY.
+        require(
+            IOracle(order.loanOracles[fill.loanOracleIdx].addr).getSpotValue(
+                fill.loanAmount,
+                order.loanOracles[fill.loanOracleIdx].parameters
+            ) <= 1e18 / 10,
+            "calm down fren. we just testing. keep loan value at or below 0.1 ETH"
+        );
     }
 
     /// @dev assumes compatibility between match, offer, and request already verified.
@@ -107,41 +121,63 @@ library LibBookkeeper {
         Order memory order
     ) internal pure returns (Agreement memory agreement) {
         // AUDIT would this be more efficient in a single set statement, to avoid lots of zero -> non-zero changes?
+        //       i.e. agreement = Agreement({.....});
         agreement.maxDuration = order.maxDuration;
         agreement.assessor = order.assessor;
         agreement.liquidator = order.liquidator;
-        agreement.isLeverage = order.isLeverage ;
+        agreement.minCollateralRatio = order.minCollateralRatio;
+
         agreement.loanAsset = order.loanAssets[fill.loanAssetIdx];
-        agreement.loanOracle = order.loanOracles[fill.loanAssetIdx];
+        agreement.loanOracle = order.loanOracles[fill.loanOracleIdx];
         agreement.collAsset = order.collAssets[fill.collAssetIdx];
-        agreement.collOracle = order.collOracles[fill.collAssetIdx];
-        agreement.minCollateralRatio = order.minCollateralRatio[fill.collAssetIdx];
+        agreement.collOracle = order.collOracles[fill.collOracleIdx];
         agreement.factory = order.factories[fill.factoryIdx];
+
         agreement.loanAmount = fill.loanAmount;
     }
 
+    // NOTE should make this public, without increasing lib gas cost
+    /// @notice Is the position defined by an agreement up for liquidation and not yet kicked
     /// @dev liquidation based on CR or duration limit
     function isLiquidatable(Agreement memory agreement) internal view returns (bool) {
         IPosition position = IPosition(agreement.position.addr);
+        // if (positionValue == 0) return false;
 
         // If past expiration, liquidatable.
         if (block.timestamp > agreement.deploymentTime + agreement.maxDuration) return true;
 
-        uint256 closeAmount = position.getCloseValue(agreement);
+        uint256 exitAmount = position.getCloseAmount(agreement.position.parameters);
+        (Asset memory costAsset, uint256 cost) = IAssessor(agreement.assessor.addr).getCost(agreement, exitAmount);
 
-        //openLoanValue is loan value + cost of loan
-        uint256 openLoanValue = agreement.loanAmount * IOracle(agreement.loanOracle.addr).getClosePrice(
-                agreement.loanOracle.parameters) / C.RATIO_FACTOR
-             + IAssessor(agreement.assessor.addr).getCost(agreement);
+        uint256 outstandingValue;
+        if (LibUtils.isValidLoanAssetAsCost(agreement.loanAsset, costAsset)) {
+            if (cost > exitAmount) return true;
+            outstandingValue = IOracle(agreement.loanOracle.addr).getSpotValue(
+                exitAmount - cost,
+                agreement.loanOracle.parameters
+            );
+        } else if (costAsset.standard == ETH_STANDARD) {
+            uint256 positionValue = IOracle(agreement.loanOracle.addr).getSpotValue(
+                exitAmount,
+                agreement.loanOracle.parameters
+            );
+            if (positionValue > cost) return true;
+            outstandingValue = positionValue - cost;
+        } else {
+            revert("isLiquidatable: invalid asset");
+        }
+        uint256 collValue = IOracle(agreement.collOracle.addr).getSpotValue(
+            agreement.collAmount,
+            agreement.collOracle.parameters
+        );
 
-        uint256 collateralRatio = closeAmount *C.RATIO_FACTOR / openLoanValue;
+        // NOTE WARNING FUNDERBRKER - CR calc can create negative numbers. This code cannot deal. Update.
 
-        if (collateralRatio < (agreement.minCollateralRatio)) {
-        revert("Collateral ratio is below minimum");
+        uint256 collateralRatio = (C.RATIO_FACTOR * outstandingValue) / collValue;
+
+        if (collateralRatio < agreement.minCollateralRatio) {
+            return true;
         }
         return false;
     }
-    
-
-    
 }

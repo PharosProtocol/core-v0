@@ -10,6 +10,7 @@ import {IAssessor} from "src/interfaces/IAssessor.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
 import {C} from "src/libraries/C.sol";
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
+import {Asset} from "src/libraries/LibUtils.sol";
 import {CloneFactory} from "src/plugins/CloneFactory.sol";
 
 // Implementation should not allow user to enter a position in such a way that they
@@ -26,35 +27,44 @@ abstract contract Position is IPosition, CloneFactory {
         // _setupRole
     }
 
-    function open(
-        Agreement calldata agreement
+    function deploy(
+        Asset calldata asset,
+        uint256 amount,
+        bytes calldata parameters
     ) external override proxyExecution onlyRole(C.ADMIN_ROLE) {
-        _open(agreement);
+        _deploy(asset, amount, parameters);
     }
 
+    function _deploy(Asset calldata asset, uint256 amount, bytes calldata parameters) internal virtual;
 
-    function close(address sender,
+    function close(
+        address sender,
         Agreement calldata agreement
-    ) external override proxyExecution onlyRole(C.ADMIN_ROLE)  {
+    ) external override proxyExecution onlyRole(C.ADMIN_ROLE) returns (uint256) {
         return _close(sender, agreement);
     }
 
-
-    function getCloseValue(Agreement calldata agreement) external view override proxyExecution returns (uint256) {
-        return _getCloseValue(agreement);
+    function distribute(
+        address sender,
+        uint256 lenderAmount,
+        Agreement calldata agreement
+    ) external payable override proxyExecution onlyRole(C.ADMIN_ROLE) {
+        return _distribute(sender, lenderAmount, agreement);
     }
 
+    function getCloseAmount(bytes calldata parameters) external view override proxyExecution returns (uint256) {
+        return _getCloseAmount(parameters);
+    }
 
-    function _open(Agreement calldata agreement) internal virtual;
+    /// @notice Close position and distribute assets. Give borrower MPC control.
+    /// @dev All asset management must be done within this call, else bk would need to have asset-specific knowledge.
+    function _close(address sender, Agreement calldata agreement) internal virtual returns (uint256);
 
-    function _close(address sender, Agreement calldata agreement) internal virtual;
-    
-    function _getCloseValue(Agreement calldata agreement) internal view virtual returns (uint256);
-    
+    function _distribute(address sender, uint256 lenderAmount, Agreement calldata agreement) internal virtual;
 
+    function _getCloseAmount(bytes calldata parameters) internal view virtual returns (uint256);
 
-
-    // SECURITY RISK
+    // SECURITY Hello auditors. This feels risky.
     function transferContract(address controller) external override proxyExecution onlyRole(C.ADMIN_ROLE) {
         grantRole(C.ADMIN_ROLE, controller);
         renounceRole(C.ADMIN_ROLE, msg.sender);

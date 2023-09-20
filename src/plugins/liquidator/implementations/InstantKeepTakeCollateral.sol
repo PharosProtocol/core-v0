@@ -1,26 +1,26 @@
-// // SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 
-// pragma solidity 0.8.19;
+pragma solidity 0.8.19;
 
-// import {InstantErc20} from "./InstantErc20.sol";
-// import {Agreement} from "src/libraries/LibBookkeeper.sol";
+import {InstantErc20} from "./InstantErc20.sol";
+import {Agreement} from "src/libraries/LibBookkeeper.sol";
 
-// /*
-//  * Liquidate a position at kick time by giving closing the position and having position contract distribute loan and
-//  * collateral assets between liquidator, lender, and borrower. Only useable with ERC20s due to need for divisibility.
-//  * Liquidator reward is all of the collateral.
-//  */
+/*
+ * Liquidate a position at kick time by giving closing the position and having position contract distribute loan and
+ * collateral assets between liquidator, lender, and borrower. Only useable with ERC20s due to need for divisibility.
+ * Liquidator reward is all of the collateral.
+ */
 
-// contract InstantKeepTakeCollateral is InstantErc20 {
-//     // struct Parameters {}
+contract InstantKeepTakeCollateral is InstantErc20 {
+    // struct Parameters {}
 
-//     constructor(address bookkeeperAddr) InstantErc20(bookkeeperAddr) {}
+    constructor(address bookkeeperAddr) InstantErc20(bookkeeperAddr) {}
 
-//     function _receiveKick(address kicker, Agreement calldata agreement) internal override {
-//         _liquidate(kicker, agreement, true);
-//     }
+    function _receiveKick(address kicker, Agreement calldata agreement) internal override {
+        _liquidate(kicker, agreement, true);
+    }
 
-//     function getRewardCollAmount(Agreement memory agreement) public pure override returns (uint256 rewardCollAmount) {
-//         return agreement.collAmount;
-//     }
-// }
+    function getRewardCollAmount(Agreement memory agreement) public pure override returns (uint256 rewardCollAmount) {
+        return agreement.collAmount;
+    }
+}
