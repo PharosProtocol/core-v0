@@ -8,6 +8,7 @@ import {IAssessor} from "src/interfaces/IAssessor.sol";
 import {C} from "src/libraries/C.sol";
 import {LibUtils} from "src/libraries/LibUtils.sol";
 
+
 struct IndexPair {
     uint128 offer;
     uint128 request;
@@ -25,6 +26,7 @@ struct Order {
     bytes[] collAssets;
     uint256[] minCollateralRatio;
     address[] fillers;
+    bool isLeverage;
     uint256 maxDuration;
     // Plugins
     PluginReference account;
@@ -68,6 +70,7 @@ struct Agreement {
     bytes collAsset;
     uint256 minCollateralRatio; // Position value / collateral value
     uint256 maxDuration;
+    bool isLeverage;
     PluginReference lenderAccount;
     PluginReference borrowerAccount;
     PluginReference assessor;
@@ -107,6 +110,7 @@ library LibBookkeeper {
         agreement.maxDuration = order.maxDuration;
         agreement.assessor = order.assessor;
         agreement.liquidator = order.liquidator;
+        agreement.isLeverage = order.isLeverage ;
         agreement.loanAsset = order.loanAssets[fill.loanAssetIdx];
         agreement.loanOracle = order.loanOracles[fill.loanAssetIdx];
         agreement.collAsset = order.collAssets[fill.collAssetIdx];
@@ -123,16 +127,17 @@ library LibBookkeeper {
         // If past expiration, liquidatable.
         if (block.timestamp > agreement.deploymentTime + agreement.maxDuration) return true;
 
-        uint256 closeAmount = position.getCloseValue(agreement.position.parameters);
+        uint256 closeAmount = position.getCloseValue(agreement);
+
         //openLoanValue is loan value + cost of loan
         uint256 openLoanValue = agreement.loanAmount * IOracle(agreement.loanOracle.addr).getClosePrice(
-                agreement.loanOracle.parameters
-            ) + IAssessor(agreement.assessor.addr).getCost(agreement);
+                agreement.loanOracle.parameters) / C.RATIO_FACTOR
+             + IAssessor(agreement.assessor.addr).getCost(agreement);
 
-        uint256 collateralRatio = closeAmount / openLoanValue;
+        uint256 collateralRatio = closeAmount *C.RATIO_FACTOR / openLoanValue;
 
-        if (collateralRatio < agreement.minCollateralRatio) {
-            return true;
+        if (collateralRatio < (agreement.minCollateralRatio)) {
+        revert("Collateral ratio is below minimum");
         }
         return false;
     }

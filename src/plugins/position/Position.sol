@@ -33,23 +33,23 @@ abstract contract Position is IPosition, CloneFactory {
     }
 
 
-    function close(
+    function close(address sender,
         Agreement calldata agreement
     ) external override proxyExecution onlyRole(C.ADMIN_ROLE)  {
-        return _close( agreement);
+        return _close(sender, agreement);
     }
 
 
-    function getCloseValue(bytes calldata parameters) external view override proxyExecution returns (uint256) {
-        return _getCloseValue(parameters);
+    function getCloseValue(Agreement calldata agreement) external view override proxyExecution returns (uint256) {
+        return _getCloseValue(agreement);
     }
 
 
     function _open(Agreement calldata agreement) internal virtual;
 
-    function _close( Agreement calldata agreement) internal virtual;
+    function _close(address sender, Agreement calldata agreement) internal virtual;
     
-    function _getCloseValue(bytes calldata parameters) internal view virtual returns (uint256);
+    function _getCloseValue(Agreement calldata agreement) internal view virtual returns (uint256);
     
 
 

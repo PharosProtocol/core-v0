@@ -10,7 +10,7 @@ import {Oracle} from "../Oracle.sol";
  */
 contract StaticOracle is Oracle {
     struct Parameters {
-        uint256 number; 
+        uint256 number; //with 10 decimal places precision.
     }
 
     function getOpenPrice(bytes calldata parameters) external pure returns (uint256) {

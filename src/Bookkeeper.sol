@@ -55,21 +55,48 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         LibBookkeeper.verifyFill(fill, order);
         Agreement memory agreement = LibBookkeeper.agreementFromOrder(fill, order);
 
-        uint256 loanValue = IOracle(agreement.loanOracle.addr).getOpenPrice(agreement.loanOracle.parameters);
+        uint256 loanValue = agreement.loanAmount *
+            IOracle(agreement.loanOracle.addr).getOpenPrice(agreement.loanOracle.parameters)/C.RATIO_FACTOR;
         uint256 collateralValue;
 
-        if (order.isOffer) {
-            agreement.lenderAccount = order.account;
-            agreement.borrowerAccount = fill.account;
-            collateralValue = (loanValue * fill.borrowerConfig.initCollateralRatio) / C.RATIO_FACTOR;
-            agreement.position.parameters = fill.borrowerConfig.positionParameters;
+        if (agreement.isLeverage) {
+            uint256 initCollateralRatio = order.isOffer
+                ? fill.borrowerConfig.initCollateralRatio
+                : order.borrowerConfig.initCollateralRatio;
+
+            if (order.isOffer) {
+                agreement.lenderAccount = order.account;
+                agreement.borrowerAccount = fill.account;
+            } else {
+                agreement.lenderAccount = fill.account;
+                agreement.borrowerAccount = order.account;
+            }
+
+            collateralValue = (loanValue * (initCollateralRatio - 1e18)) / C.RATIO_FACTOR;
         } else {
-            agreement.lenderAccount = fill.account;
-            agreement.borrowerAccount = order.account;
-            collateralValue = (loanValue * order.borrowerConfig.initCollateralRatio) / C.RATIO_FACTOR;
-            agreement.position.parameters = order.borrowerConfig.positionParameters;
+            uint256 initCollateralRatio = order.isOffer
+                ? fill.borrowerConfig.initCollateralRatio
+                : order.borrowerConfig.initCollateralRatio;
+
+            if (order.isOffer) {
+                agreement.lenderAccount = order.account;
+                agreement.borrowerAccount = fill.account;
+            } else {
+                agreement.lenderAccount = fill.account;
+                agreement.borrowerAccount = order.account;
+            }
+
+            collateralValue = (loanValue * initCollateralRatio) / C.RATIO_FACTOR;
         }
-        agreement.collAmount = IOracle(agreement.collOracle.addr).getOpenPrice(agreement.collOracle.parameters);
+
+        agreement.position.parameters = order.isOffer
+            ? fill.borrowerConfig.positionParameters
+            : order.borrowerConfig.positionParameters;
+        agreement.collAmount =
+            collateralValue *C.RATIO_FACTOR/
+            IOracle(agreement.collOracle.addr).getOpenPrice(agreement.collOracle.parameters);
+        
+        
         // Set Position data that cannot be computed off chain by caller.
         agreement.deploymentTime = block.timestamp;
 
@@ -102,28 +129,20 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
 
         agreement.position.addr = abi.decode(data, (address));
 
-        uint256 lenderOriginalBalance = IAccount(agreement.lenderAccount.addr).getBalance(
+        IAccount(agreement.lenderAccount.addr).unloadToPosition(
+            agreement.position.addr,
             agreement.loanAsset,
+            agreement.loanAmount,
             agreement.lenderAccount.parameters
         );
-        uint256 borrowerOriginalBalance = IAccount(agreement.borrowerAccount.addr).getBalance(
+        IAccount(agreement.borrowerAccount.addr).unloadToPosition(
+            agreement.position.addr,
             agreement.collAsset,
+            agreement.collAmount,
             agreement.borrowerAccount.parameters
         );
 
         IPosition(agreement.position.addr).open(agreement);
-
-        uint256 lenderNewBalance = IAccount(agreement.lenderAccount.addr).getBalance(
-            agreement.loanAsset,
-            agreement.lenderAccount.parameters
-        );
-        uint256 borrowerNewBalance = IAccount(agreement.borrowerAccount.addr).getBalance(
-            agreement.collAsset,
-            agreement.borrowerAccount.parameters
-        );
-
-        require(lenderOriginalBalance - lenderNewBalance <= agreement.loanAmount, "Too much taken from lender");
-        require(borrowerOriginalBalance - borrowerNewBalance <= agreement.collAmount, "Too much taken from borrower");
 
         require(!LibBookkeeper.isLiquidatable(agreement), "unhealthy deployment");
     }
@@ -153,16 +172,17 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
             agreement.lenderAccount.parameters
         );
 
-
-        IPosition(agreement.position.addr).close(agreement);
+        IPosition(agreement.position.addr).close(msg.sender,agreement);
 
         uint256 lenderNewBalance = IAccount(agreement.lenderAccount.addr).getBalance(
             agreement.loanAsset,
             agreement.lenderAccount.parameters
         );
 
-
-        require( lenderNewBalance - lenderOriginalBalance >= agreement.loanAmount +  loanCost , "Not enough to close the loan");
+        require(
+            lenderNewBalance - lenderOriginalBalance >= agreement.loanAmount + loanCost,
+            "Not enough to close the loan"
+        );
 
         // Marks position as closed from Bookkeeper pov.
         agreementClosed[keccak256(abi.encodePacked(agreement.position.addr))] = true;

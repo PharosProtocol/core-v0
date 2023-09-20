@@ -66,7 +66,4 @@ abstract contract Account is IAccount, AccessControl, ReentrancyGuard {
         uint256 amount,
         bytes memory parameters
     ) internal virtual;
-
-
-
 }

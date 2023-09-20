@@ -7,10 +7,7 @@ can be trusted by modules (after reviewing verified source code ofc).
 
 ## Plugins
 Each plugin is a standalone contract meant to perform one duty of loan management. They can be permissionlessly
-deployed by anyone and therefore cannot be trusted. See more in `src/modules/README.md`. This permissionless use of solidity code by the protocol is a large part of what makes Pharos novel and extremely customizable.
-
-
-# Security 
+deployed by anyone and therefore cannot be trusted. See more in `src/plugins/README.md`. This permissionless use of solidity code by the protocol is a large part of what makes Pharos novel and extremely customizable.
 
 ## Security in Design
 - The bookkeeper is considered trusted by plugins and all agreements.
@@ -41,11 +38,4 @@ https://www.nascent.xyz/idea/youre-writing-require-statements-wrong
 - What is the cost of putting non-reentrant on all external calls? This is what I have done to guard against 
 reentrancy, but it is not clear what modern costs are using OZ in sol 0.8+ with refunding mechanisms in place.
 
-## Temporary Security Limitations
-In order to ensure a more secure launch, Pharos will limit some early functionality. This provides us more time to
-test, audit, and improve some of the elements that are most novel.
 
-### v0 (testnet & L2)
-- Loan size limits
-- Permissionless use of 3rd party modules will be disabled.
-- Direct interaction with Position protocol wrappers will not be implemented.

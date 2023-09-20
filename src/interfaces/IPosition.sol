@@ -18,7 +18,7 @@ interface IPosition is IAccessControl {
     function open( Agreement calldata agreement) external;
 
     /// @notice Admin close position and leave assets in position MPC contract.
-    function close( Agreement calldata agreement) external;
+    function close( address sender, Agreement calldata agreement) external;
 
     // /// @notice Distribute the loan asset to the lender and borrower. Assumes position has been closed already.
     // /// @notice Lender account receives set amount and borrower receives all remaining asset in contract.
@@ -27,7 +27,7 @@ interface IPosition is IAccessControl {
 
     /// @notice Get current exitable value of the position, denoted in base asset.
     /// @notice Value is an estimate. Value at exit may differ.
-    function getCloseValue(bytes calldata parameters) external view returns (uint256);
+    function getCloseValue(Agreement calldata agreement) external view returns (uint256);
 
     /// @notice Transfer the position to a new controller. Used for liquidations.
     /// @dev Do not set admin role to prevent liquidator from pushing the position back into the protocol.
