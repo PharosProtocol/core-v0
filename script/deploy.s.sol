@@ -8,11 +8,7 @@ import "src/Bookkeeper.sol";
 import "src/libraries/LibUtils.sol";
 import "src/plugins/account/implementations/SoloAccount.sol";
 import "src/plugins/oracle/implementations/StaticOracle.sol";
-import "src/plugins/oracle/implementations/SpicyOracle.sol";
-import "src/plugins/oracle/implementations/UniV3Oracle.sol";
 import "src/plugins/assessor/implementations/StandardAssessor.sol";
-import "src/plugins/liquidator/implementations/InstantCloseTakeCollateral.sol";
-import "src/plugins/position/implementations/UniV3Hold.sol";
 import "src/plugins/position/implementations/Wallet.sol";
 
 // To install forge/cast:
