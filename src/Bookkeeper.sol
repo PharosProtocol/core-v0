@@ -24,8 +24,14 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
     string public constant PROTOCOL_NAME = "pharos";
     string public constant PROTOCOL_VERSION = "0.1.0";
 
+    mapping(bytes32 => bool) public agreementClosed;
+    mapping(bytes32 => bool) public liquidationLock;
+
+
+
     event OrderFilled(SignedBlueprint agreement, bytes32 orderBlueprintHash, address taker);
-    event LiquidationKicked(address liquidator, address position);
+    event PositionClosed(SignedBlueprint agreement, address position, address closer);
+    event PositionLiquidated(SignedBlueprint agreement, address position, address liquidator);
 
     constructor() Tractor(PROTOCOL_NAME, PROTOCOL_VERSION) {}
 
@@ -148,11 +154,10 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
     }
 
     // Close Position
-    mapping(bytes32 => bool) public agreementClosed;
 
     function closePosition(
         SignedBlueprint calldata agreementBlueprint
-    ) external payable nonReentrant verifySignature(agreementBlueprint) {
+    ) external nonReentrant verifySignature(agreementBlueprint) {
         (bytes1 blueprintDataType, bytes memory blueprintData) = unpackDataField(agreementBlueprint.blueprint.data);
         require(blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "closePosition: Invalid data type");
         Agreement memory agreement = abi.decode(blueprintData, (Agreement));
@@ -186,10 +191,11 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
 
         // Marks position as closed from Bookkeeper pov.
         agreementClosed[keccak256(abi.encodePacked(agreement.position.addr))] = true;
+        emit PositionClosed(agreementBlueprint, agreement.position.addr, msg.sender);
+
     }
 
     // Liquidate
-    mapping(bytes32 => bool) public liquidationLock;
 
     function triggerLiquidation(
         SignedBlueprint calldata agreementBlueprint
@@ -220,5 +226,7 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
 
         // Release the lock
         liquidationLock[agreementId] = false;
+        emit PositionLiquidated(agreementBlueprint, agreement.position.addr, msg.sender);
+
     }
 }
