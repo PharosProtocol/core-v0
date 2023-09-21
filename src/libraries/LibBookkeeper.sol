@@ -128,11 +128,12 @@ library LibBookkeeper {
         if (block.timestamp > agreement.deploymentTime + agreement.maxDuration) return true;
 
         uint256 closeAmount = position.getCloseValue(agreement);
-
+        uint256 assesorCost = IAssessor(agreement.assessor.addr).getCost(agreement);
+        uint256 loanOralcePrice = IOracle(agreement.loanOracle.addr).getClosePrice(
+                agreement.loanOracle.parameters);
         //openLoanValue is loan value + cost of loan
-        uint256 openLoanValue = agreement.loanAmount * IOracle(agreement.loanOracle.addr).getClosePrice(
-                agreement.loanOracle.parameters) / C.RATIO_FACTOR
-             + IAssessor(agreement.assessor.addr).getCost(agreement);
+        uint256 openLoanValue = agreement.loanAmount * loanOralcePrice / C.RATIO_FACTOR
+             + assesorCost;
 
         uint256 collateralRatio = closeAmount *C.RATIO_FACTOR / openLoanValue;
 

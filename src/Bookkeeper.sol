@@ -30,7 +30,7 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
 
 
     event OrderFilled(SignedBlueprint agreement, bytes32 orderBlueprintHash, address taker);
-    event PositionClosed(SignedBlueprint agreement, address position, address closer);
+    event PositionClosed(SignedBlueprint agreement, address position, address closer, uint256 closeValue, uint256 loanOrcale,uint256 assesorCost );
     event PositionLiquidated(SignedBlueprint agreement, address position, address liquidator);
 
     constructor() Tractor(PROTOCOL_NAME, PROTOCOL_VERSION) {}
@@ -170,8 +170,12 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
             isBorrower || isLiquidatable,
             "error: Sender is neither the borrower nor the agreement is liquidatable"
         );
-        uint256 loanCost = IAssessor(agreement.assessor.addr).getCost(agreement);
 
+        uint256 closeAmount = IPosition(agreement.position.addr).getCloseValue(agreement);
+        uint256 assesorCost = IAssessor(agreement.assessor.addr).getCost(agreement);
+        uint256 loanOralcePrice = IOracle(agreement.loanOracle.addr).getClosePrice(
+                agreement.loanOracle.parameters);
+        
         uint256 lenderOriginalBalance = IAccount(agreement.lenderAccount.addr).getBalance(
             agreement.loanAsset,
             agreement.lenderAccount.parameters
@@ -185,13 +189,13 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         );
 
         require(
-            lenderNewBalance - lenderOriginalBalance >= agreement.loanAmount + loanCost,
+            lenderNewBalance - lenderOriginalBalance >= agreement.loanAmount + assesorCost,
             "Not enough to close the loan"
         );
 
         // Marks position as closed from Bookkeeper pov.
         agreementClosed[keccak256(abi.encodePacked(agreement.position.addr))] = true;
-        emit PositionClosed(agreementBlueprint, agreement.position.addr, msg.sender);
+        emit PositionClosed(agreementBlueprint, agreement.position.addr, msg.sender,closeAmount,loanOralcePrice,assesorCost);
 
     }
 
