@@ -24,6 +24,7 @@ import {IOracle} from "src/interfaces/IOracle.sol";
 import {StandardAssessor} from "src/plugins/assessor/implementations/StandardAssessor.sol";
 import {StaticOracle} from "src/plugins/oracle/implementations/StaticOracle.sol";
 import {ChainlinkOracle} from "src/plugins/oracle/implementations/ChainlinkOracle.sol";
+import {BeanOracle} from "src/plugins/oracle/implementations/BeanOracle.sol";
 import {WalletFactory} from "src/plugins/position/implementations/Wallet.sol";
 
 import {Bookkeeper} from "src/Bookkeeper.sol";
@@ -42,7 +43,9 @@ contract EndToEndTest is TestUtils {
     ILiquidator public liquidatorPlugin;
     IOracle public chainlinkOracle;
     IOracle public staticOracle;
+    IOracle public beanOracle;
     IPosition public walletFactory;
+    
 
     // Mirrors OZ EIP712 impl.
     bytes32 SIG_DOMAIN_SEPARATOR;
@@ -81,6 +84,8 @@ contract EndToEndTest is TestUtils {
         staticOracle = IOracle(address(new StaticOracle()));
         walletFactory = IPosition(address(new WalletFactory(address(bookkeeper))));
         chainlinkOracle= IOracle(address(new ChainlinkOracle()));
+        beanOracle= IOracle(address(new BeanOracle()));
+
         // // For use with pre deployed contracts.
         // bookkeeper = IBookkeeper(0x96DEA1646129fF9637CE5cCE81E65559af172b92);
         // accountPlugin = IAccount(0x225D9FaD9081F0E67dD5E4b93E26e85E8F70a9aE);
@@ -99,8 +104,12 @@ contract EndToEndTest is TestUtils {
         address lender = vm.addr(LENDER_PRIVATE_KEY);
         address borrower = vm.addr(BORROWER_PRIVATE_KEY);
 
-        bytes memory addressAsBytes = abi.encode(address(0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419));
-        console.log("chainlink ETH",chainlinkOracle.getClosePrice(addressAsBytes) );
+        bytes memory addressETH = abi.encode(address(0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419));
+        bytes memory addressBTC = abi.encode(address(0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c));
+
+        console.log("chainlink ETH",chainlinkOracle.getClosePrice(addressETH) );
+        console.log("chainlink BTC",chainlinkOracle.getClosePrice(addressBTC) );
+
 
 
         SoloAccount.Parameters memory lenderAccountParams = SoloAccount.Parameters({owner: lender, salt: bytes32(0)});

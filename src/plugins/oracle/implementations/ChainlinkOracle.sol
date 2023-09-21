@@ -10,7 +10,7 @@ import "@chainlink/AggregatorV2V3Interface.sol";
 contract ChainlinkOracle is Oracle {
 
 struct Parameters {
-        address addr; //with 18 decimal places precision.
+        address addr; //chainlink price feed address .
     }
 
     function getOpenPrice(bytes calldata parameters) external view returns (uint256) {
