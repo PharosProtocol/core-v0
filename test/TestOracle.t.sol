@@ -36,7 +36,7 @@ import {C} from "src/libraries/C.sol";
 import {TC} from "test/TC.sol";
 import "src/libraries/LibUtils.sol";
 
-contract EndToEndTest is TestUtils {
+contract TestOracles is TestUtils {
     IBookkeeper public bookkeeper;
     IAccount public accountPlugin;
     IAssessor public assessorPlugin;
@@ -47,32 +47,9 @@ contract EndToEndTest is TestUtils {
     IPosition public walletFactory;
     
 
-    // Mirrors OZ EIP712 impl.
-    bytes32 SIG_DOMAIN_SEPARATOR;
-
-    address PEPE = 0x6982508145454Ce325dDbE47a25d4ec3d2311933; // cardinality too low and i don't want to pay
-    address SHIB = 0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE; // WETH:SHIB 0.3% pool 0x2F62f2B4c5fcd7570a709DeC05D68EA19c82A9ec
-
-    // Asset ETH_ASSET = Asset({standard: ETH_STANDARD, addr: address(0), id: 0, data: ""});
-    bytes constant WETH_ASSET = abi.encode(Asset({addr: C.WETH, decimals: 18}));
-
-    bytes constant USDC_ASSET = abi.encode(Asset({addr: TC.USDC, decimals: TC.USDC_DECIMALS}));
     
-    Asset WETH_ASSETT = Asset({addr: C.WETH, decimals: 18});
-    Asset USDC_ASSETT = Asset({addr: TC.USDC, decimals: TC.USDC_DECIMALS});
 
-    uint256 LENDER_PRIVATE_KEY = 111;
-    uint256 BORROWER_PRIVATE_KEY = 222;
-    uint256 LIQUIDATOR_PRIVATE_KEY = 333;
-    uint256 LOAN_AMOUNT = 1e17 ;
-    Asset[] ASSETS;
-
-    constructor() {
-        // ASSETS.push(Asset({standard: ETH_STANDARD, addr: address(0), id: 0, data: ""})); // Tests expect 0 index to be ETH
-        ASSETS.push(Asset({addr: C.WETH, decimals: 18})); // Tests expect 0 index to be WETH
-        ASSETS.push(Asset({addr: TC.USDC, decimals: TC.USDC_DECIMALS})); // Tests expect 1 index to be an ERC20
-    }
-
+    
     function setUp() public {
         vm.recordLogs();
         vm.createSelectFork(vm.rpcUrl(TC.CHAIN_NAME), TC.BLOCK_NUMBER); // NOTE ensure this is more recent than deployments.
@@ -99,7 +76,7 @@ contract EndToEndTest is TestUtils {
 
 
 
-    // Using USDC as collateral, borrow ETH with USDC.
+    // Start Test.
     function test_Oracles() public {
        
 
