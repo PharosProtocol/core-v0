@@ -4,8 +4,8 @@ pragma solidity 0.8.19;
 
 import {C} from "src/libraries/C.sol";
 import {Oracle} from "src/plugins/oracle/Oracle.sol";
-import {IWell} from "./IWell.sol";
-import {IInstantaneousPump} from "./IInstantaneousPump.sol";
+import {IWell} from "lib/beanstalk/IWell.sol";
+import {IInstantaneousPump} from "lib/beanstalk/IInstantaneousPump.sol";
 
 
 contract BeanOracle is Oracle {
