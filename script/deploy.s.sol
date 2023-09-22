@@ -41,7 +41,6 @@ contract DeployScript is Script {
         // new SpicyOracle();
         //new UniV3HoldFactory(address(bookkeeper));
         new WalletFactory(address(bookkeeper));
-        //new InstantCloseTakeCollateral(address(bookkeeper));
 
         vm.stopBroadcast();
     }

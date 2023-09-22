@@ -135,16 +135,19 @@ function isLiquidatable(Agreement memory agreement) internal view returns (bool)
 
     // Check for liquidation based on collateral ratio
     uint256 loanOraclePrice = IOracle(agreement.loanOracle.addr).getClosePrice(agreement.loanOracle.parameters);
-    uint256 openLoanValue = closeAmount * loanOraclePrice + assessorCost;
+    uint256 openLoanValue = agreement.loanAmount * loanOraclePrice / C.RATIO_FACTOR  + assessorCost;
 
-    if (openLoanValue * agreement.minCollateralRatio > agreement.loanAmount * C.RATIO_FACTOR) {
-        return true;
+    uint256 collateralRatio = closeAmount *C.RATIO_FACTOR / openLoanValue;
+
+        if (collateralRatio < (agreement.minCollateralRatio)) {
+        revert("Collateral ratio is below minimum");
+        }
+        return false;
+
     }
-
-    return false;
 }
 
     
 
     
-}
+
