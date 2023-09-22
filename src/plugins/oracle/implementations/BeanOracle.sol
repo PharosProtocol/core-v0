@@ -27,11 +27,11 @@ contract BeanOracle is Oracle {
         uint256 ethBeanvalue;
         ethBeanvalue= ((reserves[0] * (1e30)) / reserves[1]); //price of ETH in Beans 18 dec precision
         
-
         //Get ETH:USD price from Chainlink DataFeed 0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419
         (, int256 answer, , ,) = AggregatorV3Interface(0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419).latestRoundData();
         uint256 ethUsdValue;
         ethUsdValue = uint256(answer) * C.RATIO_FACTOR / (10**uint256(8)); // adjusted for 18 dec precision
+        
         // return USD:BEAN (number of Beans per USD) price with 18 dec precision 
         return ethBeanvalue*C.RATIO_FACTOR/ethUsdValue;
     }

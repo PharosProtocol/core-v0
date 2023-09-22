@@ -16,10 +16,9 @@ import "lib/beanstalk/LibTransfer.sol";
 
 
 /*
- * Send assets directly to a user wallet. Used with no leverage loans.
+ * Swaps WETH to Bean:ETH well LP tokens and deposits in Beanstalk Silo.
  */
 
-// NOTE leverage loans are not explicitly blocked. UI/user should take care.
 interface ISilo {
     function deposit(
         address token,
@@ -37,69 +36,39 @@ contract BeanstalkSiloFactory is Position {
     }
 
     constructor(address protocolAddr) Position(protocolAddr) {}
-
-
-
-    // another way to get recipient directly msg.sender == IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters),
-    struct Asset {
-        address addr;
-        uint8 decimals;
-    }
-
-    
-
+   
     /// @dev assumes assets are already in Position.
     function _open(Agreement calldata agreement) internal override {
-        IERC20 token = IERC20(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
-        token.approve(0xBEA0e11282e2bB5893bEcE110cF199501e872bAd, 2e18);
+        
+        address beanEthWell = 0xBEA0e11282e2bB5893bEcE110cF199501e872bAd;
+        address siloAddr = 0xf4B3629D1aa74eF8ab53Cc22728896B960F3a74E;
+        
+        //approve Bean:ETH well to use WETH
+        IERC20 token = IERC20(C.WETH);
+        token.approve(beanEthWell, 2e18);
         uint256[] memory tokenAmountsIn = new uint256[](2);
         tokenAmountsIn[0] = 0;
-        tokenAmountsIn[1] = 2e11;
-
-        uint lpAmountOut = IWell(0xBEA0e11282e2bB5893bEcE110cF199501e872bAd).addLiquidity(
+        tokenAmountsIn[1] = 2e11; 
+        
+        uint lpAmountOut = IWell(beanEthWell).addLiquidity(
             tokenAmountsIn,
             0,
             agreement.position.addr,
             block.timestamp * 2
         );
-        IERC20 lptoken = IERC20(0xBEA0e11282e2bB5893bEcE110cF199501e872bAd);
-        lptoken.approve(0xf4B3629D1aa74eF8ab53Cc22728896B960F3a74E, 2e18);
 
-        address siloAddr = 0xf4B3629D1aa74eF8ab53Cc22728896B960F3a74E;
-        ISilo(0xf4B3629D1aa74eF8ab53Cc22728896B960F3a74E).deposit(0xBEA0e11282e2bB5893bEcE110cF199501e872bAd,lpAmountOut,LibTransfer.From.EXTERNAL);
+        // approve Silo to use Bean:ETH well LP tokens
+        IERC20 lptoken = IERC20(beanEthWell);
+        lptoken.approve(siloAddr, 2e18);
+
+        // deposit Bean:ETH LP tokens in Silo
+        ISilo(siloAddr).deposit(beanEthWell,lpAmountOut,LibTransfer.From.EXTERNAL);
 
     }
 
     function _close(address sender, Agreement calldata agreement) internal override {
-        uint256 cost = IAssessor(agreement.assessor.addr).getCost(agreement);
-        uint256 closeAmount = agreement.loanAmount +
-            (cost * C.RATIO_FACTOR) /
-            IOracle(agreement.loanOracle.addr).getOpenPrice(agreement.loanOracle.parameters);
-        address loanAssetAddress = abi.decode(agreement.loanAsset, (address));
-        Asset memory collAsset = abi.decode(agreement.collAsset, (Asset));
-        address collAssetAddress = collAsset.addr;
-        uint256 collAssetDecimal = collAsset.decimals;
 
-        IERC20 erc20 = IERC20(loanAssetAddress);
-        uint256 balance = erc20.balanceOf(address(this));
-
-        // If there are not enough assets to pay lender, pull missing from sender.
-        if (closeAmount > balance) {
-            LibUtilsPublic.safeErc20TransferFrom(loanAssetAddress, sender, address(this), closeAmount - balance);
-        }
-
-        if (closeAmount > 0) {
-            erc20.approve(agreement.lenderAccount.addr, closeAmount);
-            IAccount(agreement.lenderAccount.addr).loadFromPosition(
-                agreement.loanAsset,
-                closeAmount,
-                agreement.lenderAccount.parameters
-            );
-        }
-        uint256 convertedAmount = (agreement.collAmount * 10 ** (collAssetDecimal)) / C.RATIO_FACTOR;
-
-        LibUtilsPublic.safeErc20Transfer(collAssetAddress, sender, convertedAmount);
-    }
+ }
 
     // Public Helpers.
 
