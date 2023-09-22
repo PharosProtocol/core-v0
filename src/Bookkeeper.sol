@@ -155,49 +155,40 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
 
     // Close Position
 
-    function closePosition(
-        SignedBlueprint calldata agreementBlueprint
-    ) external nonReentrant verifySignature(agreementBlueprint) {
-        (bytes1 blueprintDataType, bytes memory blueprintData) = unpackDataField(agreementBlueprint.blueprint.data);
-        require(blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "closePosition: Invalid data type");
-        Agreement memory agreement = abi.decode(blueprintData, (Agreement));
+    function closePosition(SignedBlueprint calldata agreementBlueprint) external nonReentrant verifySignature(agreementBlueprint) {
+    (bytes1 blueprintDataType, bytes memory blueprintData) = unpackDataField(agreementBlueprint.blueprint.data);
+    require(blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "closePosition: Invalid data type");
+    Agreement memory agreement = abi.decode(blueprintData, (Agreement));
 
-        bool isBorrower = msg.sender ==
-            IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters);
-        bool isLiquidatable = LibBookkeeper.isLiquidatable(agreement);
-        // Require either the sender to be the borrower or the agreement to be liquidatable
-        require(
-            isBorrower || isLiquidatable,
-            "error: Sender is neither the borrower nor the agreement is liquidatable"
-        );
+    bool isBorrower = msg.sender == IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters);
 
-        uint256 closeAmount = IPosition(agreement.position.addr).getCloseValue(agreement);
-        uint256 assesorCost = IAssessor(agreement.assessor.addr).getCost(agreement);
-        uint256 loanOralcePrice = IOracle(agreement.loanOracle.addr).getClosePrice(
-                agreement.loanOracle.parameters);
-        
-        uint256 lenderOriginalBalance = IAccount(agreement.lenderAccount.addr).getBalance(
-            agreement.loanAsset,
-            agreement.lenderAccount.parameters
-        );
-
-        IPosition(agreement.position.addr).close(msg.sender,agreement);
-
-        uint256 lenderNewBalance = IAccount(agreement.lenderAccount.addr).getBalance(
-            agreement.loanAsset,
-            agreement.lenderAccount.parameters
-        );
-
-        require(
-            lenderNewBalance - lenderOriginalBalance >= agreement.loanAmount + assesorCost,
-            "Not enough to close the loan"
-        );
-
-        // Marks position as closed from Bookkeeper pov.
-        agreementClosed[keccak256(abi.encodePacked(agreement.position.addr))] = true;
-        emit PositionClosed(agreementBlueprint, agreement.position.addr, msg.sender,closeAmount,loanOralcePrice,assesorCost);
-
+    if (!isBorrower) {
+        // Check if the agreement is liquidatable only if the sender is not the borrower
+        require(LibBookkeeper.isLiquidatable(agreement), "error: The agreement is not liquidatable");
     }
+
+    IPosition position = IPosition(agreement.position.addr);
+
+    uint256 closeAmount = position.getCloseValue(agreement);
+    uint256 assessorCost = IAssessor(agreement.assessor.addr).getCost(agreement);
+    uint256 loanOraclePrice = IOracle(agreement.loanOracle.addr).getClosePrice(agreement.loanOracle.parameters);
+
+    IAccount lenderAccount = IAccount(agreement.lenderAccount.addr);
+    uint256 lenderOriginalBalance = lenderAccount.getBalance(agreement.loanAsset, agreement.lenderAccount.parameters);
+
+    // Close the position
+    position.close(msg.sender, agreement);
+
+    uint256 lenderNewBalance = lenderAccount.getBalance(agreement.loanAsset, agreement.lenderAccount.parameters);
+
+    require(lenderNewBalance - lenderOriginalBalance >= agreement.loanAmount + assessorCost, "Not enough to close the loan");
+
+    // Mark the position as closed from the Bookkeeper's point of view.
+    agreementClosed[keccak256(abi.encodePacked(agreement.position.addr))] = true;
+
+    emit PositionClosed(agreementBlueprint, agreement.position.addr, msg.sender, closeAmount, loanOraclePrice, assessorCost);
+}
+
 
     // Liquidate
 

@@ -120,28 +120,30 @@ library LibBookkeeper {
         agreement.loanAmount = fill.loanAmount;
     }
 
-    /// @dev liquidation based on CR or duration limit
-    function isLiquidatable(Agreement memory agreement) internal view returns (bool) {
-        IPosition position = IPosition(agreement.position.addr);
+/// @dev Liquidation based on expiration or CR 
+function isLiquidatable(Agreement memory agreement) internal view returns (bool) {
+    IPosition position = IPosition(agreement.position.addr);
 
-        // If past expiration, liquidatable.
-        if (block.timestamp > agreement.deploymentTime + agreement.maxDuration) return true;
-
-        uint256 closeAmount = position.getCloseValue(agreement);
-        uint256 assesorCost = IAssessor(agreement.assessor.addr).getCost(agreement);
-        uint256 loanOralcePrice = IOracle(agreement.loanOracle.addr).getClosePrice(
-                agreement.loanOracle.parameters);
-        //openLoanValue is loan value + cost of loan
-        uint256 openLoanValue = agreement.loanAmount * loanOralcePrice / C.RATIO_FACTOR
-             + assesorCost;
-
-        uint256 collateralRatio = closeAmount *C.RATIO_FACTOR / openLoanValue;
-
-        if (collateralRatio < (agreement.minCollateralRatio)) {
-        revert("Collateral ratio is below minimum");
-        }
-        return false;
+    // If past expiration, liquidatable.
+    if (block.timestamp > agreement.deploymentTime + agreement.maxDuration) {
+        return true;
     }
+
+    // Calculate closeAmount and assessorCost
+    uint256 closeAmount = position.getCloseValue(agreement);
+    uint256 assessorCost = IAssessor(agreement.assessor.addr).getCost(agreement);
+
+    // Check for liquidation based on collateral ratio
+    uint256 loanOraclePrice = IOracle(agreement.loanOracle.addr).getClosePrice(agreement.loanOracle.parameters);
+    uint256 openLoanValue = closeAmount * loanOraclePrice + assessorCost;
+
+    if (openLoanValue * agreement.minCollateralRatio > agreement.loanAmount * C.RATIO_FACTOR) {
+        return true;
+    }
+
+    return false;
+}
+
     
 
     
