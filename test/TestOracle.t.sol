@@ -20,7 +20,7 @@
 // import {StandardAssessor} from "src/plugins/assessor/implementations/StandardAssessor.sol";
 // import {StaticOracle} from "src/plugins/oracle/implementations/StaticOracle.sol";
 // import {ChainlinkOracle} from "src/plugins/oracle/implementations/ChainlinkOracle.sol";
-// import {BeanOracle} from "src/plugins/oracle/implementations/BeanOracle/BeanOracle.sol";
+// import {BeanOracle} from "src/plugins/oracle/implementations/BeanOracle.sol";
 // import {WalletFactory} from "src/plugins/position/implementations/Wallet.sol";
 
 // import {Bookkeeper} from "src/Bookkeeper.sol";

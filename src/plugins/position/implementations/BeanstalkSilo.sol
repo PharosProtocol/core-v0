@@ -12,12 +12,24 @@ import {Agreement} from "src/libraries/LibBookkeeper.sol";
 import {LibUtilsPublic} from "src/libraries/LibUtilsPublic.sol";
 import {IOracle} from "src/interfaces/IOracle.sol";
 import {IWell} from "lib/beanstalk/IWell.sol";
+import "lib/beanstalk/LibTransfer.sol";
+
 
 /*
  * Send assets directly to a user wallet. Used with no leverage loans.
  */
 
 // NOTE leverage loans are not explicitly blocked. UI/user should take care.
+interface ISilo {
+    function deposit(
+        address token,
+        uint256 _amount,
+        LibTransfer.From mode
+    )
+        external
+        payable
+        returns (uint256 amount, uint256 _bdv, int96 stem);
+}
 
 contract BeanstalkSiloFactory is Position {
     struct Parameters {
@@ -26,11 +38,15 @@ contract BeanstalkSiloFactory is Position {
 
     constructor(address protocolAddr) Position(protocolAddr) {}
 
+
+
     // another way to get recipient directly msg.sender == IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters),
     struct Asset {
         address addr;
         uint8 decimals;
     }
+
+    
 
     /// @dev assumes assets are already in Position.
     function _open(Agreement calldata agreement) internal override {
@@ -40,12 +56,18 @@ contract BeanstalkSiloFactory is Position {
         tokenAmountsIn[0] = 0;
         tokenAmountsIn[1] = 2e11;
 
-        IWell(0xBEA0e11282e2bB5893bEcE110cF199501e872bAd).addLiquidity(
+        uint lpAmountOut = IWell(0xBEA0e11282e2bB5893bEcE110cF199501e872bAd).addLiquidity(
             tokenAmountsIn,
             0,
             agreement.position.addr,
             block.timestamp * 2
         );
+        IERC20 lptoken = IERC20(0xBEA0e11282e2bB5893bEcE110cF199501e872bAd);
+        lptoken.approve(0xf4B3629D1aa74eF8ab53Cc22728896B960F3a74E, 2e18);
+
+        address siloAddr = 0xf4B3629D1aa74eF8ab53Cc22728896B960F3a74E;
+        ISilo(0xf4B3629D1aa74eF8ab53Cc22728896B960F3a74E).deposit(0xBEA0e11282e2bB5893bEcE110cF199501e872bAd,lpAmountOut,LibTransfer.From.EXTERNAL);
+
     }
 
     function _close(address sender, Agreement calldata agreement) internal override {
