@@ -10,9 +10,5 @@ describe("SoloAccount", function () {
     const soloAccount = await SoloAccount.deploy();
     await soloAccount.deployed();
     
-    // Now you can interact with the `SoloAccount` contract.
-    // For example, you can call a function and check the result:
-    // const result = await iAssessor.someFunction();
-    // expect(result).to.equal(expectedResult);
   });
 });

@@ -1,20 +1,17 @@
 // SPDX-License-Identifier: MIT
 // solhint-disable
 
-import "ethers";
+import { ethers } from "hardhat";
 import { expect } from 'chai';
 import { Contract, Signer } from "ethers";
-import { IAssessor } from "../src/interfaces/IAssessor.sol";
+
+import IAssessor from "../artifacts/src/interfaces/IAssessor.sol/IAssessor.json";
+import  IERC20  from "../artifacts/@openzeppelin/contracts/token/ERC20/IERC20.sol/IERC20.json";
 
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import * as Tractor from "../artifacts/@tractor/Tractor.sol/Tractor.json";
 
-import { IAssessor } from "/src/interfaces/IAssessor.sol";
-import {
-  Blueprint, 
-  SignedBlueprint,
-  Tractor,
-} from "@tractor/Tractor.sol";
+
 import { SoloAccount } from "src/plugins/account/implementations/SoloAccount.sol";
 import { IPosition } from "src/interfaces/IPosition.sol";
 import { IBookkeeper } from "src/interfaces/IBookkeeper.sol";
@@ -39,6 +36,8 @@ import { TestUtils } from "test/TestUtils.sol";
 import { C } from "src/libraries/C.sol";
 import { TC } from "test/TC.sol";
 import "src/libraries/LibUtils.sol";
+
+
 
 describe("BeanstalkSilo", function () {
   let bookkeeper: IBookkeeper;
