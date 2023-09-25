@@ -38,7 +38,7 @@ import {C} from "src/libraries/C.sol";
 import {TC} from "test/TC.sol";
 import "src/libraries/LibUtils.sol";
 
-contract EndToEndTest is TestUtils {
+contract BeanstalkSilo is TestUtils {
     IBookkeeper public bookkeeper;
     IAccount public accountPlugin;
     IAssessor public assessorPlugin;
@@ -48,11 +48,6 @@ contract EndToEndTest is TestUtils {
     IOracle public beanOracle;
     IPosition public walletFactory;
     IPosition public beanstalkSiloFactory;
-
-    
-
-    // Mirrors OZ EIP712 impl.
-    bytes32 SIG_DOMAIN_SEPARATOR;
 
     address PEPE = 0x6982508145454Ce325dDbE47a25d4ec3d2311933; // cardinality too low and i don't want to pay
     address SHIB = 0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE; // WETH:SHIB 0.3% pool 0x2F62f2B4c5fcd7570a709DeC05D68EA19c82A9ec
@@ -106,17 +101,9 @@ contract EndToEndTest is TestUtils {
 
 
     // Using USDC as collateral, borrow ETH with USDC.
-    function test_FillClose() public {
+    function test_FillAndDepositSilo() public {
         address lender = vm.addr(LENDER_PRIVATE_KEY);
         address borrower = vm.addr(BORROWER_PRIVATE_KEY);
-
-        bytes memory addressETH = abi.encode(address(0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419));
-        bytes memory addressBTC = abi.encode(address(0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c));
-
-        console.log("chainlink ETH",chainlinkOracle.getClosePrice(addressETH) );
-        console.log("chainlink BTC",chainlinkOracle.getClosePrice(addressBTC) );
-
-
 
         SoloAccount.Parameters memory lenderAccountParams = SoloAccount.Parameters({owner: lender, salt: bytes32(0)});
         SoloAccount.Parameters memory borrowerAccountParams = SoloAccount.Parameters({
@@ -162,13 +149,13 @@ contract EndToEndTest is TestUtils {
         );
         assertGt(accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 0);
 
-        (SignedBlueprint memory agreementSignedBlueprint, Agreement memory agreement) = retrieveAgreementFromLogs();
 
         // Move time and block forward arbitrarily.
         vm.warp(block.timestamp + 5 days);
         vm.roll(block.number + (5 days / 12));
         
-        
+        (SignedBlueprint memory agreementSignedBlueprint, Agreement memory agreement) = retrieveAgreementFromLogs();
+ 
         console.log("lender account", accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)));
         console.log("borrower wallet",IERC20(USDC_ASSETT.addr).balanceOf(borrower));
         console.log("Bean:ETH LP",IERC20(0xBEA0e11282e2bB5893bEcE110cF199501e872bAd).balanceOf(agreement.position.addr));
@@ -225,15 +212,12 @@ contract EndToEndTest is TestUtils {
             addr: address(staticOracle),
             parameters: abi.encode(StaticOracle.Parameters({number: 2000e18}))
         });
-        console.log("oracle close price", staticOracle.getClosePrice(loanOracles[0].parameters));
-        console.log("oracle open price", staticOracle.getOpenPrice(loanOracles[0].parameters));
 
         PluginReference[] memory collOracles = new PluginReference[](1);
         collOracles[0] = PluginReference({
             addr: address(staticOracle),
             parameters: abi.encode(StaticOracle.Parameters({number: 1e18}))
         });
-        console.log("oracle close price", staticOracle.getOpenPrice(collOracles[0].parameters));
         console.log("oracle open price", IOracle(loanOracles[0].addr).getOpenPrice(collOracles[0].parameters));
         address[] memory factories = new address[](1);
         // factories[0] = address(uniV3HoldFactory);

@@ -4,8 +4,8 @@ pragma solidity 0.8.19;
 
 import {C} from "src/libraries/C.sol";
 import {Oracle} from "src/plugins/oracle/Oracle.sol";
-import {IWell} from "lib/beanstalk/IWell.sol";
-import {IInstantaneousPump} from "lib/beanstalk/IInstantaneousPump.sol";
+import {IWell} from "lib/Beanstalk/IWell.sol";
+import {IInstantaneousPump} from "lib/Beanstalk/IInstantaneousPump.sol";
 import "@chainlink/AggregatorV2V3Interface.sol";
 
 

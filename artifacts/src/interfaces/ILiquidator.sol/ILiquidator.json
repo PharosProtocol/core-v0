@@ -1,0 +1,195 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "ILiquidator",
+  "sourceName": "src/interfaces/ILiquidator.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "caller",
+          "type": "address"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "loanAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "collAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "loanAsset",
+              "type": "bytes"
+            },
+            {
+              "internalType": "bytes",
+              "name": "collAsset",
+              "type": "bytes"
+            },
+            {
+              "internalType": "uint256",
+              "name": "minCollateralRatio",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "maxDuration",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bool",
+              "name": "isLeverage",
+              "type": "bool"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "parameters",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct PluginReference",
+              "name": "lenderAccount",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "parameters",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct PluginReference",
+              "name": "borrowerAccount",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "parameters",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct PluginReference",
+              "name": "assessor",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "parameters",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct PluginReference",
+              "name": "liquidator",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "parameters",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct PluginReference",
+              "name": "loanOracle",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "parameters",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct PluginReference",
+              "name": "collOracle",
+              "type": "tuple"
+            },
+            {
+              "internalType": "address",
+              "name": "factory",
+              "type": "address"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "parameters",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct PluginReference",
+              "name": "position",
+              "type": "tuple"
+            },
+            {
+              "internalType": "uint256",
+              "name": "deploymentTime",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct Agreement",
+          "name": "agreement",
+          "type": "tuple"
+        }
+      ],
+      "name": "liquidate",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

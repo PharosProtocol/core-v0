@@ -11,8 +11,8 @@ import {IAssessor} from "src/interfaces/IAssessor.sol";
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
 import {LibUtilsPublic} from "src/libraries/LibUtilsPublic.sol";
 import {IOracle} from "src/interfaces/IOracle.sol";
-import {IWell} from "lib/beanstalk/IWell.sol";
-import "lib/beanstalk/LibTransfer.sol";
+import {IWell} from "lib/Beanstalk/IWell.sol";
+import "lib/Beanstalk/LibTransfer.sol";
 
 
 /*

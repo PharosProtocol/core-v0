@@ -32,7 +32,7 @@
 // import {TC} from "test/TC.sol";
 // import "src/libraries/LibUtils.sol";
 
-// contract TestOracles is TestUtils {
+// contract TestOracle is TestUtils {
 //     IBookkeeper public bookkeeper;
 //     IAccount public accountPlugin;
 //     IAssessor public assessorPlugin;
