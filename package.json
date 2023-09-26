@@ -22,9 +22,7 @@
     "@nomicfoundation/hardhat-ethers": "^3.0.4",
     "@nomicfoundation/hardhat-foundry": "^1.1.1",
     "@nomicfoundation/hardhat-toolbox": "^3.0.0",
-    "@nomiclabs/hardhat-ethers": "^2.2.3",
-    "@typechain/ethers-v6": "^0.5.0",
-    "@typechain/hardhat": "^9.0.0",
+    "@nomiclabs/hardhat-web3": "^2.0.0",
     "@types/chai": "^4.3.6",
     "@types/jest": "^29.5.5",
     "chai": "^4.3.8",
@@ -34,10 +32,7 @@
     "typechain": "^8.3.1"
   },
   "dependencies": {
-    "ethers": "^5.7.2",
+    "ethers": "^6.7.1",
     "yarn": "^1.22.19"
-  },
-  "resolutions": {
-    "**/ethers": "5.7.2"
   }
 }

@@ -117,10 +117,10 @@
         "IAccount"
       ]
     },
-    "/Users/motasem/Repos/pharos/code/core-v0/src/interfaces/ILiquidator.sol": {
+    "/Users/motasem/Repos/pharos/code/core-v0/src/interfaces/IPosition.sol": {
       "lastModificationDate": 1695247177917,
-      "contentHash": "df77bcd593813fe19ddf0323ada9d1bf",
-      "sourceName": "src/interfaces/ILiquidator.sol",
+      "contentHash": "21a218de61b2edc9094d395652e0c790",
+      "sourceName": "src/interfaces/IPosition.sol",
       "solcConfig": {
         "version": "0.8.19",
         "settings": {
@@ -145,16 +145,14 @@
         }
       },
       "imports": [
-        "@openzeppelin/contracts/access/AccessControl.sol",
-        "src/libraries/C.sol",
-        "src/libraries/LibBookkeeper.sol",
-        "src/interfaces/IPosition.sol"
+        "@openzeppelin/contracts/access/IAccessControl.sol",
+        "src/libraries/LibBookkeeper.sol"
       ],
       "versionPragmas": [
         "0.8.19"
       ],
       "artifacts": [
-        "ILiquidator"
+        "IPosition"
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/interfaces/IAssessor.sol": {
@@ -194,10 +192,10 @@
         "IAssessor"
       ]
     },
-    "/Users/motasem/Repos/pharos/code/core-v0/src/interfaces/IPosition.sol": {
+    "/Users/motasem/Repos/pharos/code/core-v0/src/interfaces/ILiquidator.sol": {
       "lastModificationDate": 1695247177917,
-      "contentHash": "21a218de61b2edc9094d395652e0c790",
-      "sourceName": "src/interfaces/IPosition.sol",
+      "contentHash": "df77bcd593813fe19ddf0323ada9d1bf",
+      "sourceName": "src/interfaces/ILiquidator.sol",
       "solcConfig": {
         "version": "0.8.19",
         "settings": {
@@ -222,14 +220,16 @@
         }
       },
       "imports": [
-        "@openzeppelin/contracts/access/IAccessControl.sol",
-        "src/libraries/LibBookkeeper.sol"
+        "@openzeppelin/contracts/access/AccessControl.sol",
+        "src/libraries/C.sol",
+        "src/libraries/LibBookkeeper.sol",
+        "src/interfaces/IPosition.sol"
       ],
       "versionPragmas": [
         "0.8.19"
       ],
       "artifacts": [
-        "IPosition"
+        "ILiquidator"
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/libraries/LibBookkeeper.sol": {
@@ -420,6 +420,41 @@
         "ReentrancyGuard"
       ]
     },
+    "/Users/motasem/Repos/pharos/code/core-v0/lib/openzeppelin-contracts/contracts/access/IAccessControl.sol": {
+      "lastModificationDate": 1695246949336,
+      "contentHash": "57c84298234411cea19c7c284d86be8b",
+      "sourceName": "@openzeppelin/contracts/access/IAccessControl.sol",
+      "solcConfig": {
+        "version": "0.8.19",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "IAccessControl"
+      ]
+    },
     "/Users/motasem/Repos/pharos/code/core-v0/lib/openzeppelin-contracts/contracts/access/AccessControl.sol": {
       "lastModificationDate": 1695246949335,
       "contentHash": "95a6c227d1b8843e9385518a5bce4853",
@@ -460,41 +495,6 @@
         "AccessControl"
       ]
     },
-    "/Users/motasem/Repos/pharos/code/core-v0/lib/openzeppelin-contracts/contracts/access/IAccessControl.sol": {
-      "lastModificationDate": 1695246949336,
-      "contentHash": "57c84298234411cea19c7c284d86be8b",
-      "sourceName": "@openzeppelin/contracts/access/IAccessControl.sol",
-      "solcConfig": {
-        "version": "0.8.19",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.0"
-      ],
-      "artifacts": [
-        "IAccessControl"
-      ]
-    },
     "/Users/motasem/Repos/pharos/code/core-v0/lib/openzeppelin-contracts/contracts/utils/Context.sol": {
       "lastModificationDate": 1695246949353,
       "contentHash": "5f2c5c4b6af2dd4551027144797bc8be",
@@ -528,43 +528,6 @@
       ],
       "artifacts": [
         "Context"
-      ]
-    },
-    "/Users/motasem/Repos/pharos/code/core-v0/lib/openzeppelin-contracts/contracts/utils/introspection/ERC165.sol": {
-      "lastModificationDate": 1695246949354,
-      "contentHash": "0e7db055ce108f9da7bb6686a00287c0",
-      "sourceName": "@openzeppelin/contracts/utils/introspection/ERC165.sol",
-      "solcConfig": {
-        "version": "0.8.19",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "./IERC165.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.0"
-      ],
-      "artifacts": [
-        "ERC165"
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/lib/openzeppelin-contracts/contracts/utils/Strings.sol": {
@@ -605,10 +568,10 @@
         "Strings"
       ]
     },
-    "/Users/motasem/Repos/pharos/code/core-v0/lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol": {
-      "lastModificationDate": 1695246949355,
-      "contentHash": "03e6768535ac4da0e9756f1d8a4a018a",
-      "sourceName": "@openzeppelin/contracts/utils/introspection/IERC165.sol",
+    "/Users/motasem/Repos/pharos/code/core-v0/lib/openzeppelin-contracts/contracts/utils/introspection/ERC165.sol": {
+      "lastModificationDate": 1695246949354,
+      "contentHash": "0e7db055ce108f9da7bb6686a00287c0",
+      "sourceName": "@openzeppelin/contracts/utils/introspection/ERC165.sol",
       "solcConfig": {
         "version": "0.8.19",
         "settings": {
@@ -632,12 +595,14 @@
           }
         }
       },
-      "imports": [],
+      "imports": [
+        "./IERC165.sol"
+      ],
       "versionPragmas": [
         "^0.8.0"
       ],
       "artifacts": [
-        "IERC165"
+        "ERC165"
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/lib/openzeppelin-contracts/contracts/utils/math/Math.sol": {
@@ -708,6 +673,41 @@
       ],
       "artifacts": [
         "SignedMath"
+      ]
+    },
+    "/Users/motasem/Repos/pharos/code/core-v0/lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol": {
+      "lastModificationDate": 1695246949355,
+      "contentHash": "03e6768535ac4da0e9756f1d8a4a018a",
+      "sourceName": "@openzeppelin/contracts/utils/introspection/IERC165.sol",
+      "solcConfig": {
+        "version": "0.8.19",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "IERC165"
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/lib/tractor/EIP712External.sol": {
@@ -1274,41 +1274,6 @@
         "LibBalance"
       ]
     },
-    "/Users/motasem/Repos/pharos/code/core-v0/lib/openzeppelin-contracts/contracts/utils/math/SafeMath.sol": {
-      "lastModificationDate": 1695246949355,
-      "contentHash": "ddc8de099bf33e1a01831ad72f9ef47d",
-      "sourceName": "@openzeppelin/contracts/utils/math/SafeMath.sol",
-      "solcConfig": {
-        "version": "0.8.19",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.0"
-      ],
-      "artifacts": [
-        "SafeMath"
-      ]
-    },
     "/Users/motasem/Repos/pharos/code/core-v0/lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol": {
       "lastModificationDate": 1695246949351,
       "contentHash": "422a9e1d0d93c6912af596faeb973a61",
@@ -1346,6 +1311,41 @@
       ],
       "artifacts": [
         "SafeERC20"
+      ]
+    },
+    "/Users/motasem/Repos/pharos/code/core-v0/lib/openzeppelin-contracts/contracts/utils/math/SafeMath.sol": {
+      "lastModificationDate": 1695246949355,
+      "contentHash": "ddc8de099bf33e1a01831ad72f9ef47d",
+      "sourceName": "@openzeppelin/contracts/utils/math/SafeMath.sol",
+      "solcConfig": {
+        "version": "0.8.19",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "SafeMath"
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/lib/openzeppelin-contracts/contracts/utils/math/SafeCast.sol": {
@@ -1930,85 +1930,6 @@
         "Liquidator"
       ]
     },
-    "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/assessor/implementations/StandardAssessor.sol": {
-      "lastModificationDate": 1695247177901,
-      "contentHash": "b0bf8191a616e05f038315b458e5702f",
-      "sourceName": "src/plugins/assessor/implementations/StandardAssessor.sol",
-      "solcConfig": {
-        "version": "0.8.19",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "src/libraries/C.sol",
-        "../Assessor.sol",
-        "src/interfaces/IOracle.sol",
-        "src/interfaces/IPosition.sol",
-        "src/libraries/LibBookkeeper.sol"
-      ],
-      "versionPragmas": [
-        "0.8.19"
-      ],
-      "artifacts": [
-        "StandardAssessor"
-      ]
-    },
-    "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/assessor/Assessor.sol": {
-      "lastModificationDate": 1695247177901,
-      "contentHash": "0ce8a4e07e8128614faed2a2e596b955",
-      "sourceName": "src/plugins/assessor/Assessor.sol",
-      "solcConfig": {
-        "version": "0.8.19",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "src/interfaces/IAssessor.sol",
-        "src/libraries/LibBookkeeper.sol"
-      ],
-      "versionPragmas": [
-        "0.8.19"
-      ],
-      "artifacts": [
-        "Assessor"
-      ]
-    },
     "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/oracle/implementations/StaticOracle.sol": {
       "lastModificationDate": 1695349977751,
       "contentHash": "98b1bdaa427b6be71ccf81d58b8d7476",
@@ -2232,6 +2153,85 @@
       ],
       "artifacts": [
         "IInstantaneousPump"
+      ]
+    },
+    "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/assessor/implementations/StandardAssessor.sol": {
+      "lastModificationDate": 1695247177901,
+      "contentHash": "b0bf8191a616e05f038315b458e5702f",
+      "sourceName": "src/plugins/assessor/implementations/StandardAssessor.sol",
+      "solcConfig": {
+        "version": "0.8.19",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "src/libraries/C.sol",
+        "../Assessor.sol",
+        "src/interfaces/IOracle.sol",
+        "src/interfaces/IPosition.sol",
+        "src/libraries/LibBookkeeper.sol"
+      ],
+      "versionPragmas": [
+        "0.8.19"
+      ],
+      "artifacts": [
+        "StandardAssessor"
+      ]
+    },
+    "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/assessor/Assessor.sol": {
+      "lastModificationDate": 1695247177901,
+      "contentHash": "0ce8a4e07e8128614faed2a2e596b955",
+      "sourceName": "src/plugins/assessor/Assessor.sol",
+      "solcConfig": {
+        "version": "0.8.19",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "src/interfaces/IAssessor.sol",
+        "src/libraries/LibBookkeeper.sol"
+      ],
+      "versionPragmas": [
+        "0.8.19"
+      ],
+      "artifacts": [
+        "Assessor"
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/libraries/LibUniswapV3.sol": {
