@@ -18,7 +18,6 @@
 // import {IAssessor} from "src/interfaces/IAssessor.sol";
 // import {IPosition} from "src/interfaces/IPosition.sol";
 // import {IBookkeeper} from "src/interfaces/IBookkeeper.sol";
-// import {IAssessor} from "src/interfaces/IAssessor.sol";
 // import {ILiquidator} from "src/interfaces/ILiquidator.sol";
 // import {IOracle} from "src/interfaces/IOracle.sol";
 // import {StandardAssessor} from "src/plugins/assessor/implementations/StandardAssessor.sol";
@@ -49,9 +48,6 @@
 
 //     // Mirrors OZ EIP712 impl.
 //     bytes32 SIG_DOMAIN_SEPARATOR;
-
-//     address PEPE = 0x6982508145454Ce325dDbE47a25d4ec3d2311933; // cardinality too low and i don't want to pay
-//     address SHIB = 0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE; // WETH:SHIB 0.3% pool 0x2F62f2B4c5fcd7570a709DeC05D68EA19c82A9ec
 
 //     // Asset ETH_ASSET = Asset({standard: ETH_STANDARD, addr: address(0), id: 0, data: ""});
 //     bytes constant WETH_ASSET = abi.encode(Asset({addr: C.WETH, decimals: 18}));
