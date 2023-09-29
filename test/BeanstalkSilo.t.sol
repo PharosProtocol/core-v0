@@ -135,7 +135,7 @@ contract BeanstalkSilo is TestUtils {
         Fill memory fill = createFill(borrowerAccountParams);
         vm.prank(borrower);
         bookkeeper.fillOrder(fill, orderSignedBlueprint);
-                
+
         assertEq(accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 12e18 - LOAN_AMOUNT);
         assertLt(
             accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
@@ -290,7 +290,7 @@ contract BeanstalkSilo is TestUtils {
         ) private view returns (SignedBlueprint memory) {
         bytes32 blueprintHash = bookkeeper.getBlueprintHash(blueprint);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, blueprintHash);
-
+        
         // console.log("blueprint raw hash: ");
         // console.logBytes32(keccak256(abi.encode(blueprint)));
         // console.log("blueprint full hash: ");

@@ -8,7 +8,7 @@ module.exports = {
   networks: {
     hardhat: {
       forking: {
-        url: "https://eth-mainnet.g.alchemy.com/v2/6A5kUZ-khxTNaL68Py0piwkfpCS71L80",
+        url: "https://eth-mainnet.g.alchemy.com/v2/FmZnPJ-foxmzbijvOo6wY-B-uIkaXc4O",
         blockNumber: 18224300 // Replace with the block number you want to fork from
       },
     },

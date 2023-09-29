@@ -22,7 +22,7 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
     }
 
     string public constant PROTOCOL_NAME = "pharos";
-    string public constant PROTOCOL_VERSION = "0.1.0";
+    string public constant PROTOCOL_VERSION = "0.2.0";
 
     mapping(bytes32 => bool) public agreementClosed;
     mapping(bytes32 => bool) public liquidationLock;
