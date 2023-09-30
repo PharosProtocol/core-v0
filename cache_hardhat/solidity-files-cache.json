@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/motasem/Repos/pharos/code/core-v0/src/Bookkeeper.sol": {
-      "lastModificationDate": 1695948038000,
-      "contentHash": "0b066a110bf0765222219578dce13a27",
+      "lastModificationDate": 1696092542793,
+      "contentHash": "4315f0067c2d517a4dfccaecd8aba3b6",
       "sourceName": "src/Bookkeeper.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -233,8 +233,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/libraries/C.sol": {
-      "lastModificationDate": 1695342089854,
-      "contentHash": "311bf1627092be591e2853e8c2c6108c",
+      "lastModificationDate": 1695949273223,
+      "contentHash": "57c5772bfb35d179b0283172333e3c68",
       "sourceName": "src/libraries/C.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -268,7 +268,7 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/libraries/LibBookkeeper.sol": {
-      "lastModificationDate": 1695345107671,
+      "lastModificationDate": 1695831033580,
       "contentHash": "e56f961cb60021a78400ce773d15046d",
       "sourceName": "src/libraries/LibBookkeeper.sol",
       "solcConfig": {
@@ -347,7 +347,7 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/lib/tractor/Tractor.sol": {
-      "lastModificationDate": 1695246949448,
+      "lastModificationDate": 1696014088570,
       "contentHash": "641fc032fb4cec3ea7fb44e2b73707ef",
       "sourceName": "@tractor/Tractor.sol",
       "solcConfig": {
@@ -1962,7 +1962,7 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/oracle/implementations/ChainlinkOracle.sol": {
-      "lastModificationDate": 1695349971523,
+      "lastModificationDate": 1695831033577,
       "contentHash": "1f95ff22c97e4b14a38f1835838c77b1",
       "sourceName": "src/plugins/oracle/implementations/ChainlinkOracle.sol",
       "solcConfig": {
@@ -2001,7 +2001,7 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/oracle/implementations/StaticOracle.sol": {
-      "lastModificationDate": 1695349977751,
+      "lastModificationDate": 1695831033577,
       "contentHash": "98b1bdaa427b6be71ccf81d58b8d7476",
       "sourceName": "src/plugins/oracle/implementations/StaticOracle.sol",
       "solcConfig": {
@@ -2117,7 +2117,7 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/interfaces/IBookkeeper.sol": {
-      "lastModificationDate": 1695247177916,
+      "lastModificationDate": 1696028066904,
       "contentHash": "b5800f2c92a1b352a03dfb0a127826c6",
       "sourceName": "src/interfaces/IBookkeeper.sol",
       "solcConfig": {

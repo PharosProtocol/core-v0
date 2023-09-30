@@ -4,7 +4,9 @@
 
 const { expect } = require("chai");
 const { ethers } = require('hardhat');
+const ethUtil = require('ethereumjs-util');
 const crypto = require('crypto');
+
 
 
 
@@ -107,52 +109,84 @@ describe("test_BeanstalkSilo", function () {
     // Sending ETH to the lender and borrower from the funder
     await funder.sendTransaction({
       to: lender.address,
-      value: BigInt(1e18)
+      value: BigInt(13e18)
     });
 
     await funder.sendTransaction({
       to: borrower.address,
-      value: BigInt(1e18)
+      value: BigInt(13e18)
     });
 
     // Send USDC from USDC Whale
     const USDC_ADDRESS = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
-    const WHALE_ADDRESS = "0x78605Df79524164911C144801f41e9811B7DB73D";
+    const USDC_WHALE_ADDRESS = "0x78605Df79524164911C144801f41e9811B7DB73D";
 
     // Impersonate the whale account
     await network.provider.request({
       method: "hardhat_impersonateAccount",
-      params: [WHALE_ADDRESS],
+      params: [USDC_WHALE_ADDRESS],
     });
 
-    const usdcWhale = await ethers.getSigner(WHALE_ADDRESS);
+    const usdcWhale = await ethers.getSigner(USDC_WHALE_ADDRESS);
 
     // Use the whale signer to send USDC
     const usdc = await ethers.getContractAt("IERC20", USDC_ADDRESS);
-    await usdc.connect(usdcWhale).transfer(lender.address, BigInt(1000e6));
-    await usdc.connect(usdcWhale).transfer(borrower.address, BigInt(1000e6));
+    await usdc.connect(usdcWhale).transfer(lender.address, BigInt(50000e6));
+    await usdc.connect(usdcWhale).transfer(borrower.address, BigInt(5000e6));
 
-    //Log balances
-    const lenderBalanceETH = await ethers.provider.getBalance(lender.address);
-    console.log("Lender wei", lenderBalanceETH.toString());
-    const borrowerBalanceETH = await ethers.provider.getBalance(borrower.address);
-    console.log("Borrower Wei", borrowerBalanceETH.toString());
+        // Send WETH from WETH Whale
+        const WETH_ADDRESS = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
+        const WETH_WHALE_ADDRESS = "0xA69babEF1cA67A37Ffaf7a485DfFF3382056e78C";
+    
+        // Impersonate the whale account
+        await network.provider.request({
+          method: "hardhat_impersonateAccount",
+          params: [WETH_WHALE_ADDRESS],
+        });
+    
+        const wethWhale = await ethers.getSigner(WETH_WHALE_ADDRESS);
+    
+        // Use the whale signer to send WETH
+        const weth = await ethers.getContractAt("IERC20", WETH_ADDRESS);
+        await weth.connect(wethWhale).transfer(lender.address, BigInt(13e18));
+        await weth.connect(wethWhale).transfer(borrower.address, BigInt(13e18));
+
+
+
+    // //Log balances
+    // const lenderBalanceETH = await ethers.provider.getBalance(lender.address);
+    // console.log("Lender wei", lenderBalanceETH.toString());
+    // const borrowerBalanceETH = await ethers.provider.getBalance(borrower.address);
+    // console.log("Borrower Wei", borrowerBalanceETH.toString());
 
     const lenderBalanceUSDC = await usdc.balanceOf(lender.address);
     console.log("Lender USDC", lenderBalanceUSDC.toString());
     const borrowerBalanceUSDC = await usdc.balanceOf(borrower.address);
     console.log("Borrower USDC", borrowerBalanceUSDC.toString());
 
-    const USDCContract = await ethers.getContractAt("IERC20", USDC);
-    await USDCContract.connect(lender).approve(soloAccount.getAddress(), BigInt(1000e6));
 
-    const allowance = await USDCContract.allowance(lender.getAddress(), soloAccount.getAddress());
+    const lenderBalanceWETH = await weth.balanceOf(lender.address);
+    console.log("Lender WETH", lenderBalanceWETH.toString());
+    const borrowerBalanceWETH = await weth.balanceOf(borrower.address);
+    console.log("Borrower WETH", borrowerBalanceWETH.toString());
+
+    const USDCContract = await ethers.getContractAt("IERC20", USDC);
+    await USDCContract.connect(lender).approve(soloAccount.getAddress(), BigInt(5000e6));
+    await USDCContract.connect(borrower).approve(soloAccount.getAddress(), BigInt(5000e6));
+    
+    const WETHContract = await ethers.getContractAt("IERC20", WETH);
+    await WETHContract.connect(lender).approve(soloAccount.getAddress(), BigInt(13e18));
+    await WETHContract.connect(borrower).approve(soloAccount.getAddress(), BigInt(13e18));
+
+
+    const allowance = await WETHContract.allowance(lender.getAddress(), soloAccount.getAddress());
     console.log("Allowance: ", allowance.toString());
 
-    const lenderSalt = crypto.randomBytes(32);
-    const borrowerSalt = crypto.randomBytes(32);
+    const lenderSalt = "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
+    const borrowerSalt = "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890";
 
-    const lenderParameters = abiCoder.encode(
+
+    const lenderParameters    = abiCoder.encode(
       ["address", "bytes32"],
       [lender.address, lenderSalt]
     )
@@ -161,15 +195,37 @@ describe("test_BeanstalkSilo", function () {
       [borrower.address, borrowerSalt]
     )
 
+
     // Connect the soloAccount contract instance to the lender's signer
     const soloAccountConnectedToLender = soloAccount.connect(lender);
 
     // Now call loadFromUser with the connected contract instance
     await soloAccountConnectedToLender.loadFromUser(
       USDC_Asset_data,
-      BigInt(500e6),
+      BigInt(5000e6),
       lenderParameters
     );
+
+    await soloAccountConnectedToLender.loadFromUser(
+      WETH_Asset_data,
+      BigInt(12e18),
+      lenderParameters
+    );
+    const soloAccountConnectedToBorrower = soloAccount.connect(borrower);
+
+    await soloAccountConnectedToBorrower.loadFromUser(
+      USDC_Asset_data,
+      BigInt(5000e6),
+      borrowerParameters
+    );
+
+    await soloAccountConnectedToBorrower.loadFromUser(
+      WETH_Asset_data,
+      BigInt(12e18),
+      borrowerParameters
+    );
+
+
 
     const lenderBalance = await soloAccountConnectedToLender.getBalance(USDC_Asset_data, lenderParameters)
     console.log("lender balance", lenderBalance)
@@ -177,7 +233,7 @@ describe("test_BeanstalkSilo", function () {
     //create order
 
     const account = {
-      addr: lender.address,
+      addr: await soloAccount.getAddress(),
       parameters: lenderParameters
     };
     const fillers = [];
@@ -206,7 +262,7 @@ describe("test_BeanstalkSilo", function () {
     const loanOracleOpenPrice = await staticOracle.getOpenPrice(loanOracles[0].parameters);
     console.log("oracle open price", loanOracleOpenPrice.toString());
 
-    const factories = [await beanstalkSilo.getAddress()];
+    const factories = [await wallet.getAddress()];
 
     const assessor = {
       addr: await standardAssessor.getAddress(),
@@ -242,18 +298,26 @@ describe("test_BeanstalkSilo", function () {
 
     // Create Fill
     // Construct BorrowerConfig
+    
+
+    const positionParameters = abiCoder.encode(
+      ["address"],
+      [await borrower.address]
+    );
+    
     const borrowerConfig = {
       initCollateralRatio: BigInt(15e17), // 150%
-      positionParameters: "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      positionParameters: positionParameters
     };
-
+    
+    const borrowerAccount = {
+      addr: await soloAccount.getAddress(),
+      parameters: borrowerParameters};
     // Construct Fill
 
-    const borrowerSaltHex = lenderSalt.toString('hex');
-
     const fill = {
-      account: [borrower.address, `0x${borrowerSaltHex}`],
-      loanAmount: LOAN_AMOUNT, // Replace with your constant or a passed parameter
+      account: borrowerAccount,      
+      loanAmount: LOAN_AMOUNT, 
       takerIdx: 0,
       loanAssetIdx: 0,
       collAssetIdx: 0,
@@ -262,7 +326,7 @@ describe("test_BeanstalkSilo", function () {
       borrowerConfig: borrowerConfig
     };
 
-    //console.log("fill",fill);
+    console.log("fill",fill);
   
   // Step 1: Pack the order data using the Bookkeeper 
   const orderStructType = [
@@ -299,12 +363,12 @@ const orderData = abiCoder.encode([`tuple(${orderStructType.join(',')})`], [orde
 
 
   const packedData = await bookkeeper.packDataField(
-    "0x01",  // Assuming 1 represents Bookkeeper.BlueprintDataType.ORDER
+    "0x01",  
     orderData
   );
 
   // Step 2: Create a blueprint and sign it
- const maxUint256 = BigInt(2)**BigInt(256) - BigInt(1);
+ const maxUint256 = BigInt(1e18);
 
   const orderBlueprint = {
     publisher: lender.address,
@@ -314,47 +378,42 @@ const orderData = abiCoder.encode([`tuple(${orderStructType.join(',')})`], [orde
     endTime: maxUint256
   };
 
-  const domain = {
-    name: 'pharos',
-    version: '0.2.0',
-    chainId: 1,  // replace with the actual chainId
-    verifyingContract: await bookkeeper.getAddress()
-};
-const types = {
-    OrderBlueprint: [
-        { name: 'publisher', type: 'address' },
-        { name: 'data', type: 'bytes' },
-        { name: 'maxNonce', type: 'uint256' },
-        { name: 'startTime', type: 'uint256' },
-        { name: 'endTime', type: 'uint256' },
-    ]
-};
-
-const signature = await lender.signTypedData(domain, types, orderBlueprint);
 
 // Step 3: Create a blueprint hash using the bookkeeper 
 
-  const blueprintHash = await bookkeeper.getBlueprintHash(orderBlueprint);
+const blueprintHash = await bookkeeper.getBlueprintHash(orderBlueprint);
+
+const fSig = await lender.signMessage(blueprintHash);
+
+const messageHash = ethUtil.toBuffer(blueprintHash);
+const privateKeyBuffer = ethUtil.toBuffer(lender.privateKey);
+const signature = ethUtil.ecsign(messageHash, privateKeyBuffer);
+const sig = ethUtil.toRpcSig(signature.v, signature.r, signature.s);
+
+const recoveredAddress = ethers.recoverAddress(blueprintHash, sig);
+console.log("recovered address",recoveredAddress);
+console.log("lender",lender.address)
+
   
 // Create a signed blueprint
 const signedBlueprint = {
     blueprint: orderBlueprint,
     blueprintHash: blueprintHash,
-    signature: signature
+    signature: sig
     
 };
 
-  //console.log(signedBlueprint);
+//console.log(signedBlueprint);
 
-//Fill loan
+// Fill loan
 const bookkeeperContract = bookkeeper.connect(borrower); 
-const txResponse = await bookkeeperContract.fillOrder(fill, signedBlueprint);
-});
 
-    
+tx = await bookkeeperContract.fillOrder(fill, signedBlueprint);
 
-      
-    
+
+
+
+}); 
 
   });
 

@@ -291,6 +291,7 @@ contract BeanstalkSilo is TestUtils {
         bytes32 blueprintHash = bookkeeper.getBlueprintHash(blueprint);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, blueprintHash);
         
+        
         // console.log("blueprint raw hash: ");
         // console.logBytes32(keccak256(abi.encode(blueprint)));
         // console.log("blueprint full hash: ");
