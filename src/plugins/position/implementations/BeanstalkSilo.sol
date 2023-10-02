@@ -41,7 +41,7 @@ contract BeanstalkSiloFactory is Position {
     function _open(Agreement calldata agreement) internal override {
         
         address beanEthWell = 0xBEA0e11282e2bB5893bEcE110cF199501e872bAd;
-        address siloAddr = 0xf4B3629D1aa74eF8ab53Cc22728896B960F3a74E;
+        address beanstalkAddr = 0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5;
         
         //approve Bean:ETH well to use WETH
         IERC20 token = IERC20(C.WETH);
@@ -59,10 +59,12 @@ contract BeanstalkSiloFactory is Position {
 
         // approve Silo to use Bean:ETH well LP tokens
         IERC20 lptoken = IERC20(beanEthWell);
-        lptoken.approve(siloAddr, 2e18);
+        lptoken.approve(beanstalkAddr, 2e18);
 
         // deposit Bean:ETH LP tokens in Silo
-        ISilo(siloAddr).deposit(beanEthWell,lpAmountOut,LibTransfer.From.EXTERNAL);
+        ISilo(beanstalkAddr).deposit(beanEthWell,lpAmountOut,LibTransfer.From.EXTERNAL);
+
+
 
     }
 
@@ -72,7 +74,7 @@ contract BeanstalkSiloFactory is Position {
 
     // Public Helpers.
 
-    function _getCloseValue(Agreement calldata agreement) internal view override returns (uint256) {
+    function _getCloseAmount(Agreement calldata agreement) internal view override returns (uint256) {
         uint256 value = (agreement.collAmount *
             IOracle(agreement.collOracle.addr).getOpenPrice(agreement.collOracle.parameters)) / C.RATIO_FACTOR;
         return value;

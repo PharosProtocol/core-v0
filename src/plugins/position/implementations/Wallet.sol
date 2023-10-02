@@ -42,13 +42,15 @@ contract WalletFactory is Position {
 
     function _close( address sender, Agreement calldata agreement) internal override  {
 
-        uint256 cost = IAssessor(agreement.assessor.addr).getCost(agreement);
-        uint256 closeAmount = agreement.loanAmount + cost * C.RATIO_FACTOR/ IOracle(agreement.loanOracle.addr).getOpenPrice( agreement.loanOracle.parameters);
-        address loanAssetAddress = abi.decode(agreement.loanAsset, (address));
-        Asset memory collAsset = abi.decode(agreement.collAsset, (Asset));
-        address collAssetAddress = collAsset.addr;
-        uint256 collAssetDecimal = collAsset.decimals;
+        Asset memory loanAsset = abi.decode(agreement.loanAsset, (Asset));
+        Asset memory collAsset = abi.decode(agreement.loanAsset, (Asset));
 
+        address loanAssetAddress = loanAsset.addr;
+        address collAssetAddress = collAsset.addr;
+        
+
+        uint256 assessorCost = IAssessor(agreement.assessor.addr).getCost(agreement);
+        uint256 closeAmount = agreement.loanAmount + assessorCost * C.RATIO_FACTOR/ IOracle(agreement.loanOracle.addr).getOpenPrice( agreement.loanOracle.parameters);
 
         IERC20 erc20 = IERC20(loanAssetAddress);
         uint256 balance = erc20.balanceOf(address(this));
@@ -72,17 +74,23 @@ contract WalletFactory is Position {
             );
 
         }
-        uint256 convertedAmount = agreement.collAmount * 10**(collAssetDecimal)/C.RATIO_FACTOR;
 
-        LibUtilsPublic.safeErc20Transfer(collAssetAddress, sender, convertedAmount);
+        LibUtilsPublic.safeErc20Transfer(collAssetAddress, sender, agreement.collAmount);
 
 
     }
 
     // Public Helpers.
 
-    function _getCloseValue(Agreement calldata agreement) internal view override returns (uint256) {
-        uint256 value= agreement.collAmount * IOracle(agreement.collOracle.addr).getOpenPrice( agreement.collOracle.parameters)/C.RATIO_FACTOR ;
-        return value;
+    function _getCloseAmount(Agreement calldata agreement) internal view override returns (uint256) {
+        
+        Asset memory collAsset = abi.decode(agreement.loanAsset, (Asset));
+        address collAssetAddress = collAsset.addr;
+        uint8 collAssetDecimals = collAsset.decimals;
+
+        IERC20 erc20 = IERC20(collAssetAddress);
+        uint256 balance = erc20.balanceOf(address(this));
+        uint256 closeAmount= balance * IOracle(agreement.collOracle.addr).getOpenPrice(agreement.collOracle.parameters)/10**(collAssetDecimals) ;
+        return closeAmount;
     }
 }

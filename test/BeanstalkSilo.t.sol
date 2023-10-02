@@ -111,7 +111,7 @@ contract BeanstalkSilo is TestUtils {
         assertEq(accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 12e18);
         assertEq(
             accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
-            5_000 * (10 ** TC.USDC_DECIMALS)
+            5_000e18
         );
         console.log("borrower account",accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)) );
 
@@ -139,7 +139,7 @@ contract BeanstalkSilo is TestUtils {
         assertEq(accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 12e18 - LOAN_AMOUNT);
         assertLt(
             accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
-            5_000 * (10 ** TC.USDC_DECIMALS)
+            5_000e18
         );
         assertGt(accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 0);
 
@@ -152,8 +152,9 @@ contract BeanstalkSilo is TestUtils {
  
         console.log("lender account", accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)));
         console.log("borrower wallet",IERC20(USDC_ASSETT.addr).balanceOf(borrower));
-        console.log("Bean:ETH LP",IERC20(0xBEA0e11282e2bB5893bEcE110cF199501e872bAd).balanceOf(agreement.position.addr));
-
+        console.log("collateral in MPC",IERC20(USDC_ASSETT.addr).balanceOf(agreement.position.addr));
+        console.log("collateral in MPC", IPosition(agreement.position.addr).getCloseAmount(agreement));
+        // console.log("Bean:ETH LP",IERC20(0xBEA0e11282e2bB5893bEcE110cF199501e872bAd).balanceOf(agreement.position.addr));
 
 
     }
@@ -164,11 +165,12 @@ contract BeanstalkSilo is TestUtils {
         wethDeal(accountParams.owner, 12e18);
         deal(USDC_ASSETT.addr, accountParams.owner, 5_000 * (10 ** TC.USDC_DECIMALS), true);
 
+
         vm.startPrank(accountParams.owner);
         IERC20(C.WETH).approve(address(accountPlugin), 12e18);
         accountPlugin.loadFromUser(WETH_ASSET, 12e18, abi.encode(accountParams));
         IERC20(TC.USDC).approve(address(accountPlugin), 5_000 * (10 ** TC.USDC_DECIMALS));
-        accountPlugin.loadFromUser(USDC_ASSET, 5_000 * (10 ** TC.USDC_DECIMALS), abi.encode(accountParams));
+        accountPlugin.loadFromUser(USDC_ASSET, 5_000e18, abi.encode(accountParams));
         vm.stopPrank();
     }
 
@@ -291,7 +293,7 @@ contract BeanstalkSilo is TestUtils {
         bytes32 blueprintHash = bookkeeper.getBlueprintHash(blueprint);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, blueprintHash);
         
-        
+
         // console.log("blueprint raw hash: ");
         // console.logBytes32(keccak256(abi.encode(blueprint)));
         // console.log("blueprint full hash: ");

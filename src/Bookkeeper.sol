@@ -164,26 +164,29 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
 
     if (!isBorrower) {
         // Check if the agreement is liquidatable only if the sender is not the borrower
-        require(LibBookkeeper.isLiquidatable(agreement), "error: The agreement is not liquidatable");
+        require(LibBookkeeper.isLiquidatable(agreement), "error: The agreement is not liquidatable nor is the caller the borrower");
+    }
+        _closePosition(agreementBlueprint, agreement, msg.sender);
     }
 
-    IPosition position = IPosition(agreement.position.addr);
+    //Internal Close Position Function
+    function _closePosition(SignedBlueprint calldata agreementBlueprint, Agreement memory agreement, address closer) private {
 
-    uint256 closeAmount = position.getCloseValue(agreement);
+    IPosition position = IPosition(agreement.position.addr);
+    IAccount lenderAccount = IAccount(agreement.lenderAccount.addr);
+    uint256 closeAmount = position.getCloseAmount(agreement);
     uint256 assessorCost = IAssessor(agreement.assessor.addr).getCost(agreement);
     uint256 loanOraclePrice = IOracle(agreement.loanOracle.addr).getClosePrice(agreement.loanOracle.parameters);
+    uint256 lenderBalanceBefore = lenderAccount.getBalance(agreement.loanAsset, agreement.lenderAccount.parameters);
 
-    IAccount lenderAccount = IAccount(agreement.lenderAccount.addr);
-    uint256 lenderOriginalBalance = lenderAccount.getBalance(agreement.loanAsset, agreement.lenderAccount.parameters);
+        // Close the position
+    position.close(closer, agreement);
 
-    // Close the position
-    position.close(msg.sender, agreement);
+    uint256 lenderBalanceAfter = lenderAccount.getBalance(agreement.loanAsset, agreement.lenderAccount.parameters);
 
-    uint256 lenderNewBalance = lenderAccount.getBalance(agreement.loanAsset, agreement.lenderAccount.parameters);
+    require((lenderBalanceAfter - lenderBalanceBefore) >= agreement.loanAmount + (assessorCost* C.RATIO_FACTOR/loanOraclePrice), "Not enough to close the loan");
 
-    require(lenderNewBalance - lenderOriginalBalance >= agreement.loanAmount + assessorCost, "Not enough to close the loan");
-
-    // Mark the position as closed from the Bookkeeper's point of view.
+        // Mark the position as closed from the Bookkeeper's point of view.
     agreementClosed[keccak256(abi.encodePacked(agreement.position.addr))] = true;
 
     emit PositionClosed(agreementBlueprint, agreement.position.addr, msg.sender, closeAmount, loanOraclePrice, assessorCost);
@@ -202,25 +205,12 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         // Check if the loan is already closed
         require(!agreementClosed[agreementId], "Loan already closed.");
 
-        // Ensure this agreement isn't already undergoing liquidation
-        require(!liquidationLock[agreementId], "Liquidation already in progress for this agreement.");
-
         require(LibBookkeeper.isLiquidatable(agreement), "Loan is not eligible for liquidation");
-
-        // Set the lock
-        liquidationLock[agreementId] = true;
 
         // Execute the liquidation
         ILiquidator(agreement.liquidator.addr).liquidate(msg.sender, agreement);
-
-        // If the loan has been closed during the liquidation, no need to recheck its status.
-        if (!agreementClosed[agreementId]) {
-            // Recheck the liquidation condition post-liquidation
-            require(!LibBookkeeper.isLiquidatable(agreement), "Post-liquidation check failed");
-        }
-
-        // Release the lock
-        liquidationLock[agreementId] = false;
+      
+        _closePosition(agreementBlueprint, agreement, msg.sender);
         emit PositionLiquidated(agreementBlueprint, agreement.position.addr, msg.sender);
 
     }

@@ -130,7 +130,7 @@ function isLiquidatable(Agreement memory agreement) internal view returns (bool)
     }
 
     // Calculate closeAmount and assessorCost
-    uint256 closeAmount = position.getCloseValue(agreement);
+    uint256 closeAmount = position.getCloseAmount(agreement);
     uint256 assessorCost = IAssessor(agreement.assessor.addr).getCost(agreement);
 
     // Check for liquidation based on collateral ratio

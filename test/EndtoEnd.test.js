@@ -38,6 +38,7 @@ describe("test_BeanstalkSilo", function () {
   let standardAssessor;
   let staticOracle;
   let wallet;
+  let beanstalkSilo;
 
   before(async function () {
     // Deploy LibUtilsPublic library
@@ -202,7 +203,7 @@ describe("test_BeanstalkSilo", function () {
     // Now call loadFromUser with the connected contract instance
     await soloAccountConnectedToLender.loadFromUser(
       USDC_Asset_data,
-      BigInt(5000e6),
+      BigInt(5000e18),
       lenderParameters
     );
 
@@ -215,7 +216,7 @@ describe("test_BeanstalkSilo", function () {
 
     await soloAccountConnectedToBorrower.loadFromUser(
       USDC_Asset_data,
-      BigInt(5000e6),
+      BigInt(5000e18),
       borrowerParameters
     );
 
@@ -262,7 +263,7 @@ describe("test_BeanstalkSilo", function () {
     const loanOracleOpenPrice = await staticOracle.getOpenPrice(loanOracles[0].parameters);
     console.log("oracle open price", loanOracleOpenPrice.toString());
 
-    const factories = [await wallet.getAddress()];
+    const factories = [await beanstalkSilo.getAddress()];
 
     const assessor = {
       addr: await standardAssessor.getAddress(),
@@ -409,6 +410,7 @@ const signedBlueprint = {
 const bookkeeperContract = bookkeeper.connect(borrower); 
 
 tx = await bookkeeperContract.fillOrder(fill, signedBlueprint);
+
 
 
 

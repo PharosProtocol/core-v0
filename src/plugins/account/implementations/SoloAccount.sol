@@ -8,19 +8,12 @@ import {IWETH9} from "src/interfaces/external/IWETH9.sol";
 import {Account} from "../Account.sol";
 import {LibUtilsPublic} from "src/libraries/LibUtilsPublic.sol";
 
+// All amounts are input and saved with 18 dec precision. conversions to asset decimals happen before transfering.
 contract SoloAccount is Account {
 
     struct Asset {
         address addr;
         uint8 decimals;
-    }
-
-    function _transferAsset(Asset memory asset, address from, address to, uint256 amount) private {
-        if (from == address(this)) {
-            require(IERC20(asset.addr).transfer(to, amount), "Transfer failed");
-        } else {
-            require(IERC20(asset.addr).transferFrom(from, address(this), amount), "Transfer failed");
-        }
     }
 
     struct Parameters {
@@ -44,13 +37,14 @@ contract SoloAccount is Account {
         Asset memory asset = abi.decode(assetData, (Asset));
         Parameters memory params = abi.decode(parameters, (Parameters));
         bytes32 id = _getId(params.owner, params.salt);
-        balances[id][keccak256(assetData)] += amount; // Update balance logic
+        balances[id][keccak256(assetData)] += amount; // Update user balance
+        uint256 decAdjAmount = amount * 10**(asset.decimals)/C.RATIO_FACTOR;
 
         if (asset.addr == C.WETH && msg.value > 0) {
             require(msg.value == amount, "ETH amount mismatch");
             IWETH9(C.WETH).deposit{value: msg.value}();
         } else {
-            LibUtilsPublic.safeErc20TransferFrom(asset.addr, msg.sender, address(this), amount);
+            LibUtilsPublic.safeErc20TransferFrom(asset.addr, msg.sender, address(this), decAdjAmount);
         }
     }
 
@@ -64,11 +58,13 @@ contract SoloAccount is Account {
         require(balances[id][keccak256(assetData)] >= amount, "_unloadToUser: balance too low");
         balances[id][keccak256(assetData)] -= amount;
 
+        uint256 decAdjAmount = amount * 10**(asset.decimals)/C.RATIO_FACTOR;
+
         if (asset.addr == C.WETH) {
             IWETH9(C.WETH).withdraw(amount);
             payable(msg.sender).transfer(amount);
         } else {
-            LibUtilsPublic.safeErc20Transfer(asset.addr, msg.sender, amount);
+            LibUtilsPublic.safeErc20Transfer(asset.addr, msg.sender, decAdjAmount);
         }
     }
 
@@ -82,13 +78,13 @@ contract SoloAccount is Account {
         Parameters memory params = abi.decode(parameters, (Parameters));
 
         bytes32 id = _getId(params.owner, params.salt);
-        uint256 convertedAmount = amount * 10**(asset.decimals)/C.RATIO_FACTOR;
+        uint256 decAdjAmount = amount * 10**(asset.decimals)/C.RATIO_FACTOR;
 
-        require(balances[id][keccak256(assetData)] >= convertedAmount, "_unloadToPosition: balance too low");
+        require(balances[id][keccak256(assetData)] >= amount, "_unloadToPosition: balance too low");
 
-        balances[id][keccak256(assetData)] -= convertedAmount;
+        balances[id][keccak256(assetData)] -= amount;
 
-        LibUtilsPublic.safeErc20Transfer(asset.addr, position, convertedAmount);
+        LibUtilsPublic.safeErc20Transfer(asset.addr, position, decAdjAmount);
     }
 
     function getOwner(bytes calldata parameters) external pure override returns (address) {
