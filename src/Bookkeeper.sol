@@ -162,11 +162,9 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
     Agreement memory agreement = abi.decode(blueprintData, (Agreement));
 
     bool isBorrower = msg.sender == IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters);
+    
+    require(isBorrower, "error: Caller is not the borrower");
 
-    if (!isBorrower) {
-        // Check if the agreement is liquidatable only if the sender is not the borrower
-        require(LibBookkeeper.isLiquidatable(agreement), "error: The agreement is not liquidatable nor is the caller the borrower");
-    }
         _closePosition(agreementBlueprint, agreement, msg.sender);
     }
 
