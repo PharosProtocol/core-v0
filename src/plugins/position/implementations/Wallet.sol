@@ -40,43 +40,46 @@ contract WalletFactory is Position {
 
     }
 
-    function _close( address sender, Agreement calldata agreement) internal override  {
+    function _close( address sender, Agreement calldata agreement, uint256 amountToClose) internal override  {
 
         Asset memory loanAsset = abi.decode(agreement.loanAsset, (Asset));
-        Asset memory collAsset = abi.decode(agreement.loanAsset, (Asset));
+        Asset memory collAsset = abi.decode(agreement.collAsset, (Asset));
 
-        address loanAssetAddress = loanAsset.addr;
-        address collAssetAddress = collAsset.addr;
-        
+        IERC20 loanERC20 = IERC20(loanAsset.addr);
+        IERC20 collERC20 = IERC20(collAsset.addr);
 
-        uint256 assessorCost = IAssessor(agreement.assessor.addr).getCost(agreement);
-        uint256 closeAmount = agreement.loanAmount + assessorCost * C.RATIO_FACTOR/ IOracle(agreement.loanOracle.addr).getOpenPrice( agreement.loanOracle.parameters);
-
-        IERC20 erc20 = IERC20(loanAssetAddress);
-        uint256 balance = erc20.balanceOf(address(this));
+        uint256 balance = loanERC20.balanceOf(address(this));
 
         // If there are not enough assets to pay lender, pull missing from sender.
-        if (closeAmount > balance) {
+        if (amountToClose > balance) {
             LibUtilsPublic.safeErc20TransferFrom(
-                loanAssetAddress,
+                loanAsset.addr,
                 sender,
                 address(this),
-                closeAmount - balance
+                amountToClose - balance
             );
         }
 
-        if (closeAmount > 0) {
-            erc20.approve(agreement.lenderAccount.addr, closeAmount);
+        if (amountToClose > 0) {
+            loanERC20.approve(agreement.lenderAccount.addr, amountToClose);
             IAccount(agreement.lenderAccount.addr).loadFromPosition(
                 agreement.loanAsset,
-                closeAmount,
+                amountToClose,
                 agreement.lenderAccount.parameters
             );
 
         }
 
-        LibUtilsPublic.safeErc20Transfer(collAssetAddress, sender, agreement.collAmount);
+        uint256 adjCollAmount = (agreement.collAmount * 10**(collAsset.decimals))/C.RATIO_FACTOR;
+        //LibUtilsPublic.safeErc20Transfer(collAssetAddress, sender, adjCollAmount);
 
+        collERC20.approve(agreement.borrowerAccount.addr, adjCollAmount);
+        
+        IAccount(agreement.borrowerAccount.addr).loadFromPosition(
+                agreement.collAsset,
+                agreement.collAmount,
+                agreement.borrowerAccount.parameters
+            );
 
     }
 
@@ -84,13 +87,14 @@ contract WalletFactory is Position {
 
     function _getCloseAmount(Agreement calldata agreement) internal view override returns (uint256) {
         
-        Asset memory collAsset = abi.decode(agreement.loanAsset, (Asset));
+        Asset memory collAsset = abi.decode(agreement.collAsset, (Asset));
         address collAssetAddress = collAsset.addr;
         uint8 collAssetDecimals = collAsset.decimals;
 
         IERC20 erc20 = IERC20(collAssetAddress);
         uint256 balance = erc20.balanceOf(address(this));
         uint256 closeAmount= balance * IOracle(agreement.collOracle.addr).getOpenPrice(agreement.collOracle.parameters)/10**(collAssetDecimals) ;
+        
         return closeAmount;
     }
 }

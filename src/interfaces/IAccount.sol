@@ -27,6 +27,7 @@ interface IAccount {
         bytes calldata parameters
     ) external;
 
+
     // NOTE is is possible to (securely) require the owner addr to be the first parameter so that owner can
     // be determined without external calls? To save gas.
     function getOwner(bytes calldata parameters) external view returns (address);

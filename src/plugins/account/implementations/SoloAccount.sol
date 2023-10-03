@@ -38,7 +38,7 @@ contract SoloAccount is Account {
         Parameters memory params = abi.decode(parameters, (Parameters));
         bytes32 id = _getId(params.owner, params.salt);
         balances[id][keccak256(assetData)] += amount; // Update user balance
-        uint256 decAdjAmount = amount * 10**(asset.decimals)/C.RATIO_FACTOR;
+        uint256 decAdjAmount = (amount * 10**(asset.decimals))/C.RATIO_FACTOR;
 
         if (asset.addr == C.WETH && msg.value > 0) {
             require(msg.value == amount, "ETH amount mismatch");

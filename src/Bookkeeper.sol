@@ -98,6 +98,7 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         agreement.position.parameters = order.isOffer
             ? fill.borrowerConfig.positionParameters
             : order.borrowerConfig.positionParameters;
+        
         agreement.collAmount =
             collateralValue *C.RATIO_FACTOR/
             IOracle(agreement.collOracle.addr).getOpenPrice(agreement.collOracle.parameters);
@@ -178,13 +179,13 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
     uint256 assessorCost = IAssessor(agreement.assessor.addr).getCost(agreement);
     uint256 loanOraclePrice = IOracle(agreement.loanOracle.addr).getClosePrice(agreement.loanOracle.parameters);
     uint256 lenderBalanceBefore = lenderAccount.getBalance(agreement.loanAsset, agreement.lenderAccount.parameters);
-
+    uint256 amountToClose = agreement.loanAmount + (assessorCost* C.RATIO_FACTOR/loanOraclePrice);
         // Close the position
-    position.close(closer, agreement);
+    position.close(closer, agreement,amountToClose);
 
     uint256 lenderBalanceAfter = lenderAccount.getBalance(agreement.loanAsset, agreement.lenderAccount.parameters);
 
-    require((lenderBalanceAfter - lenderBalanceBefore) >= agreement.loanAmount + (assessorCost* C.RATIO_FACTOR/loanOraclePrice), "Not enough to close the loan");
+    require((lenderBalanceAfter - lenderBalanceBefore) >= amountToClose, "Not enough to close the loan");
 
         // Mark the position as closed from the Bookkeeper's point of view.
     agreementClosed[keccak256(abi.encodePacked(agreement.position.addr))] = true;

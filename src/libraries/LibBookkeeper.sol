@@ -106,7 +106,6 @@ library LibBookkeeper {
         Fill calldata fill,
         Order memory order
     ) internal pure returns (Agreement memory agreement) {
-        // AUDIT would this be more efficient in a single set statement, to avoid lots of zero -> non-zero changes?
         agreement.maxDuration = order.maxDuration;
         agreement.assessor = order.assessor;
         agreement.liquidator = order.liquidator;
@@ -140,7 +139,7 @@ function isLiquidatable(Agreement memory agreement) internal view returns (bool)
     uint256 collateralRatio = closeAmount *C.RATIO_FACTOR / openLoanValue;
 
         if (collateralRatio < (agreement.minCollateralRatio)) {
-        revert("Collateral ratio is below minimum");
+        return false;
         }
         return false;
 
