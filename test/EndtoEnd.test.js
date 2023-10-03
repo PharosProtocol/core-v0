@@ -411,6 +411,7 @@ const bookkeeperContract = bookkeeper.connect(borrower);
 
 tx = await bookkeeperContract.fillOrder(fill, signedBlueprint);
 
+tx = await bookkeeperContract.closePosition(signedBlueprint);
 
 
 

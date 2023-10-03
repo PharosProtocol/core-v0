@@ -139,7 +139,7 @@ function isLiquidatable(Agreement memory agreement) internal view returns (bool)
     uint256 collateralRatio = closeAmount *C.RATIO_FACTOR / openLoanValue;
 
         if (collateralRatio < (agreement.minCollateralRatio)) {
-        return false;
+        return true;
         }
         return false;
 

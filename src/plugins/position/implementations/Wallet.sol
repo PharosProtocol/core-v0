@@ -48,18 +48,6 @@ contract WalletFactory is Position {
         IERC20 loanERC20 = IERC20(loanAsset.addr);
         IERC20 collERC20 = IERC20(collAsset.addr);
 
-        uint256 balance = loanERC20.balanceOf(address(this));
-
-        // If there are not enough assets to pay lender, pull missing from sender.
-        if (amountToClose > balance) {
-            LibUtilsPublic.safeErc20TransferFrom(
-                loanAsset.addr,
-                sender,
-                address(this),
-                amountToClose - balance
-            );
-        }
-
         if (amountToClose > 0) {
             loanERC20.approve(agreement.lenderAccount.addr, amountToClose);
             IAccount(agreement.lenderAccount.addr).loadFromPosition(
@@ -70,10 +58,10 @@ contract WalletFactory is Position {
 
         }
 
-        uint256 adjCollAmount = (agreement.collAmount * 10**(collAsset.decimals))/C.RATIO_FACTOR;
+        uint256 decAdjAmount = (agreement.collAmount * 10**(collAsset.decimals))/C.RATIO_FACTOR;
         //LibUtilsPublic.safeErc20Transfer(collAssetAddress, sender, adjCollAmount);
 
-        collERC20.approve(agreement.borrowerAccount.addr, adjCollAmount);
+        collERC20.approve(agreement.borrowerAccount.addr, decAdjAmount);
         
         IAccount(agreement.borrowerAccount.addr).loadFromPosition(
                 agreement.collAsset,
