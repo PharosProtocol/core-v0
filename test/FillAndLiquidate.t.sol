@@ -28,7 +28,6 @@ import {BeanOracle} from "src/plugins/oracle/implementations/BeanOracle.sol";
 import {WalletFactory} from "src/plugins/position/implementations/Wallet.sol";
 import {BeanstalkSiloFactory} from "src/plugins/position/implementations/BeanstalkSilo.sol";
 
-
 import {Bookkeeper} from "src/Bookkeeper.sol";
 import {IndexPair, PluginReference, BorrowerConfig, Order, Fill, Agreement} from "src/libraries/LibBookkeeper.sol";
 
@@ -49,7 +48,6 @@ contract FillAndClose is TestUtils {
     IPosition public walletFactory;
     IPosition public beanstalkSiloFactory;
 
-
     bytes constant WETH_ASSET = abi.encode(Asset({addr: C.WETH, decimals: 18}));
     bytes constant USDC_ASSET = abi.encode(Asset({addr: TC.USDC, decimals: TC.USDC_DECIMALS}));
     Asset WETH_ASSETT = Asset({addr: C.WETH, decimals: 18});
@@ -58,7 +56,7 @@ contract FillAndClose is TestUtils {
     uint256 LENDER_PRIVATE_KEY = 111;
     uint256 BORROWER_PRIVATE_KEY = 222;
     uint256 LIQUIDATOR_PRIVATE_KEY = 333;
-    uint256 LOAN_AMOUNT = 1e17 ;
+    uint256 LOAN_AMOUNT = 1e17;
     Asset[] ASSETS;
 
     constructor() {
@@ -77,9 +75,9 @@ contract FillAndClose is TestUtils {
         assessorPlugin = IAssessor(address(new StandardAssessor()));
         staticOracle = IOracle(address(new StaticOracle()));
         walletFactory = IPosition(address(new WalletFactory(address(bookkeeper))));
-        chainlinkOracle= IOracle(address(new ChainlinkOracle()));
-        beanOracle= IOracle(address(new BeanOracle()));
-        beanstalkSiloFactory= IPosition(address(new BeanstalkSiloFactory((address(bookkeeper)))));
+        chainlinkOracle = IOracle(address(new ChainlinkOracle()));
+        beanOracle = IOracle(address(new BeanOracle()));
+        beanstalkSiloFactory = IPosition(address(new BeanstalkSiloFactory((address(bookkeeper)))));
         liquidatorPlugin = ILiquidator(address(new StandardLiquidator()));
 
         // // For use with pre deployed contracts.
@@ -92,8 +90,6 @@ contract FillAndClose is TestUtils {
         // uniOraclePlugin = IOracle(); // static prices
         // uniV3HoldFactory = IPosition();
     }
-
-
 
     // Using USDC as collateral, borrow ETH
     function test_FillAndClose() public {
@@ -111,13 +107,9 @@ contract FillAndClose is TestUtils {
         fundAccount(borrowerAccountParams);
         fundLiquidator(liquidatorAddr);
 
-
         assertEq(accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 12e18);
-        assertEq(
-            accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
-            5_000e18
-        );
-        console.log("borrower account",accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)) );
+        assertEq(accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000e18);
+        console.log("borrower account", accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)));
 
         Order memory order = createOrder(lenderAccountParams);
         bytes memory packedData;
@@ -141,40 +133,87 @@ contract FillAndClose is TestUtils {
         bookkeeper.fillOrder(fill, orderSignedBlueprint);
 
         assertEq(accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 12e18 - LOAN_AMOUNT);
-        assertLt(
-            accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
-            5_000e18
-        );
+        assertLt(accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 5_000e18);
         assertGt(accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 0);
 
-
-        // Move time 
+        // Move time
         vm.warp(block.timestamp + 10 days);
-        
+
         (SignedBlueprint memory agreementSignedBlueprint, Agreement memory agreement) = retrieveAgreementFromLogs();
         Asset memory decodedAsset = abi.decode(agreement.collAsset, (Asset));
 
-        console.log("WETH in Account plugin using IERC20",IERC20(WETH_ASSETT.addr).balanceOf(agreement.lenderAccount.addr));
-        console.log("USDC in Account plugin using IERC20",IERC20(decodedAsset.addr).balanceOf(agreement.borrowerAccount.addr));
+        console.log(
+            "WETH in Account plugin using IERC20",
+            IERC20(WETH_ASSETT.addr).balanceOf(agreement.lenderAccount.addr)
+        );
+        console.log(
+            "USDC in Account plugin using IERC20",
+            IERC20(decodedAsset.addr).balanceOf(agreement.borrowerAccount.addr)
+        );
         console.log("WETH in lender account", accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)));
-        console.log("WETH in borrower account", accountPlugin.getBalance(WETH_ASSET, abi.encode(borrowerAccountParams)));
+        console.log(
+            "WETH in borrower account",
+            accountPlugin.getBalance(WETH_ASSET, abi.encode(borrowerAccountParams))
+        );
+        console.log(
+            "USDC as collateral in MPC using IERC20",
+            IERC20(decodedAsset.addr).balanceOf(agreement.position.addr)
+        );
+        console.log(
+            "USDC as collateral in MPC using getCloseAmount",
+            IPosition(agreement.position.addr).getCloseAmount(agreement)
+        );
 
-        console.log("USDC as collateral in MPC using IERC20",IERC20(decodedAsset.addr).balanceOf(agreement.position.addr));
-        console.log("USDC as collateral in MPC using getCloseAmount", IPosition(agreement.position.addr).getCloseAmount(agreement));
-        
+        //Liquidate the agreement
+
         vm.prank(liquidatorAddr);
         bookkeeper.triggerLiquidation(agreementSignedBlueprint);
         console.log("====AGREEMENT LIQUIDATED====");
-        console.log("WETH in Account plugin using IERC20",IERC20(WETH_ASSETT.addr).balanceOf(agreement.lenderAccount.addr));
-        console.log("USDC in Account plugin using IERC20",IERC20(decodedAsset.addr).balanceOf(agreement.borrowerAccount.addr));
+
+        console.log(
+            "WETH in Account plugin using IERC20",
+            IERC20(WETH_ASSETT.addr).balanceOf(agreement.lenderAccount.addr)
+        );
+        console.log(
+            "USDC in Account plugin using IERC20",
+            IERC20(decodedAsset.addr).balanceOf(agreement.borrowerAccount.addr)
+        );
         console.log("WETH in lender account", accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)));
-        console.log("WETH in borrower account", accountPlugin.getBalance(WETH_ASSET, abi.encode(borrowerAccountParams)));
+        console.log(
+            "WETH in borrower account",
+            accountPlugin.getBalance(WETH_ASSET, abi.encode(borrowerAccountParams))
+        );
+        console.log(
+            "USDC as collateral in MPC using IERC20",
+            IERC20(decodedAsset.addr).balanceOf(agreement.position.addr)
+        );
+        console.log(
+            "USDC as collateral in MPC using getCloseAmount",
+            IPosition(agreement.position.addr).getCloseAmount(agreement)
+        );
 
-        console.log("USDC as collateral in MPC using IERC20",IERC20(decodedAsset.addr).balanceOf(agreement.position.addr));
-        console.log("USDC as collateral in MPC using getCloseAmount", IPosition(agreement.position.addr).getCloseAmount(agreement));
-        
-        
+        console.log("USDC in Liquidator wallet", IERC20(decodedAsset.addr).balanceOf(liquidatorAddr));
 
+        //Liquidator logic - transfer collateral from MPC to own address
+
+        bytes memory transferData = abi.encodeWithSignature("transfer(address,uint256)",
+            liquidatorAddr,
+            IERC20(decodedAsset.addr).balanceOf(agreement.position.addr)
+        );
+        address payable payableAddr = payable(USDC_ASSETT.addr);
+
+        vm.prank(liquidatorAddr);
+        IPosition(agreement.position.addr).passThrough(payableAddr, transferData, false);
+        console.log("====LIQUIDATION LOGIC====");
+
+        console.log(
+            "USDC in Liquidator wallet",
+            IERC20(decodedAsset.addr).balanceOf(0xC2926a19a56c60f93247DA20864C165152e39C4d)
+        );
+        console.log(
+            "USDC as collateral in MPC using IERC20",
+            IERC20(decodedAsset.addr).balanceOf(agreement.position.addr)
+        );
     }
 
     function fundLiquidator(address liquidator) private {
@@ -192,7 +231,6 @@ contract FillAndClose is TestUtils {
         vm.deal(accountParams.owner, 2e18);
         wethDeal(accountParams.owner, 12e18);
         deal(USDC_ASSETT.addr, accountParams.owner, 5_000 * (10 ** TC.USDC_DECIMALS), true);
-
 
         vm.startPrank(accountParams.owner);
         IERC20(C.WETH).approve(address(accountPlugin), 12e18);
@@ -237,7 +275,6 @@ contract FillAndClose is TestUtils {
         //factories[0] = address(beanstalkSiloFactory);
         factories[0] = address(walletFactory);
 
-
         PluginReference memory assessor = PluginReference({
             addr: address(assessorPlugin),
             parameters: abi.encode(
@@ -250,12 +287,10 @@ contract FillAndClose is TestUtils {
             )
         });
 
-        PluginReference memory liquidator = PluginReference({addr: address(liquidatorPlugin), parameters: abi.encode(
-                StandardLiquidator.Parameters({
-                    fixedFee: 0,
-                    percentageFee: 4e18
-                })
-            )});
+        PluginReference memory liquidator = PluginReference({
+            addr: address(liquidatorPlugin),
+            parameters: abi.encode(StandardLiquidator.Parameters({fixedFee: 0, percentageFee: 4e18}))
+        });
 
         // Lender creates an offer.
         return
@@ -281,7 +316,6 @@ contract FillAndClose is TestUtils {
     }
 
     function createFill(SoloAccount.Parameters memory borrowerAccountParams) private view returns (Fill memory) {
-
         BorrowerConfig memory borrowerConfig = BorrowerConfig({
             initCollateralRatio: 20e17, // 200%
             positionParameters: abi.encode(WalletFactory.Parameters({recipient: borrowerAccountParams.owner}))
@@ -303,10 +337,9 @@ contract FillAndClose is TestUtils {
     function createSignedBlueprint(
         Blueprint memory blueprint,
         uint256 privateKey
-        ) private view returns (SignedBlueprint memory) {
+    ) private view returns (SignedBlueprint memory) {
         bytes32 blueprintHash = bookkeeper.getBlueprintHash(blueprint);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, blueprintHash);
-        
 
         // console.log("blueprint raw hash: ");
         // console.logBytes32(keccak256(abi.encode(blueprint)));

@@ -53,8 +53,7 @@ abstract contract Position is IPosition, CloneFactory {
     
 
 
-
-    // SECURITY RISK
+    // Transfer Contract Ownership
     function transferContract(address controller) external override proxyExecution onlyRole(C.ADMIN_ROLE) {
         grantRole(C.ADMIN_ROLE, controller);
         renounceRole(C.ADMIN_ROLE, msg.sender);
