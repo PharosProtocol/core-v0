@@ -27,10 +27,15 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
     mapping(bytes32 => bool) public agreementClosed;
     mapping(bytes32 => bool) public liquidationLock;
 
-
-
     event OrderFilled(SignedBlueprint agreement, bytes32 orderBlueprintHash, address taker);
-    event PositionClosed(SignedBlueprint agreement, address position, address closer, uint256 closeValue, uint256 loanOrcale,uint256 assessorCost );
+    event PositionClosed(
+        SignedBlueprint agreement,
+        address position,
+        address closer,
+        uint256 closeValue,
+        uint256 loanOrcale,
+        uint256 assessorCost
+    );
     event PositionLiquidated(SignedBlueprint agreement, address position, address liquidator);
 
     constructor() Tractor(PROTOCOL_NAME, PROTOCOL_VERSION) {}
@@ -61,8 +66,8 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         LibBookkeeper.verifyFill(fill, order);
         Agreement memory agreement = LibBookkeeper.agreementFromOrder(fill, order);
 
-        uint256 loanValue = agreement.loanAmount *
-            IOracle(agreement.loanOracle.addr).getOpenPrice(agreement.loanOracle.parameters)/C.RATIO_FACTOR;
+        uint256 loanValue = (agreement.loanAmount *
+            IOracle(agreement.loanOracle.addr).getOpenPrice(agreement.loanOracle.parameters)) / C.RATIO_FACTOR;
         uint256 collateralValue;
 
         if (agreement.isLeverage) {
@@ -98,12 +103,11 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         agreement.position.parameters = order.isOffer
             ? fill.borrowerConfig.positionParameters
             : order.borrowerConfig.positionParameters;
-        
+
         agreement.collAmount =
-            collateralValue *C.RATIO_FACTOR/
+            (collateralValue * C.RATIO_FACTOR) /
             IOracle(agreement.collOracle.addr).getOpenPrice(agreement.collOracle.parameters);
-        
-        
+
         // Set Position data that cannot be computed off chain by caller.
         agreement.deploymentTime = block.timestamp;
 
@@ -156,41 +160,45 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
 
     // Close Position
 
-    function closePosition(SignedBlueprint calldata agreementBlueprint) external nonReentrant verifySignature(agreementBlueprint) {
-    (bytes1 blueprintDataType, bytes memory blueprintData) = unpackDataField(agreementBlueprint.blueprint.data);
-    require(blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "closePosition: Invalid data type");
-    Agreement memory agreement = abi.decode(blueprintData, (Agreement));
+    function closePosition(
+        SignedBlueprint calldata agreementBlueprint
+    ) external nonReentrant verifySignature(agreementBlueprint) {
+        (bytes1 blueprintDataType, bytes memory blueprintData) = unpackDataField(agreementBlueprint.blueprint.data);
+        require(blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "closePosition: Invalid data type");
+        Agreement memory agreement = abi.decode(blueprintData, (Agreement));
 
-    bool isBorrower = msg.sender == IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters);
-    
-    require(isBorrower, "error: Caller is not the borrower");
+        bool isBorrower = msg.sender ==
+            IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters);
 
-        _closePosition(agreementBlueprint, agreement, msg.sender);
-    }
+        require(isBorrower, "error: Caller is not the borrower");
 
-    //Internal Close Position Function
-    function _closePosition(SignedBlueprint calldata agreementBlueprint, Agreement memory agreement, address closer) private {
-
-    IPosition position = IPosition(agreement.position.addr);
-    IAccount lenderAccount = IAccount(agreement.lenderAccount.addr);
-    uint256 closeAmount = position.getCloseAmount(agreement);
-    uint256 assessorCost = IAssessor(agreement.assessor.addr).getCost(agreement);
-    uint256 loanOraclePrice = IOracle(agreement.loanOracle.addr).getClosePrice(agreement.loanOracle.parameters);
-    uint256 lenderBalanceBefore = lenderAccount.getBalance(agreement.loanAsset, agreement.lenderAccount.parameters);
-    uint256 amountToClose = agreement.loanAmount + (assessorCost* C.RATIO_FACTOR/loanOraclePrice);
+        IPosition position = IPosition(agreement.position.addr);
+        IAccount lenderAccount = IAccount(agreement.lenderAccount.addr);
+        uint256 closeAmount = position.getCloseAmount(agreement);
+        uint256 assessorCost = IAssessor(agreement.assessor.addr).getCost(agreement);
+        uint256 loanOraclePrice = IOracle(agreement.loanOracle.addr).getClosePrice(agreement.loanOracle.parameters);
+        uint256 lenderBalanceBefore = lenderAccount.getBalance(agreement.loanAsset, agreement.lenderAccount.parameters);
+        uint256 amountToLender = agreement.loanAmount + ((assessorCost * C.RATIO_FACTOR) / loanOraclePrice);
         // Close the position
-    position.close(closer, agreement,amountToClose);
+        position.close( agreement, amountToLender);
 
-    uint256 lenderBalanceAfter = lenderAccount.getBalance(agreement.loanAsset, agreement.lenderAccount.parameters);
+        uint256 lenderBalanceAfter = lenderAccount.getBalance(agreement.loanAsset, agreement.lenderAccount.parameters);
 
-    require((lenderBalanceAfter - lenderBalanceBefore) >= amountToClose, "Not enough to close the loan");
+        require((lenderBalanceAfter - lenderBalanceBefore) >= amountToLender, "Not enough to close the loan");
 
         // Mark the position as closed from the Bookkeeper's point of view.
-    agreementClosed[keccak256(abi.encodePacked(agreement.position.addr))] = true;
+        agreementClosed[keccak256(abi.encodePacked(agreement.position.addr))] = true;
 
-    emit PositionClosed(agreementBlueprint, agreement.position.addr, msg.sender, closeAmount, loanOraclePrice, assessorCost);
-}
-
+        emit PositionClosed(
+            agreementBlueprint,
+            agreement.position.addr,
+            msg.sender,
+            closeAmount,
+            loanOraclePrice,
+            assessorCost
+        );
+        position.transferContract(msg.sender);
+    }
 
     // Liquidate
 
@@ -200,17 +208,54 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         (, bytes memory blueprintData) = unpackDataField(agreementBlueprint.blueprint.data);
         Agreement memory agreement = abi.decode(blueprintData, (Agreement));
         bytes32 agreementId = keccak256(abi.encode(agreement));
+        IPosition position = IPosition(agreement.position.addr);
 
         // Check if the loan is already closed
         require(!agreementClosed[agreementId], "Loan already closed.");
 
         require(LibBookkeeper.isLiquidatable(agreement), "Loan is not eligible for liquidation");
 
-        // Execute the liquidation
-        ILiquidator(agreement.liquidator.addr).liquidate(msg.sender, agreement);
-      
-        _closePosition(agreementBlueprint, agreement, msg.sender);
-        emit PositionLiquidated(agreementBlueprint, agreement.position.addr, msg.sender);
+        // Get reward
+        uint256 reward = ILiquidator(agreement.liquidator.addr).getReward(agreement);
+        IAccount lenderAccount = IAccount(agreement.lenderAccount.addr);
+        IAccount borrowerAccount = IAccount(agreement.borrowerAccount.addr);
 
+        uint256 closeAmount = position.getCloseAmount(agreement);
+        uint256 assessorCost = IAssessor(agreement.assessor.addr).getCost(agreement);
+        uint256 loanOraclePrice = IOracle(agreement.loanOracle.addr).getClosePrice(agreement.loanOracle.parameters);
+        uint256 lenderBalanceBefore = lenderAccount.getBalance(agreement.loanAsset, agreement.lenderAccount.parameters);
+        uint256 borrowerBalanceBefore = borrowerAccount.getBalance(
+            agreement.collAsset,
+            agreement.borrowerAccount.parameters
+        );
+        uint256 amountToLender = agreement.loanAmount + ((assessorCost * C.RATIO_FACTOR) / loanOraclePrice);
+
+        //Transfer Position to caller
+        position.transferContract(msg.sender);
+
+        uint256 lenderBalanceAfter = lenderAccount.getBalance(agreement.loanAsset, agreement.lenderAccount.parameters);
+        uint256 borrowerBalanceAfter = borrowerAccount.getBalance(
+            agreement.collAsset,
+            agreement.borrowerAccount.parameters
+        );
+
+        require((lenderBalanceAfter - lenderBalanceBefore) >= amountToLender, "Not enough to close the loan");
+        require(
+            (borrowerBalanceAfter - borrowerBalanceBefore) >= (closeAmount - amountToLender - reward),
+            "Not enough to close the loan"
+        );
+
+        emit PositionLiquidated(agreementBlueprint, agreement.position.addr, msg.sender);
+        // Mark the position as closed from the Bookkeeper's point of view.
+        agreementClosed[keccak256(abi.encodePacked(agreement.position.addr))] = true;
+
+        emit PositionClosed(
+            agreementBlueprint,
+            agreement.position.addr,
+            msg.sender,
+            closeAmount,
+            loanOraclePrice,
+            assessorCost
+        );
     }
 }

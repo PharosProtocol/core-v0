@@ -40,7 +40,7 @@ contract WalletFactory is Position {
 
     }
 
-    function _close( address sender, Agreement calldata agreement, uint256 amountToClose) internal override  {
+    function _close( Agreement calldata agreement, uint256 amountToClose) internal override  {
 
         Asset memory loanAsset = abi.decode(agreement.loanAsset, (Asset));
         Asset memory collAsset = abi.decode(agreement.collAsset, (Asset));

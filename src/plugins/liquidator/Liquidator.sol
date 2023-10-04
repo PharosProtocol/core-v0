@@ -2,23 +2,18 @@
 
 pragma solidity 0.8.19;
 
-import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
-
-import {Agreement} from "src/libraries/LibBookkeeper.sol";
-import {C} from "src/libraries/C.sol";
 import {ILiquidator} from "src/interfaces/ILiquidator.sol";
-import {IPosition} from "src/interfaces/IPosition.sol";
+import {Agreement} from "src/libraries/LibBookkeeper.sol";
 
-abstract contract Liquidator is ILiquidator, AccessControl {
-    // mapping(bytes32 => bool) internal liquidating;
-
-    event Liquidation(address indexed liquidator, address indexed position);
-
-    constructor(address bookkeeperAddr) {
-        _setupRole(C.BOOKKEEPER_ROLE, bookkeeperAddr);
+abstract contract Liquidator is ILiquidator {
+    function getReward(
+        Agreement calldata agreement
+    ) external view returns (uint256 amount) {
+        (amount) = _getReward(agreement);
+        
     }
 
-    function _liquidate(address caller, Agreement calldata agreement) internal virtual {
-        emit Liquidation(caller, agreement.position.addr);
-    }
+    function _getReward(
+        Agreement calldata agreement
+    ) internal view virtual returns (uint256 amount);
 }
