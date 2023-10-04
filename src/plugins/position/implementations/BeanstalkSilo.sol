@@ -68,7 +68,7 @@ contract BeanstalkSiloFactory is Position {
 
     }
 
-    function _close(address sender, Agreement calldata agreement, uint256 amountToClose) internal override {
+    function _close(Agreement calldata agreement, uint256 amountToClose) internal override {
 
  }
 

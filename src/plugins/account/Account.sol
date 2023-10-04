@@ -10,6 +10,7 @@ import {IAccount} from "src/interfaces/IAccount.sol";
 abstract contract Account is IAccount, AccessControl, ReentrancyGuard {
     event LoadedFromUser(bytes assetData, uint256 amount, bytes parameters);
     event LoadedFromPosition(bytes assetData, uint256 amount, bytes parameters);
+    event LoadedFromLiquidator(address liquidator, bytes assetData, uint256 amount, bytes parameters);
     event UnloadedToUser(bytes assetData, uint256 amount, bytes parameters);
     event UnloadedToPosition(address position, bytes assetData, uint256 amount, bytes parameters);
 
@@ -26,6 +27,7 @@ abstract contract Account is IAccount, AccessControl, ReentrancyGuard {
         emit LoadedFromUser(assetData, amount, parameters);
     }
 
+
     function loadFromPosition(
         bytes calldata assetData,
         uint256 amount,
@@ -34,6 +36,17 @@ abstract contract Account is IAccount, AccessControl, ReentrancyGuard {
         _loadFromPosition(assetData, amount, parameters);
         emit LoadedFromPosition(assetData, amount, parameters);
     }
+
+            function loadFromLiquidator(
+        address liquidator,
+        bytes calldata assetData,
+        uint256 amount,
+        bytes calldata parameters
+    ) external payable override nonReentrant {
+        _loadFromLiquidator(liquidator, assetData, amount, parameters);
+        emit LoadedFromLiquidator(liquidator, assetData, amount, parameters);
+    }
+
 
 
     function unloadToUser(
@@ -58,7 +71,7 @@ abstract contract Account is IAccount, AccessControl, ReentrancyGuard {
     function _loadFromUser(bytes memory assetData, uint256 amount, bytes memory parameters) internal virtual;
 
     function _loadFromPosition(bytes memory assetData, uint256 amount, bytes memory parameters) internal virtual;
-
+    function _loadFromLiquidator(address liquidator, bytes memory assetData, uint256 amount, bytes memory parameters) internal virtual;
     function _unloadToUser(bytes memory assetData, uint256 amount, bytes memory parameters) internal virtual;
 
     function _unloadToPosition(

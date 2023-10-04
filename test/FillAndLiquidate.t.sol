@@ -19,6 +19,7 @@ import {IAssessor} from "src/interfaces/IAssessor.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
 import {IBookkeeper} from "src/interfaces/IBookkeeper.sol";
 import {ILiquidator} from "src/interfaces/ILiquidator.sol";
+import {StandardLiquidator} from "src/plugins/liquidator/implementations/StandardLiquidator.sol";
 import {IOracle} from "src/interfaces/IOracle.sol";
 import {StandardAssessor} from "src/plugins/assessor/implementations/StandardAssessor.sol";
 import {StaticOracle} from "src/plugins/oracle/implementations/StaticOracle.sol";
@@ -37,7 +38,7 @@ import {C} from "src/libraries/C.sol";
 import {TC} from "test/TC.sol";
 import "src/libraries/LibUtils.sol";
 
-contract BeanstalkSilo is TestUtils {
+contract FillAndClose is TestUtils {
     IBookkeeper public bookkeeper;
     IAccount public accountPlugin;
     IAssessor public assessorPlugin;
@@ -79,7 +80,7 @@ contract BeanstalkSilo is TestUtils {
         chainlinkOracle= IOracle(address(new ChainlinkOracle()));
         beanOracle= IOracle(address(new BeanOracle()));
         beanstalkSiloFactory= IPosition(address(new BeanstalkSiloFactory((address(bookkeeper)))));
-
+        liquidatorPlugin = ILiquidator(address(new StandardLiquidator()));
 
         // // For use with pre deployed contracts.
         // bookkeeper = IBookkeeper(0x96DEA1646129fF9637CE5cCE81E65559af172b92);
@@ -95,9 +96,10 @@ contract BeanstalkSilo is TestUtils {
 
 
     // Using USDC as collateral, borrow ETH
-    function test_FillAndDepositSilo() public {
+    function test_FillAndClose() public {
         address lender = vm.addr(LENDER_PRIVATE_KEY);
         address borrower = vm.addr(BORROWER_PRIVATE_KEY);
+        address liquidatorAddr = vm.addr(LIQUIDATOR_PRIVATE_KEY);
 
         SoloAccount.Parameters memory lenderAccountParams = SoloAccount.Parameters({owner: lender, salt: bytes32(0)});
         SoloAccount.Parameters memory borrowerAccountParams = SoloAccount.Parameters({
@@ -107,6 +109,8 @@ contract BeanstalkSilo is TestUtils {
 
         fundAccount(lenderAccountParams);
         fundAccount(borrowerAccountParams);
+        fundLiquidator(liquidatorAddr);
+
 
         assertEq(accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 12e18);
         assertEq(
@@ -144,40 +148,45 @@ contract BeanstalkSilo is TestUtils {
         assertGt(accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 0);
 
 
-        // Move time and block forward arbitrarily.
-        vm.warp(block.timestamp + 5 days);
-        vm.roll(block.number + (5 days / 12));
+        // Move time 
+        vm.warp(block.timestamp + 10 days);
         
         (SignedBlueprint memory agreementSignedBlueprint, Agreement memory agreement) = retrieveAgreementFromLogs();
         Asset memory decodedAsset = abi.decode(agreement.collAsset, (Asset));
 
-        console.log("lender account", accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)));
-        console.log("collateral in MPC using IERC20",IERC20(decodedAsset.addr).balanceOf(agreement.position.addr));
-        console.log("collateral in MPC using getCloseAmount", IPosition(agreement.position.addr).getCloseAmount(agreement));
-        // console.log("Bean:ETH LP",IERC20(0xBEA0e11282e2bB5893bEcE110cF199501e872bAd).balanceOf(agreement.position.addr));
-        console.log("borrower account USDC", accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)));
-
-        wethDeal(agreement.position.addr, 12e18);
-        console.log("WETH MPC",IERC20(WETH_ASSETT.addr).balanceOf(agreement.position.addr));
+        console.log("WETH in Account plugin using IERC20",IERC20(WETH_ASSETT.addr).balanceOf(agreement.lenderAccount.addr));
         console.log("USDC in Account plugin using IERC20",IERC20(decodedAsset.addr).balanceOf(agreement.borrowerAccount.addr));
-        console.log("WETH in Account plugin using IERC20",IERC20(WETH_ASSETT.addr).balanceOf(agreement.lenderAccount.addr));
-        console.log("WETH in Account plugin using IERC20",IERC20(WETH_ASSETT.addr).balanceOf(agreement.lenderAccount.addr));
+        console.log("WETH in lender account", accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)));
+        console.log("WETH in borrower account", accountPlugin.getBalance(WETH_ASSET, abi.encode(borrowerAccountParams)));
 
-        vm.prank(borrower);
-        bookkeeper.closePosition(agreementSignedBlueprint);
-        console.log("====AGREEMENT CLOSED====");
-
-        console.log("USDC in MPC using IERC20",IERC20(decodedAsset.addr).balanceOf(agreement.position.addr));
-        console.log("USDC in MPC using getCloseAmount", IPosition(agreement.position.addr).getCloseAmount(agreement));
-        console.log("WETH lender account", accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)));
-        console.log("borrower account USDC", accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)));
-        console.log("agreement collAmount", agreement.collAmount);
+        console.log("USDC as collateral in MPC using IERC20",IERC20(decodedAsset.addr).balanceOf(agreement.position.addr));
+        console.log("USDC as collateral in MPC using getCloseAmount", IPosition(agreement.position.addr).getCloseAmount(agreement));
+        
+        vm.prank(liquidatorAddr);
+        bookkeeper.triggerLiquidation(agreementSignedBlueprint);
+        console.log("====AGREEMENT LIQUIDATED====");
+        console.log("WETH in Account plugin using IERC20",IERC20(WETH_ASSETT.addr).balanceOf(agreement.lenderAccount.addr));
         console.log("USDC in Account plugin using IERC20",IERC20(decodedAsset.addr).balanceOf(agreement.borrowerAccount.addr));
-        console.log("WETH in Account plugin using IERC20",IERC20(WETH_ASSETT.addr).balanceOf(agreement.lenderAccount.addr));
+        console.log("WETH in lender account", accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)));
+        console.log("WETH in borrower account", accountPlugin.getBalance(WETH_ASSET, abi.encode(borrowerAccountParams)));
 
+        console.log("USDC as collateral in MPC using IERC20",IERC20(decodedAsset.addr).balanceOf(agreement.position.addr));
+        console.log("USDC as collateral in MPC using getCloseAmount", IPosition(agreement.position.addr).getCloseAmount(agreement));
+        
+        
 
     }
 
+    function fundLiquidator(address liquidator) private {
+        vm.deal(liquidator, 2e18);
+        wethDeal(liquidator, 12e18);
+        deal(USDC_ASSETT.addr, liquidator, 5_000 * (10 ** TC.USDC_DECIMALS), true);
+
+        vm.startPrank(liquidator);
+        IERC20(C.WETH).approve(address(accountPlugin), 12e18);
+        IERC20(TC.USDC).approve(address(accountPlugin), 5_000 * (10 ** TC.USDC_DECIMALS));
+        vm.stopPrank();
+    }
 
     function fundAccount(SoloAccount.Parameters memory accountParams) private {
         vm.deal(accountParams.owner, 2e18);
@@ -213,16 +222,6 @@ contract BeanstalkSilo is TestUtils {
         minCollateralRatio[1] = 17e17; // 1.7 represented as 17e17 with 18 decimal places precision.
         PluginReference[] memory loanOracles = new PluginReference[](1);
         bool isLeverage = false;
-        // loanOracles[0] = PluginReference({
-        //     addr: address(uniOraclePlugin),
-        //     parameters: abi.encode(
-        //         UniV3Oracle.Parameters({
-        //             pathFromEth: abi.encodePacked(TC.USDC, uint24(500), C.WETH),
-        //             pathToEth: abi.encodePacked(C.WETH, uint24(500), TC.USDC),
-        //             twapTime: 300
-        //         })
-        //         )
-        // });
         loanOracles[0] = PluginReference({
             addr: address(staticOracle),
             parameters: abi.encode(StaticOracle.Parameters({number: 2000e18}))
@@ -235,8 +234,7 @@ contract BeanstalkSilo is TestUtils {
         });
         console.log("oracle open price", IOracle(loanOracles[0].addr).getOpenPrice(collOracles[0].parameters));
         address[] memory factories = new address[](1);
-        // factories[0] = address(uniV3HoldFactory);
-        //factories[0] = address(walletFactory);
+        //factories[0] = address(beanstalkSiloFactory);
         factories[0] = address(walletFactory);
 
 
@@ -252,7 +250,12 @@ contract BeanstalkSilo is TestUtils {
             )
         });
 
-        PluginReference memory liquidator = PluginReference({addr: address(liquidatorPlugin), parameters: ""});
+        PluginReference memory liquidator = PluginReference({addr: address(liquidatorPlugin), parameters: abi.encode(
+                StandardLiquidator.Parameters({
+                    fixedFee: 0,
+                    percentageFee: 4e18
+                })
+            )});
 
         // Lender creates an offer.
         return

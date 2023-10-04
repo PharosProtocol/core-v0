@@ -29,7 +29,7 @@ interface IPosition is IAccessControl {
     /// @notice Value is an estimate. Value at exit may differ.
     function getCloseAmount(Agreement calldata agreement) external view returns (uint256);
 
-    /// @notice Transfer the position to a new controller. Used for liquidations.
+    /// @notice Transfer the position to a new controller. Used in closing and liquidations.
     /// @dev Do not set admin role to prevent liquidator from pushing the position back into the protocol.
     function transferContract(address controller) external;
 

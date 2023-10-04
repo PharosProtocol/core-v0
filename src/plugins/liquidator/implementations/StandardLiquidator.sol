@@ -4,11 +4,12 @@ pragma solidity 0.8.19;
 
 import {C} from "src/libraries/C.sol";
 import {ILiquidator} from "src/interfaces/ILiquidator.sol";
+import {Liquidator} from "../Liquidator.sol";
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
 
 
-abstract contract Liquidator is ILiquidator {
+contract StandardLiquidator is Liquidator {
 
     struct Parameters {
         // all inputs use 18 decimal precision
@@ -18,7 +19,7 @@ abstract contract Liquidator is ILiquidator {
 
     function _getReward(
         Agreement calldata agreement
-    ) internal view virtual returns (uint256 amount){
+    ) internal view override returns (uint256 amount){
     Parameters memory params = abi.decode(agreement.liquidator.parameters, (Parameters));
 
     uint256 closeAmount = (IPosition(agreement.position.addr).getCloseAmount(agreement));

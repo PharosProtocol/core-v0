@@ -16,6 +16,9 @@ interface IAccount {
     /// @dev Assets may not literally be coming from a position.
     function loadFromPosition(bytes calldata assetData, uint256 amount, bytes calldata parameters) external payable;
 
+    /// @notice Transfer asset and increment account balance. Pulls asset from sender or uses msg.value.
+    function loadFromLiquidator(address liquidator, bytes calldata assetData, uint256 amount, bytes calldata parameters) external payable;
+
     /// @notice Transfer asset out and decrement account balance. Pushes asset to sender.
     function unloadToUser(bytes calldata assetData, uint256 amount, bytes calldata parameters) external;
 

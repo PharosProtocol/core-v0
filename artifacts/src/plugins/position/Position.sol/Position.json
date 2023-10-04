@@ -165,11 +165,6 @@
     {
       "inputs": [
         {
-          "internalType": "address",
-          "name": "sender",
-          "type": "address"
-        },
-        {
           "components": [
             {
               "internalType": "uint256",
@@ -339,6 +334,11 @@
           "internalType": "struct Agreement",
           "name": "agreement",
           "type": "tuple"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amountToClose",
+          "type": "uint256"
         }
       ],
       "name": "close",
@@ -533,7 +533,7 @@
           "type": "tuple"
         }
       ],
-      "name": "getCloseValue",
+      "name": "getCloseAmount",
       "outputs": [
         {
           "internalType": "uint256",

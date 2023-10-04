@@ -331,63 +331,6 @@
     {
       "inputs": [
         {
-          "components": [
-            {
-              "components": [
-                {
-                  "internalType": "address",
-                  "name": "publisher",
-                  "type": "address"
-                },
-                {
-                  "internalType": "bytes",
-                  "name": "data",
-                  "type": "bytes"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "maxNonce",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "startTime",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "endTime",
-                  "type": "uint256"
-                }
-              ],
-              "internalType": "struct Blueprint",
-              "name": "blueprint",
-              "type": "tuple"
-            },
-            {
-              "internalType": "bytes32",
-              "name": "blueprintHash",
-              "type": "bytes32"
-            },
-            {
-              "internalType": "bytes",
-              "name": "signature",
-              "type": "bytes"
-            }
-          ],
-          "internalType": "struct SignedBlueprint",
-          "name": "agreementBlueprint",
-          "type": "tuple"
-        }
-      ],
-      "name": "kick",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
           "internalType": "bytes1",
           "name": "dataType",
           "type": "bytes1"
@@ -629,6 +572,63 @@
         }
       ],
       "name": "signPublishOrder",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "publisher",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "data",
+                  "type": "bytes"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "maxNonce",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "startTime",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "endTime",
+                  "type": "uint256"
+                }
+              ],
+              "internalType": "struct Blueprint",
+              "name": "blueprint",
+              "type": "tuple"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "blueprintHash",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes",
+              "name": "signature",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct SignedBlueprint",
+          "name": "agreementBlueprint",
+          "type": "tuple"
+        }
+      ],
+      "name": "triggerLiquidation",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
