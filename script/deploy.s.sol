@@ -9,6 +9,7 @@ import "src/libraries/LibUtils.sol";
 import "src/plugins/account/implementations/SoloAccount.sol";
 import "src/plugins/oracle/implementations/StaticOracle.sol";
 import "src/plugins/assessor/implementations/StandardAssessor.sol";
+import "src/plugins/liquidator/implementations/StandardLiquidator.sol";
 import "src/plugins/position/implementations/Wallet.sol";
 
 // To install forge/cast:
@@ -32,16 +33,18 @@ contract DeployScript is Script {
         // uint256 privateKey = vm.deriveKey(seedPhrase, 0);
         vm.startBroadcast();
         // Utils utils = new Utils();
-        // LibBookkeeper libBookkeeper = new LibBookkeeper();
         Bookkeeper bookkeeper = new Bookkeeper();
         new SoloAccount(address(bookkeeper));
         new StandardAssessor();
         new StaticOracle();
-        //new UniV3Oracle();
-        // new SpicyOracle();
-        //new UniV3HoldFactory(address(bookkeeper));
+        new StandardLiquidator();
         new WalletFactory(address(bookkeeper));
+        //new UniV3Oracle();
 
         vm.stopBroadcast();
     }
 }
+
+
+
+
