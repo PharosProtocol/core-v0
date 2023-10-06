@@ -8,6 +8,7 @@ import "src/Bookkeeper.sol";
 import "src/libraries/LibUtils.sol";
 import "src/plugins/account/implementations/SoloAccount.sol";
 import "src/plugins/oracle/implementations/StaticOracle.sol";
+import "src/plugins/oracle/implementations/BeanOracle.sol";
 import "src/plugins/assessor/implementations/StandardAssessor.sol";
 import "src/plugins/liquidator/implementations/StandardLiquidator.sol";
 import "src/plugins/position/implementations/Wallet.sol";
@@ -32,13 +33,13 @@ contract DeployScript is Script {
         // string memory seedPhrase = vm.readFile(".secret");
         // uint256 privateKey = vm.deriveKey(seedPhrase, 0);
         vm.startBroadcast();
-        // Utils utils = new Utils();
-        Bookkeeper bookkeeper = new Bookkeeper();
-        new SoloAccount(address(bookkeeper));
-        new StandardAssessor();
-        new StaticOracle();
-        new StandardLiquidator();
-        new WalletFactory(address(bookkeeper));
+        //Bookkeeper bookkeeper = new Bookkeeper();
+        //new SoloAccount(address(bookkeeper));
+        //new StandardAssessor();
+        //new StaticOracle();
+        new BeanOracle();
+        //new StandardLiquidator();
+        //new WalletFactory(address(bookkeeper));
         //new UniV3Oracle();
 
         vm.stopBroadcast();

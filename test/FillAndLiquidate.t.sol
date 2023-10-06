@@ -77,7 +77,7 @@
 //         walletFactory = IPosition(address(new WalletFactory(address(bookkeeper))));
 //         chainlinkOracle = IOracle(address(new ChainlinkOracle()));
 //         beanOracle = IOracle(address(new BeanOracle()));
-//         beanstalkSiloFactory = IPosition(address(new BeanstalkSiloFactory((address(bookkeeper)))));
+//         beanstalkSiloFactory = IPosition(address(new BeanstalkSiloFactory((address(bookkeeper)),address(beanOracle))));
 //         liquidatorPlugin = ILiquidator(address(new StandardLiquidator()));
 
 //         // // For use with pre deployed contracts.
