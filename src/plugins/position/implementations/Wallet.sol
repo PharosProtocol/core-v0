@@ -40,7 +40,11 @@ contract WalletFactory is Position {
 
     }
 
-    function _close( Agreement calldata agreement, uint256 amountToClose) internal override  {
+        function _unwind(Agreement calldata agreement) internal override {
+        
+    }
+
+    function _close( Agreement calldata agreement, uint256 amountToLender) internal override  {
 
         Asset memory loanAsset = abi.decode(agreement.loanAsset, (Asset));
         Asset memory collAsset = abi.decode(agreement.collAsset, (Asset));
@@ -48,11 +52,11 @@ contract WalletFactory is Position {
         IERC20 loanERC20 = IERC20(loanAsset.addr);
         IERC20 collERC20 = IERC20(collAsset.addr);
 
-        if (amountToClose > 0) {
-            loanERC20.approve(agreement.lenderAccount.addr, amountToClose);
+        if (amountToLender > 0) {
+            loanERC20.approve(agreement.lenderAccount.addr, amountToLender);
             IAccount(agreement.lenderAccount.addr).loadFromPosition(
                 agreement.loanAsset,
-                amountToClose,
+                amountToLender,
                 agreement.lenderAccount.parameters
             );
 

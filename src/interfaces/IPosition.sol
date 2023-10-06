@@ -15,10 +15,15 @@ import {Agreement} from "src/libraries/LibBookkeeper.sol";
 interface IPosition is IAccessControl {
     /// @notice Deploy capital into the defined position.
     /// @dev Called at thee implementation contract (terminal).
-    function open( Agreement calldata agreement) external;
+    function open(Agreement calldata agreement) external;
 
     /// @notice Admin close position and leave assets in position MPC contract.
-    function close(  Agreement calldata agreement, uint256 amountToClose) external;
+    function close(Agreement calldata agreement, uint256 amountToClose) external;
+
+
+    /// @notice Admin close position and leave assets in position MPC contract.
+    function unwind(Agreement calldata agreement) external;
+
 
     // /// @notice Distribute the loan asset to the lender and borrower. Assumes position has been closed already.
     // /// @notice Lender account receives set amount and borrower receives all remaining asset in contract.

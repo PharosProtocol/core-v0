@@ -13,6 +13,8 @@ interface IBookkeeper is ITractor {
     function fillOrder(Fill calldata fill, SignedBlueprint calldata orderBlueprint) external;
 
     function closePosition(SignedBlueprint calldata agreementBlueprint) external payable;
+    
+    function unwindPosition(SignedBlueprint calldata agreementBlueprint) external payable;
 
     function triggerLiquidation(SignedBlueprint calldata agreementBlueprint) external;
 }

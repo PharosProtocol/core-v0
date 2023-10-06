@@ -32,12 +32,19 @@ interface ISilo {
     function balanceOfEarnedBeans(address account) external view returns (uint256 beans);
 
     function wellBdv(address token, uint256 amount) external view returns (uint256);
+    
+    function withdrawDeposit(address token, int96 stem, uint256 amount, LibTransfer.To mode ) external payable;
 }
 
 contract BeanstalkSiloFactory is Position {
 
     uint256 lpDeposit;
+    int96 stem;
 
+   struct Asset {
+        address addr;
+        uint8 decimals;
+    }
     struct Parameters {
         uint256 beanAsset;
     }
@@ -71,16 +78,39 @@ contract BeanstalkSiloFactory is Position {
         lptoken.approve(BEANSTALK, lpAmountOut);
 
         // deposit Bean:ETH LP tokens in Silo
-        ISilo(BEANSTALK).deposit(BEAN_ETH_WELL, lpAmountOut, LibTransfer.From.EXTERNAL);
+        (,,stem)= ISilo(BEANSTALK).deposit(BEAN_ETH_WELL, lpAmountOut, LibTransfer.From.EXTERNAL);
         lpDeposit = lpAmountOut;
     }
 
-    function _close(Agreement calldata agreement, uint256 amountToClose) internal override {}
+    function _close(Agreement calldata agreement, uint256 amountToLender) internal override {
+
+        Asset memory loanAsset = abi.decode(agreement.loanAsset, (Asset));
+        IERC20 loanERC20 = IERC20(loanAsset.addr);
+
+        if (amountToLender > 0) {
+            loanERC20.approve(agreement.lenderAccount.addr, amountToLender);
+            IAccount(agreement.lenderAccount.addr).loadFromPosition(
+                agreement.loanAsset,
+                amountToLender,
+                agreement.lenderAccount.parameters
+            );
+
+        }
+    }
 
     function plant() external payable {
     address BEANSTALK = 0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5;
         ISilo(BEANSTALK).plant();
     }
+
+    function _unwind(Agreement calldata agreement) internal override {
+        address BEANSTALK = 0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5;
+        address BEAN_ETH_WELL = 0xBEA0e11282e2bB5893bEcE110cF199501e872bAd;
+
+        ISilo(BEANSTALK).withdrawDeposit(BEAN_ETH_WELL,stem,lpDeposit, LibTransfer.To.EXTERNAL);
+        IWell(BEAN_ETH_WELL).removeLiquidityOneToken(lpDeposit,IERC20(C.WETH),0, agreement.position.addr, block.timestamp * 2);
+       
+        }
 
     function mow() external payable {
     address BEAN_ETH_WELL = 0xBEA0e11282e2bB5893bEcE110cF199501e872bAd;

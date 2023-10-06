@@ -154,30 +154,22 @@ contract FillAndClose is TestUtils {
         Asset memory decodedAsset = abi.decode(agreement.collAsset, (Asset));
 
         console.log("getCloseAmount", IPosition(agreement.position.addr).getCloseAmount(agreement));
+        console.log("WETH in MPC using IERC20",IERC20(WETH_ASSETT.addr).balanceOf(agreement.position.addr));
 
-        // console.log("lender account", accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)));
-        // console.log("collateral in MPC using IERC20",IERC20(decodedAsset.addr).balanceOf(agreement.position.addr));
-        // console.log("collateral in MPC using getCloseAmount", IPosition(agreement.position.addr).getCloseAmount(agreement));
-        // // console.log("Bean:ETH LP",IERC20(0xBEA0e11282e2bB5893bEcE110cF199501e872bAd).balanceOf(agreement.position.addr));
-        // console.log("borrower account USDC", accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)));
+        vm.prank(borrower);
+        bookkeeper.unwindPosition(agreementSignedBlueprint);
+        console.log("====POSITION UNWIND====");
 
-        // wethDeal(agreement.position.addr, 12e18);
-        // console.log("WETH MPC",IERC20(WETH_ASSETT.addr).balanceOf(agreement.position.addr));
-        // console.log("USDC in Account plugin using IERC20",IERC20(decodedAsset.addr).balanceOf(agreement.borrowerAccount.addr));
-        // console.log("WETH in Account plugin using IERC20",IERC20(WETH_ASSETT.addr).balanceOf(agreement.lenderAccount.addr));
-        // console.log("WETH in Account plugin using IERC20",IERC20(WETH_ASSETT.addr).balanceOf(agreement.lenderAccount.addr));
+        console.log("WETH in MPC using IERC20",IERC20(WETH_ASSETT.addr).balanceOf(agreement.position.addr));
 
-        // vm.prank(borrower);
-        // bookkeeper.closePosition(agreementSignedBlueprint);
-        // console.log("====AGREEMENT CLOSED====");
+        console.log("WETH in Account plugin using IERC20",IERC20(WETH_ASSETT.addr).balanceOf(agreement.lenderAccount.addr));
 
-        // console.log("USDC in MPC using IERC20",IERC20(decodedAsset.addr).balanceOf(agreement.position.addr));
-        // console.log("USDC in MPC using getCloseAmount", IPosition(agreement.position.addr).getCloseAmount(agreement));
-        // console.log("WETH lender account", accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)));
-        // console.log("borrower account USDC", accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)));
-        // console.log("agreement collAmount", agreement.collAmount);
-        // console.log("USDC in Account plugin using IERC20",IERC20(decodedAsset.addr).balanceOf(agreement.borrowerAccount.addr));
-        // console.log("WETH in Account plugin using IERC20",IERC20(WETH_ASSETT.addr).balanceOf(agreement.lenderAccount.addr));
+        vm.prank(borrower);
+        bookkeeper.closePosition(agreementSignedBlueprint);
+        console.log("====POSITION CLOSED====");
+
+        console.log("WETH in MPC using IERC20",IERC20(WETH_ASSETT.addr).balanceOf(agreement.position.addr));
+        console.log("WETH in Account plugin using IERC20",IERC20(WETH_ASSETT.addr).balanceOf(agreement.lenderAccount.addr));
 
 
     }

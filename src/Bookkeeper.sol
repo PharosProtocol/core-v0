@@ -199,6 +199,25 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         position.transferContract(msg.sender);
     }
 
+
+    //Unwind position
+
+        function unwindPosition(
+        SignedBlueprint calldata agreementBlueprint
+    ) external nonReentrant verifySignature(agreementBlueprint) {
+        (bytes1 blueprintDataType, bytes memory blueprintData) = unpackDataField(agreementBlueprint.blueprint.data);
+        require(blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "closePosition: Invalid data type");
+        Agreement memory agreement = abi.decode(blueprintData, (Agreement));
+
+        bool isBorrower = msg.sender ==
+        IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters);
+        require(isBorrower, "error: Caller is not the borrower");
+
+        IPosition position = IPosition(agreement.position.addr);
+
+        position.unwind(agreement);
+    }
+
     // Liquidate
 
     function triggerLiquidation(
