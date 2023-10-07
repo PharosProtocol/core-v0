@@ -37,10 +37,12 @@ contract TestUtils is Test {
 
 
 struct Asset {
-    
-    address addr;
-    uint8 decimals; 
-}
+        uint8 standard; // asset type, 1 for ERC20, 2 for ERC721, 3 for ERC1155
+        address addr; 
+        uint8 decimals; //not used if ERC721
+        uint256 tokenId; // for ERC721 and ERC1155
+        bytes data;
+    }
 
 function dealAsset(Asset memory asset, address to, uint256 amount) internal {
     if (asset.addr == C.WETH) {
@@ -65,8 +67,8 @@ contract HandlerUtils is TestUtils {
 
     constructor() {
         // ASSETS.push(Asset({standard: ETH_STANDARD, addr: address(0), id: 0, data: ""})); // Tests expect 0 index to be ETH
-        assets.push(Asset({ addr: C.WETH, decimals: 18})); // Tests expect 0 index to be WETH
-        assets.push(Asset({ addr: TC.USDC, decimals: TC.USDC_DECIMALS})); // Tests expect 1 index to be an ERC20
+        assets.push(Asset({ standard:1, addr: C.WETH, decimals: 18, tokenId: 0, data: ""})); // Tests expect 0 index to be WETH
+        assets.push(Asset({ standard:1, addr: TC.USDC, decimals: TC.USDC_DECIMALS, tokenId: 0, data: ""})); // Tests expect 1 index to be an ERC20
     }
 
     modifier createActor() {

@@ -220,6 +220,8 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
 
     // Liquidate
 
+
+    // update so that it takes liquidatorlogic as an argument and then it first transfers ownership, calls the liquidator logic then does the checks
     function triggerLiquidation(
         SignedBlueprint calldata agreementBlueprint
     ) external nonReentrant verifySignature(agreementBlueprint) {

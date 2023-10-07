@@ -79,7 +79,7 @@
 //         walletFactory = IPosition(address(new WalletFactory(address(bookkeeper))));
 //         chainlinkOracle= IOracle(address(new ChainlinkOracle()));
 //         beanOracle= IOracle(address(new BeanOracle()));
-//         beanstalkSiloFactory= IPosition(address(new BeanstalkSiloFactory((address(bookkeeper)),address(beanOracle))));
+//         beanstalkSiloFactory= IPosition(address(new BeanstalkSiloFactory((address(bookkeeper)))));
 //         liquidatorPlugin = ILiquidator(address(new StandardLiquidator()));
 
 
@@ -165,9 +165,9 @@
 //         console.log("WETH in Account plugin using IERC20",IERC20(WETH_ASSETT.addr).balanceOf(agreement.lenderAccount.addr));
 //         console.log("WETH in Account plugin using IERC20",IERC20(WETH_ASSETT.addr).balanceOf(agreement.lenderAccount.addr));
 
-//         vm.prank(borrower);
-//         bookkeeper.closePosition(agreementSignedBlueprint);
-//         console.log("====AGREEMENT CLOSED====");
+//         // vm.prank(borrower);
+//         // bookkeeper.closePosition(agreementSignedBlueprint);
+//         // console.log("====AGREEMENT CLOSED====");
 
 //         console.log("USDC in MPC using IERC20",IERC20(decodedAsset.addr).balanceOf(agreement.position.addr));
 //         console.log("USDC in MPC using getCloseAmount", IPosition(agreement.position.addr).getCloseAmount(agreement));

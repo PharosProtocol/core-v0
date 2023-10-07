@@ -3,6 +3,8 @@
 pragma solidity 0.8.19;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 
 /*
  * This util functions are public so that they can be called from decoded calldata. Specifically this pattern
@@ -33,4 +35,28 @@ library LibUtilsPublic {
         );
         require(success && (data.length == 0 || abi.decode(data, (bool))), "safeErc20TransferFrom failed");
     }
+
+    /// @notice Transfers a specific ERC-721 token from one address to another.
+    function safeErc721TransferFrom(
+        address token,
+        address from,
+        address to,
+        uint256 tokenId,
+        bytes memory data
+    ) public {
+        IERC721(token).safeTransferFrom(from, to, tokenId, data);
+    }
+
+    /// @notice Transfers a specific ERC-1155 token from one address to another.
+    function safeErc1155TransferFrom(
+        address token,
+        address from,
+        address to,
+        uint256 id,
+        uint256 amount,
+        bytes memory data
+    ) public {
+        IERC1155(token).safeTransferFrom(from, to, id, amount, data);
+    }
+
 }
