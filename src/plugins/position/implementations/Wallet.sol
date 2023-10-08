@@ -3,6 +3,8 @@
 pragma solidity 0.8.19;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 
 import {IAccount} from "src/interfaces/IAccount.sol";
 import {C} from "src/libraries/C.sol";
@@ -29,15 +31,29 @@ contract WalletFactory is Position {
 
     // another way to get recipient directly msg.sender == IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters),
     struct Asset {
-        address addr;
-        uint8 decimals;
+        uint8 standard; // asset type, 1 for ERC20, 2 for ERC721, 3 for ERC1155
+        address addr; 
+        uint8 decimals; //not used if ERC721
+        uint256 tokenId; // for ERC721 and ERC1155
+        bytes data;
     }
     /// @dev assumes assets are already in Position.
     function _open(Agreement calldata agreement) internal override {
         Parameters memory params = abi.decode(agreement.position.parameters, (Parameters));
-        Asset memory loanAsset = abi.decode(agreement.loanAsset, (Asset));
-        LibUtilsPublic.safeErc20Transfer(loanAsset.addr, params.recipient, agreement.loanAmount);
+         Asset memory asset = abi.decode(agreement.loanAsset, (Asset));
+        uint256 decAdjAmount = agreement.loanAmount * 10**(asset.decimals)/C.RATIO_FACTOR;
 
+            if (asset.standard == 1) {  // ERC-20
+                LibUtilsPublic.safeErc20Transfer(asset.addr, params.recipient, decAdjAmount);
+            } else if (asset.standard == 2) {  // ERC-721
+                LibUtilsPublic.safeErc721TransferFrom(asset.addr,  address(this),params.recipient, asset.tokenId, asset.data);
+            } else if (asset.standard == 3) {  // ERC-1155
+                LibUtilsPublic.safeErc1155TransferFrom(asset.addr, address(this),params.recipient, asset.tokenId, decAdjAmount, asset.data);
+
+            } else {
+                revert("Unsupported asset standard");
+            }
+        
     }
 
         function _unwind(Agreement calldata agreement) internal override {
@@ -79,13 +95,30 @@ contract WalletFactory is Position {
 
     function _getCloseAmount(Agreement calldata agreement) internal view override returns (uint256) {
         
-        Asset memory collAsset = abi.decode(agreement.collAsset, (Asset));
-        address collAssetAddress = collAsset.addr;
-        uint8 collAssetDecimals = collAsset.decimals;
+        Asset memory asset = abi.decode(agreement.collAsset, (Asset));
+        address assetAddress = asset.addr;
+        uint8 assetDecimals = asset.decimals;
+        uint256 closeAmount;
 
-        IERC20 erc20 = IERC20(collAssetAddress);
-        uint256 balance = erc20.balanceOf(address(this));
-        uint256 closeAmount= balance * IOracle(agreement.collOracle.addr).getOpenPrice(agreement.collOracle.parameters)/10**(collAssetDecimals) ;
+        if (asset.standard == 1) {  // ERC-20
+            uint256 balance = IERC20(assetAddress).balanceOf(address(this));
+             closeAmount= balance * IOracle(agreement.collOracle.addr).getOpenPrice(agreement.collOracle.parameters)/10**(assetDecimals) ;
+                    
+            } else if (asset.standard == 2) {  // ERC-721
+            uint256 balance;
+            address owner = IERC721(asset.addr).ownerOf(asset.tokenId);
+            if(owner==address(this)){balance =1;}else{balance=0;}
+
+            closeAmount= balance * IOracle(agreement.collOracle.addr).getOpenPrice(agreement.collOracle.parameters)/10**(assetDecimals) ;
+             
+            } else if (asset.standard == 3) {  // ERC-1155
+            uint256 balance = IERC1155(asset.addr).balanceOf( address(this), asset.tokenId);
+             closeAmount= balance * IOracle(agreement.collOracle.addr).getOpenPrice(agreement.collOracle.parameters)/10**(assetDecimals) ;
+           
+            } else {
+                revert("Unsupported asset standard");
+            }
+
         
         return closeAmount;
     }

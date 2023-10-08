@@ -12,9 +12,11 @@ import "@forge-std/Test.sol";
 import "@forge-std/console.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import {Blueprint, SignedBlueprint, Tractor} from "@tractor/Tractor.sol";
 
 import {SoloAccountPlus} from "src/plugins/account/implementations/SoloAccountPlus.sol";
+//import {SoloAccount} from "src/plugins/account/implementations/SoloAccount.sol";
 import {IAssessor} from "src/interfaces/IAssessor.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
 import {IBookkeeper} from "src/interfaces/IBookkeeper.sol";
@@ -28,7 +30,6 @@ import {BeanOracle} from "src/plugins/oracle/implementations/BeanOracle.sol";
 import {WalletFactory} from "src/plugins/position/implementations/Wallet.sol";
 import {BeanstalkSiloFactory} from "src/plugins/position/implementations/BeanstalkSilo.sol";
 import "lib/EIP-5216/ERC1155ApprovalByAmount.sol";
-import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 
 
 
@@ -78,18 +79,19 @@ contract FillAndClose is TestUtils {
     IPosition public beanstalkSiloFactory;
 
 
-    bytes constant WETH_ASSET = abi.encode(Asset({standard:1, addr: C.WETH, decimals: 18, tokenId: 0, data: ""}));
-    bytes constant USDC_ASSET = abi.encode(Asset({standard:1,addr: TC.USDC, decimals: TC.USDC_DECIMALS, tokenId: 0, data: ""}));
-    bytes constant Bean_Deposit = abi.encode(Asset({standard:3, addr: 0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5, decimals: 0, tokenId: 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b, data: ""}));
+    
+    Asset WETH_ASSET = Asset({standard:1, addr: C.WETH, decimals: 18, tokenId: 0, data: ""});
+    Asset USDC_ASSET = Asset({standard:1, addr: TC.USDC, decimals: TC.USDC_DECIMALS, tokenId: 0, data: ""});
+    Asset Bean_Deposit = Asset({standard:3, addr: 0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5, decimals: 0, tokenId: 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b, data: ""});
 
-    Asset WETH_ASSETT = Asset({standard:1, addr: C.WETH, decimals: 18, tokenId: 0, data: ""});
-    Asset USDC_ASSETT = Asset({standard:1, addr: TC.USDC, decimals: TC.USDC_DECIMALS, tokenId: 0, data: ""});
-    Asset Bean_Depositt = Asset({standard:3, addr: 0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5, decimals: 0, tokenId: 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b, data: ""});
+    bytes constant WETH_ASSET_Encoded = abi.encode(Asset({standard:1, addr: C.WETH, decimals: 18, tokenId: 0, data: ""}));
+    bytes constant USDC_ASSET_Encoded = abi.encode(Asset({standard:1,addr: TC.USDC, decimals: TC.USDC_DECIMALS, tokenId: 0, data: ""}));
+    bytes constant Bean_Deposit_Encoded = abi.encode(Asset({standard:3, addr: 0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5, decimals: 0, tokenId: 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b, data: ""}));
 
     uint256 LENDER_PRIVATE_KEY = 111;
     uint256 BORROWER_PRIVATE_KEY = 222;
     uint256 LIQUIDATOR_PRIVATE_KEY = 333;
-    uint256 LOAN_AMOUNT = 1e17 ;
+    uint256 LOAN_AMOUNT = 1e18 ;
     Asset[] ASSETS;
 
     constructor() {
@@ -143,69 +145,64 @@ contract FillAndClose is TestUtils {
         fundAccount(lenderAccountParams);
         fundAccount(borrowerAccountParams);
 
-        assertEq(accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 12e18);
+        assertEq(accountPlugin.getBalance(WETH_ASSET_Encoded, abi.encode(lenderAccountParams)), 12e18);
         assertEq(
-            accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
+            accountPlugin.getBalance(USDC_ASSET_Encoded, abi.encode(borrowerAccountParams)),
             5_000e18
         );
-        console.log("borrower account",accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)) );
+        console.log("borrower account",accountPlugin.getBalance(USDC_ASSET_Encoded, abi.encode(borrowerAccountParams)) );
 
         // Transfer deposit from whale to lender
         address whale = 0xF1A621FE077e4E9ac2c0CEfd9B69551dB9c3f657;
+
+        console.log("lender wallet balance",IERC1155(Bean_Deposit.addr).balanceOf( address(lender), Bean_Deposit.tokenId));
         vm.prank(whale);
-        IERC1155(Bean_Depositt.addr).setApprovalForAll(address(lender), true);
+        IERC1155(Bean_Deposit.addr).safeTransferFrom(whale, lender, Bean_Deposit.tokenId, 1, "");
+        console.log("===TRANSFER FROM WHALE====");
 
-        
-        // console.log("allowance",ISilo(Bean_Depositt.addr).depositAllowance(whale,address(lender),0xBEA0e11282e2bB5893bEcE110cF199501e872bAd));
+        console.log("lender wallet balance",IERC1155(Bean_Deposit.addr).balanceOf( address(lender), Bean_Deposit.tokenId));
 
-        // vm.startPrank(Bean_Depositt.addr);
-        // ISilo(Bean_Depositt.addr).increaseDepositAllowance(address(lender),0xBEA0e11282e2bB5893bEcE110cF199501e872bAd,type(uint256).max);
-        // ISilo(Bean_Depositt.addr).setApprovalForAll(address(lender), true);
-        // vm.stopPrank(); 
-
-        // console.log("allowance",ISilo(Bean_Depositt.addr).depositAllowance(whale,address(lender),0xBEA0e11282e2bB5893bEcE110cF199501e872bAd));
-        
-        console.log("amoung",IERC1155(Bean_Depositt.addr).balanceOf( address(lender), Bean_Depositt.tokenId));
-
-        vm.prank(whale);
-        ISilo(Bean_Depositt.addr).safeTransferFrom(whale, lender, Bean_Depositt.tokenId, 1, "");
-        console.log("amoung",IERC1155(Bean_Depositt.addr).balanceOf( address(lender), Bean_Depositt.tokenId));
+       
+        vm.prank(lender);
+        ISilo(Bean_Deposit.addr).increaseDepositAllowance(address(accountPlugin),0xBEA0e11282e2bB5893bEcE110cF199501e872bAd,type(uint256).max);
+        vm.prank(address(lender));
+        accountPlugin.loadFromUser(Bean_Deposit_Encoded, 1e18, abi.encode(lenderAccountParams));
+        console.log("===LOAD ACCOUNT===");
 
 
-        //LibUtilsPublic.safeErc1155TransferFrom(Bean_Depositt.addr, whale, lender, Bean_Depositt.tokenId, 1, "");
+
+        console.log("lender wallet balance",IERC1155(Bean_Deposit.addr).balanceOf( address(lender), Bean_Deposit.tokenId));
+        console.log("lender account balance using get balance",accountPlugin.getBalance(Bean_Deposit_Encoded, abi.encode(lenderAccountParams)));
+        console.log("lender account balance using IERC1155",IERC1155(Bean_Deposit.addr).balanceOf( address(accountPlugin), Bean_Deposit.tokenId));
 
 
-        // // Transfer deposit from lender to wallet
-        // ERC1155ApprovalByAmount(Bean_Depositt.addr).approve(address(accountPlugin), Bean_Depositt.tokenId, 1);
-        // accountPlugin.loadFromUser(Bean_Deposit, 1, abi.encode(lenderAccountParams));
+        Order memory order = createOrder(lenderAccountParams);
+        bytes memory packedData;
+        packedData = bookkeeper.packDataField(bytes1(uint8(Bookkeeper.BlueprintDataType.ORDER)), abi.encode(order));
+        // console.log("packedData:");
+        // console.logBytes(packedData);
+        Blueprint memory orderBlueprint = Blueprint({
+            publisher: lender,
+            data: packedData,
+            maxNonce: type(uint256).max,
+            startTime: 0,
+            endTime: type(uint256).max
+        });
 
-        // Order memory order = createOrder(lenderAccountParams);
-        // bytes memory packedData;
-        // packedData = bookkeeper.packDataField(bytes1(uint8(Bookkeeper.BlueprintDataType.ORDER)), abi.encode(order));
-        // // console.log("packedData:");
-        // // console.logBytes(packedData);
-        // Blueprint memory orderBlueprint = Blueprint({
-        //     publisher: lender,
-        //     data: packedData,
-        //     maxNonce: type(uint256).max,
-        //     startTime: 0,
-        //     endTime: type(uint256).max
-        // });
+        // console.log("blueprint data at encoding:");
+        // console.logBytes(orderBlueprint.data);
+        SignedBlueprint memory orderSignedBlueprint = createSignedBlueprint(orderBlueprint, LENDER_PRIVATE_KEY);
 
-        // // console.log("blueprint data at encoding:");
-        // // console.logBytes(orderBlueprint.data);
-        // SignedBlueprint memory orderSignedBlueprint = createSignedBlueprint(orderBlueprint, LENDER_PRIVATE_KEY);
+        Fill memory fill = createFill(borrowerAccountParams);
+        vm.prank(borrower);
+        bookkeeper.fillOrder(fill, orderSignedBlueprint);
 
-        // Fill memory fill = createFill(borrowerAccountParams);
-        // vm.prank(borrower);
-        // bookkeeper.fillOrder(fill, orderSignedBlueprint);
-
-        // assertEq(accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)), 12e18 - LOAN_AMOUNT);
-        // assertLt(
-        //     accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)),
-        //     5_000e18
-        // );
-        // assertGt(accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)), 0);
+        assertEq(accountPlugin.getBalance(Bean_Deposit_Encoded, abi.encode(lenderAccountParams)), 1e18 - LOAN_AMOUNT);
+        assertLt(
+            accountPlugin.getBalance(USDC_ASSET_Encoded, abi.encode(borrowerAccountParams)),
+            5_000e18
+        );
+        assertGt(accountPlugin.getBalance(USDC_ASSET_Encoded, abi.encode(borrowerAccountParams)), 0);
 
 
         // // // Move time and block forward arbitrarily.
@@ -222,10 +219,10 @@ contract FillAndClose is TestUtils {
         // console.log("borrower account USDC", accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)));
 
         // wethDeal(agreement.position.addr, 12e18);
-        // console.log("WETH MPC",IERC20(WETH_ASSETT.addr).balanceOf(agreement.position.addr));
+        // console.log("WETH MPC",IERC20(WETH_ASSET.addr).balanceOf(agreement.position.addr));
         // console.log("USDC in Account plugin using IERC20",IERC20(decodedAsset.addr).balanceOf(agreement.borrowerAccount.addr));
-        // console.log("WETH in Account plugin using IERC20",IERC20(WETH_ASSETT.addr).balanceOf(agreement.lenderAccount.addr));
-        // console.log("WETH in Account plugin using IERC20",IERC20(WETH_ASSETT.addr).balanceOf(agreement.lenderAccount.addr));
+        // console.log("WETH in Account plugin using IERC20",IERC20(WETH_ASSET.addr).balanceOf(agreement.lenderAccount.addr));
+        // console.log("WETH in Account plugin using IERC20",IERC20(WETH_ASSET.addr).balanceOf(agreement.lenderAccount.addr));
 
         // // vm.prank(borrower);
         // // bookkeeper.closePosition(agreementSignedBlueprint);
@@ -246,14 +243,14 @@ contract FillAndClose is TestUtils {
     function fundAccount(SoloAccountPlus.Parameters memory accountParams) private {
         vm.deal(accountParams.owner, 2e18);
         wethDeal(accountParams.owner, 12e18);
-        deal(USDC_ASSETT.addr, accountParams.owner, 5_000 * (10 ** TC.USDC_DECIMALS), true);
+        deal(USDC_ASSET.addr, accountParams.owner, 5_000 * (10 ** TC.USDC_DECIMALS), true);
 
 
         vm.startPrank(accountParams.owner);
         IERC20(C.WETH).approve(address(accountPlugin), 12e18);
-        accountPlugin.loadFromUser(WETH_ASSET, 12e18, abi.encode(accountParams));
+        accountPlugin.loadFromUser(WETH_ASSET_Encoded, 12e18, abi.encode(accountParams));
         IERC20(TC.USDC).approve(address(accountPlugin), 5_000 * (10 ** TC.USDC_DECIMALS));
-        accountPlugin.loadFromUser(USDC_ASSET, 5_000e18, abi.encode(accountParams));
+        accountPlugin.loadFromUser(USDC_ASSET_Encoded, 5_000e18, abi.encode(accountParams));
         vm.stopPrank();
     }
 
@@ -269,14 +266,14 @@ contract FillAndClose is TestUtils {
         minLoanAmounts[0] = 1;
         minLoanAmounts[1] = 1;
         bytes[] memory loanAssets = new bytes[](1);
-        loanAssets[0] = abi.encode(WETH_ASSETT);
+        loanAssets[0] = abi.encode(Bean_Deposit);
         bytes[] memory collAssets = new bytes[](1);
-        collAssets[0] = abi.encode(USDC_ASSETT);
+        collAssets[0] = abi.encode(USDC_ASSET);
         uint256[] memory minCollateralRatio = new uint256[](2);
         minCollateralRatio[0] = 15e17; // 1.5 represented as 15e17 with 18 decimal places precision.
         minCollateralRatio[1] = 17e17; // 1.7 represented as 17e17 with 18 decimal places precision.
-        PluginReference[] memory loanOracles = new PluginReference[](1);
         bool isLeverage = false;
+        PluginReference[] memory loanOracles = new PluginReference[](1);
         loanOracles[0] = PluginReference({
             addr: address(staticOracle),
             parameters: abi.encode(StaticOracle.Parameters({number: 2000e18}))

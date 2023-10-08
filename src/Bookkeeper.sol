@@ -206,12 +206,12 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         SignedBlueprint calldata agreementBlueprint
     ) external nonReentrant verifySignature(agreementBlueprint) {
         (bytes1 blueprintDataType, bytes memory blueprintData) = unpackDataField(agreementBlueprint.blueprint.data);
-        require(blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "closePosition: Invalid data type");
+        require(blueprintDataType == bytes1(uint8(BlueprintDataType.AGREEMENT)), "unwindPosition: invalid data type");
         Agreement memory agreement = abi.decode(blueprintData, (Agreement));
 
         bool isBorrower = msg.sender ==
         IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters);
-        require(isBorrower, "error: Caller is not the borrower");
+        require(isBorrower, "error: caller is not the borrower");
 
         IPosition position = IPosition(agreement.position.addr);
 

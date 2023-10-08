@@ -6,6 +6,7 @@ import {C} from "src/libraries/C.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IWETH9} from "src/interfaces/external/IWETH9.sol";
 import {Account} from "../Account.sol";
+import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import {LibUtilsPublic} from "src/libraries/LibUtilsPublic.sol";
 
 // All amounts are input and saved with 18 dec precision. conversions to asset decimals happen before transfering.
@@ -52,7 +53,8 @@ contract SoloAccountPlus is Account {
             } else if (asset.standard == 2) {  // ERC-721
                 LibUtilsPublic.safeErc721TransferFrom(asset.addr, msg.sender, address(this), asset.tokenId, asset.data);
             } else if (asset.standard == 3) {  // ERC-1155
-                LibUtilsPublic.safeErc1155TransferFrom(asset.addr, msg.sender, address(this), asset.tokenId, decAdjAmount, asset.data);
+                LibUtilsPublic.safeErc1155TransferFrom(asset.addr,msg.sender, address(this), asset.tokenId, decAdjAmount, asset.data);
+
             } else {
                 revert("Unsupported asset standard");
             }
@@ -81,11 +83,20 @@ contract SoloAccountPlus is Account {
 
         uint256 decAdjAmount = amount * 10**(asset.decimals)/C.RATIO_FACTOR;
 
-        if (asset.addr == C.WETH) {
-            IWETH9(C.WETH).withdraw(amount);
-            payable(msg.sender).transfer(amount);
+       if (asset.addr == C.WETH && msg.value > 0) {
+            require(msg.value == amount, "ETH amount mismatch");
+            IWETH9(C.WETH).deposit{value: msg.value}();
         } else {
-            LibUtilsPublic.safeErc20Transfer(asset.addr, msg.sender, decAdjAmount);
+            if (asset.standard == 1) {  // ERC-20
+                LibUtilsPublic.safeErc20Transfer(asset.addr, msg.sender, decAdjAmount);
+            } else if (asset.standard == 2) {  // ERC-721
+                LibUtilsPublic.safeErc721TransferFrom(asset.addr,  address(this),msg.sender, asset.tokenId, asset.data);
+            } else if (asset.standard == 3) {  // ERC-1155
+                LibUtilsPublic.safeErc1155TransferFrom(asset.addr, address(this),msg.sender, asset.tokenId, decAdjAmount, asset.data);
+
+            } else {
+                revert("Unsupported asset standard");
+            }
         }
     }
 
@@ -105,7 +116,18 @@ contract SoloAccountPlus is Account {
 
         balances[id][keccak256(assetData)] -= amount;
 
-        LibUtilsPublic.safeErc20Transfer(asset.addr, position, decAdjAmount);
+        if (asset.standard == 1) {  // ERC-20
+                LibUtilsPublic.safeErc20Transfer(asset.addr,  position,  decAdjAmount);
+            } else if (asset.standard == 2) {  // ERC-721
+                LibUtilsPublic.safeErc721TransferFrom(asset.addr,address(this), position,  asset.tokenId, asset.data);
+            } else if (asset.standard == 3) {  // ERC-1155
+                //LibUtilsPublic.safeErc1155TransferFrom(asset.addr, msg.sender, address(this), asset.tokenId, decAdjAmount, asset.data);
+                LibUtilsPublic.safeErc1155TransferFrom(asset.addr, address(this), position,  asset.tokenId, decAdjAmount, asset.data);
+
+            } else {
+                revert("Unsupported asset standard");
+            }
+
     }
 
     function getOwner(bytes calldata parameters) external pure override returns (address) {
