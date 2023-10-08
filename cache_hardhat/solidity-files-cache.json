@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/motasem/Repos/pharos/code/core-v0/src/Bookkeeper.sol": {
-      "lastModificationDate": 1696434105724,
-      "contentHash": "3689555ca91daf729deab5ddb8ae8b5d",
+      "lastModificationDate": 1696704908384,
+      "contentHash": "a019db22ccb5e274162c1acf58725fb3",
       "sourceName": "src/Bookkeeper.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -48,8 +48,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/interfaces/IAccount.sol": {
-      "lastModificationDate": 1696349454719,
-      "contentHash": "97b1cb55cc1418851a8ece954035f4d1",
+      "lastModificationDate": 1696784480202,
+      "contentHash": "0fa9c468ad9b487604eb3b5eab5e83d4",
       "sourceName": "src/interfaces/IAccount.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -118,8 +118,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/interfaces/IPosition.sol": {
-      "lastModificationDate": 1696433450666,
-      "contentHash": "608b271247eb9eae47c465078aae0d27",
+      "lastModificationDate": 1696553029020,
+      "contentHash": "c5ee9827ad6e812b1718775d3e2b3a4f",
       "sourceName": "src/interfaces/IPosition.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -894,8 +894,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/account/Account.sol": {
-      "lastModificationDate": 1696349449312,
-      "contentHash": "84aa449905dcb4b70d70ff05205b61fd",
+      "lastModificationDate": 1696439124227,
+      "contentHash": "e32133d3594912cc06dc586a5a1e7ef7",
       "sourceName": "src/plugins/account/Account.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -934,8 +934,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/account/implementations/SoloAccount.sol": {
-      "lastModificationDate": 1696349466135,
-      "contentHash": "7a0e925540a0bf7044e10a9ba0cc05b5",
+      "lastModificationDate": 1696784486965,
+      "contentHash": "91f24231771a95468f4105e4b8f47ac4",
       "sourceName": "src/plugins/account/implementations/SoloAccount.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -1012,8 +1012,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/libraries/LibUtilsPublic.sol": {
-      "lastModificationDate": 1695247177914,
-      "contentHash": "f119c5b447c15b5d58766ab4e607a4e3",
+      "lastModificationDate": 1696618502097,
+      "contentHash": "631774fd39cc3cd26622832a06fb915c",
       "sourceName": "src/libraries/LibUtilsPublic.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -1039,7 +1039,9 @@
         }
       },
       "imports": [
-        "@openzeppelin/contracts/token/ERC20/IERC20.sol"
+        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "@openzeppelin/contracts/token/ERC721/IERC721.sol",
+        "@openzeppelin/contracts/token/ERC1155/IERC1155.sol"
       ],
       "versionPragmas": [
         "0.8.19"
@@ -1564,8 +1566,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/position/Position.sol": {
-      "lastModificationDate": 1696383661873,
-      "contentHash": "4e1156c733f2a6e0b29a0bb47a75bc0f",
+      "lastModificationDate": 1696553071326,
+      "contentHash": "50713baa8fb4b4ca5276ddce2d5f97e9",
       "sourceName": "src/plugins/position/Position.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -1608,8 +1610,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/position/implementations/Wallet.sol": {
-      "lastModificationDate": 1696383623675,
-      "contentHash": "a0908f34c3b9b2a06fd24d0123eec5b9",
+      "lastModificationDate": 1696789340225,
+      "contentHash": "408927bc4f9d9d6b4a6361e9d5c6cd2f",
       "sourceName": "src/plugins/position/implementations/Wallet.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -1636,6 +1638,8 @@
       },
       "imports": [
         "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "@openzeppelin/contracts/token/ERC721/IERC721.sol",
+        "@openzeppelin/contracts/token/ERC1155/IERC1155.sol",
         "src/interfaces/IAccount.sol",
         "src/libraries/C.sol",
         "src/plugins/position/Position.sol",
@@ -1652,8 +1656,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/position/implementations/BeanstalkSilo.sol": {
-      "lastModificationDate": 1696431425261,
-      "contentHash": "9aa5526bb5c7777892f69f01cd826e17",
+      "lastModificationDate": 1696557138180,
+      "contentHash": "a94acf142ced4013465139ce117542ac",
       "sourceName": "src/plugins/position/implementations/BeanstalkSilo.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -1812,8 +1816,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/oracle/implementations/BeanOracle.sol": {
-      "lastModificationDate": 1695403077518,
-      "contentHash": "041a35dc335ee20a9d59d1408335e967",
+      "lastModificationDate": 1696539412168,
+      "contentHash": "d95f03fc91199ff6aefe4df770a7cb45",
       "sourceName": "src/plugins/oracle/implementations/BeanOracle.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -1849,7 +1853,8 @@
         "0.8.19"
       ],
       "artifacts": [
-        "BeanOracle"
+        "BeanOracle",
+        "ISilo"
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/oracle/Oracle.sol": {
@@ -2112,8 +2117,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/interfaces/IBookkeeper.sol": {
-      "lastModificationDate": 1696433341951,
-      "contentHash": "52a002f086a5a49bf7efbdf4155287a0",
+      "lastModificationDate": 1696553289361,
+      "contentHash": "70fd408f94e86100abc41c86577a490b",
       "sourceName": "src/interfaces/IBookkeeper.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -2261,8 +2266,8 @@
       "artifacts": []
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/liquidator/implementations/StandardLiquidator.sol": {
-      "lastModificationDate": 1696381742709,
-      "contentHash": "468b264385c92600139d766dfeca44b4",
+      "lastModificationDate": 1696434902974,
+      "contentHash": "4c981c0f41f2f18438a1104b57bfb446",
       "sourceName": "src/plugins/liquidator/implementations/StandardLiquidator.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -2290,6 +2295,7 @@
       "imports": [
         "src/libraries/C.sol",
         "src/interfaces/ILiquidator.sol",
+        "../Liquidator.sol",
         "src/libraries/LibBookkeeper.sol",
         "src/interfaces/IPosition.sol"
       ],
@@ -2297,7 +2303,123 @@
         "0.8.19"
       ],
       "artifacts": [
-        "Liquidator"
+        "StandardLiquidator"
+      ]
+    },
+    "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/account/implementations/SoloAccountPlus.sol": {
+      "lastModificationDate": 1696789261878,
+      "contentHash": "dac48717e551006c0284d816ca2168c7",
+      "sourceName": "src/plugins/account/implementations/SoloAccountPlus.sol",
+      "solcConfig": {
+        "version": "0.8.19",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "src/libraries/C.sol",
+        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "src/interfaces/external/IWETH9.sol",
+        "../Account.sol",
+        "@openzeppelin/contracts/token/ERC1155/IERC1155.sol",
+        "src/libraries/LibUtilsPublic.sol"
+      ],
+      "versionPragmas": [
+        "0.8.19"
+      ],
+      "artifacts": [
+        "SoloAccountPlus"
+      ]
+    },
+    "/Users/motasem/Repos/pharos/code/core-v0/lib/openzeppelin-contracts/contracts/token/ERC1155/IERC1155.sol": {
+      "lastModificationDate": 1695246949348,
+      "contentHash": "07f10ed1a8192bfafe9342017b3e7bf4",
+      "sourceName": "@openzeppelin/contracts/token/ERC1155/IERC1155.sol",
+      "solcConfig": {
+        "version": "0.8.19",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../../utils/introspection/IERC165.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "IERC1155"
+      ]
+    },
+    "/Users/motasem/Repos/pharos/code/core-v0/lib/openzeppelin-contracts/contracts/token/ERC721/IERC721.sol": {
+      "lastModificationDate": 1695246949351,
+      "contentHash": "486433785a00d0c478fb5025633ad7ae",
+      "sourceName": "@openzeppelin/contracts/token/ERC721/IERC721.sol",
+      "solcConfig": {
+        "version": "0.8.19",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../../utils/introspection/IERC165.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "IERC721"
       ]
     }
   }

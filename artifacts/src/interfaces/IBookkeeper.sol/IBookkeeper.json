@@ -656,6 +656,63 @@
       ],
       "stateMutability": "pure",
       "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "publisher",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "data",
+                  "type": "bytes"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "maxNonce",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "startTime",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "endTime",
+                  "type": "uint256"
+                }
+              ],
+              "internalType": "struct Blueprint",
+              "name": "blueprint",
+              "type": "tuple"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "blueprintHash",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes",
+              "name": "signature",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct SignedBlueprint",
+          "name": "agreementBlueprint",
+          "type": "tuple"
+        }
+      ],
+      "name": "unwindPosition",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
     }
   ],
   "bytecode": "0x",
