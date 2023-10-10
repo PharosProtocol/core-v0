@@ -43,6 +43,11 @@ import {TC} from "test/TC.sol";
 import "src/libraries/LibUtils.sol";
 import {LibUtilsPublic} from "src/libraries/LibUtilsPublic.sol";
 
+
+struct BorrowerAssetParameters{
+        uint256 tokenId;
+    }
+
 interface ISilo {
     function setApprovalForAll(address spender, bool approved) external;
 
@@ -67,6 +72,8 @@ interface ISilo {
     ) external;
 }
 
+
+
 contract FillAndClose is TestUtils {
     IBookkeeper public bookkeeper;
     IAccount public accountPlugin;
@@ -79,7 +86,6 @@ contract FillAndClose is TestUtils {
     IPosition public beanstalkSiloFactory;
 
 
-    
     Asset WETH_ASSET = Asset({standard:1, addr: C.WETH, decimals: 18, tokenId: 0, data: ""});
     Asset USDC_ASSET = Asset({standard:1, addr: TC.USDC, decimals: TC.USDC_DECIMALS, tokenId: 0, data: ""});
     Asset Bean_Deposit = Asset({standard:3, addr: 0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5, decimals: 0, tokenId: 0, data: ""});
@@ -166,6 +172,7 @@ contract FillAndClose is TestUtils {
         console.log("borrower wallet balance",IERC1155(Bean_Deposit.addr).balanceOf( address(borrower), Bean_Deposit.tokenId));
         console.log("borrower account balance using get balance",accountPlugin.getBalance(Bean_DepositId_Encoded, abi.encode(borrowerAccountParams)));
         console.log("plugin account balance using IERC1155",IERC1155(Bean_Deposit.addr).balanceOf( address(accountPlugin), 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b));
+        console.log("plugin account address", address(accountPlugin) );
 
 
         Order memory order = createOrder(lenderAccountParams);
@@ -325,10 +332,10 @@ contract FillAndClose is TestUtils {
 
     function createFill(SoloAccountPlus.Parameters memory borrowerAccountParams) private view returns (Fill memory) {
         uint256 tokenId = 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b;
-
+        
         BorrowerConfig memory borrowerConfig = BorrowerConfig({
             initCollateralRatio: 20e17, // 200%
-            borrowerAssetParameters: abi.encode(tokenId),
+            borrowerAssetData: abi.encode(BorrowerAssetParameters({tokenId: tokenId})),
             positionParameters: ""
         });
 

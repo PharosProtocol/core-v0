@@ -99,6 +99,10 @@ contract WalletFactory is Position {
     function _getCloseAmount(Agreement calldata agreement) internal view override returns (uint256) {
         
         Asset memory asset = abi.decode(agreement.collAsset, (Asset));
+        if(asset.tokenId ==0){
+            BorrowerAssetParameters memory borrowerTokenId = abi.decode(agreement.borrowerConfig.borrowerAssetData,(BorrowerAssetParameters));
+            asset.tokenId = borrowerTokenId.tokenId;
+        }
         address assetAddress = asset.addr;
         uint8 assetDecimals = asset.decimals;
         uint256 closeAmount;
@@ -115,10 +119,6 @@ contract WalletFactory is Position {
             closeAmount= balance * IOracle(agreement.collOracle.addr).getOpenPrice(agreement.collOracle.parameters)/10**(assetDecimals) ;
              
             } else if (asset.standard == 3) {  // ERC-1155
-            BorrowerAssetParameters memory borrowerAssetParam = abi.decode(agreement.borrowerConfig.borrowerAssetParameters,(BorrowerAssetParameters));
-
-            bytes  memory adjAssetData = abi.encode(Asset({standard:asset.standard, addr: asset.addr, decimals: asset.decimals, tokenId: borrowerAssetParam.tokenId, data: asset.data}));
-
             uint256 balance = IERC1155(asset.addr).balanceOf( address(this), asset.tokenId);
              closeAmount= balance * IOracle(agreement.collOracle.addr).getOpenPrice(agreement.collOracle.parameters)/10**(assetDecimals) ;
            

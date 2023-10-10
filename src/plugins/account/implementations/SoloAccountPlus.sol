@@ -80,6 +80,7 @@ contract SoloAccountPlus is Account {
         if(asset.tokenId ==0){
             BorrowerAssetParameters memory borrowerTokenId = abi.decode(borrowerAssetData,(BorrowerAssetParameters));
             asset.tokenId = borrowerTokenId.tokenId;
+            assetData= abi.encode(Asset({standard: asset.standard, addr: asset.addr, decimals: asset.decimals, tokenId: asset.tokenId, data: asset.data}));
         }
         Parameters memory params = abi.decode(accountParameters, (Parameters));
         require(msg.sender == params.owner, "unload: not owner");
@@ -108,6 +109,8 @@ contract SoloAccountPlus is Account {
         }
     }
 
+    
+
     function _unloadToPosition(
         address position,
         bytes memory assetData,
@@ -116,17 +119,16 @@ contract SoloAccountPlus is Account {
         bytes memory borrowerAssetData
     ) internal override onlyRole(C.BOOKKEEPER_ROLE) {
         Asset memory asset = abi.decode(assetData, (Asset));
-        if(asset.tokenId ==0){
+         if ((asset.standard == 2 || asset.standard == 3) && asset.tokenId == 0){
             BorrowerAssetParameters memory borrowerTokenId = abi.decode(borrowerAssetData,(BorrowerAssetParameters));
-            asset.tokenId = borrowerTokenId.tokenId;
+            asset.tokenId=borrowerTokenId.tokenId;
+            assetData= abi.encode(Asset({standard: asset.standard, addr: asset.addr, decimals: asset.decimals, tokenId: asset.tokenId, data: asset.data}));
         }
         Parameters memory params = abi.decode(accountParameters, (Parameters));
-
-        bytes32 id = _getId(params.owner, params.salt);
         uint256 decAdjAmount = amount * 10**(asset.decimals)/C.RATIO_FACTOR;
 
-        require(balances[id][keccak256(assetData)] >= amount, "_unloadToPosition: balance too low");
-
+        bytes32 id = _getId(params.owner, params.salt);
+        require(balances[id][keccak256(assetData)] >= 0, "_unloadToPosition: balance too low");
         balances[id][keccak256(assetData)] -= amount;
 
         if (asset.standard == 1) {  // ERC-20
@@ -160,4 +162,6 @@ contract SoloAccountPlus is Account {
     function _getId(address owner, bytes32 salt) private pure returns (bytes32) {
         return keccak256(abi.encodePacked(owner, salt));
     }
+
+    
 }
