@@ -42,6 +42,7 @@ struct Order {
 
 struct BorrowerConfig {
     uint256 initCollateralRatio; // Borrower chooses starting health.
+    bytes borrowerAssetData; // If borrower needs to input assetData like in ERC-1155
     bytes positionParameters; // Should lenders be allowing specified parameters?
 }
 
@@ -80,6 +81,7 @@ struct Agreement {
     address factory;
     PluginReference position; // addr set by bookkeeper.
     uint256 deploymentTime; // set by bookkeeper
+    BorrowerConfig borrowerConfig;
 }
 
 library LibBookkeeper {
@@ -117,6 +119,7 @@ library LibBookkeeper {
         agreement.minCollateralRatio = order.minCollateralRatio[fill.collAssetIdx];
         agreement.factory = order.factories[fill.factoryIdx];
         agreement.loanAmount = fill.loanAmount;
+        agreement.borrowerConfig= fill.borrowerConfig;
     }
 
 /// @dev Liquidation based on expiration or CR 

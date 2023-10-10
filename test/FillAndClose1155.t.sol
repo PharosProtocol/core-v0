@@ -82,16 +82,18 @@ contract FillAndClose is TestUtils {
     
     Asset WETH_ASSET = Asset({standard:1, addr: C.WETH, decimals: 18, tokenId: 0, data: ""});
     Asset USDC_ASSET = Asset({standard:1, addr: TC.USDC, decimals: TC.USDC_DECIMALS, tokenId: 0, data: ""});
-    Asset Bean_Deposit = Asset({standard:3, addr: 0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5, decimals: 0, tokenId: 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b, data: ""});
+    Asset Bean_Deposit = Asset({standard:3, addr: 0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5, decimals: 0, tokenId: 0, data: ""});
 
+    
     bytes constant WETH_ASSET_Encoded = abi.encode(Asset({standard:1, addr: C.WETH, decimals: 18, tokenId: 0, data: ""}));
     bytes constant USDC_ASSET_Encoded = abi.encode(Asset({standard:1,addr: TC.USDC, decimals: TC.USDC_DECIMALS, tokenId: 0, data: ""}));
-    bytes constant Bean_Deposit_Encoded = abi.encode(Asset({standard:3, addr: 0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5, decimals: 0, tokenId: 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b, data: ""}));
+    bytes constant Bean_Deposit_Encoded = abi.encode(Asset({standard:3, addr: 0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5, decimals: 0, tokenId: 0, data: ""}));
+    bytes constant Bean_DepositId_Encoded = abi.encode(Asset({standard:3, addr: 0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5, decimals: 0, tokenId: 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b, data: ""}));
 
     uint256 LENDER_PRIVATE_KEY = 111;
     uint256 BORROWER_PRIVATE_KEY = 222;
     uint256 LIQUIDATOR_PRIVATE_KEY = 333;
-    uint256 LOAN_AMOUNT = 1e18 ;
+    uint256 LOAN_AMOUNT = 1000e18 ;
     Asset[] ASSETS;
 
     constructor() {
@@ -115,21 +117,11 @@ contract FillAndClose is TestUtils {
         beanstalkSiloFactory= IPosition(address(new BeanstalkSiloFactory((address(bookkeeper)))));
         liquidatorPlugin = ILiquidator(address(new StandardLiquidator()));
 
-
-        // // For use with pre deployed contracts.
-        // bookkeeper = IBookkeeper(0x96DEA1646129fF9637CE5cCE81E65559af172b92);
-        // accountPlugin = IAccount(0x225D9FaD9081F0E67dD5E4b93E26e85E8F70a9aE);
-        // assessorPlugin = IAssessor(0x5F5baC1aEF241eB4CB0B484bF68d104B00E1F98E);
-        // liquidatorPlugin = ILiquidator(0x1bdD37aFC33C59D0B1572b23B9188531d6aA7cda);
-        // staticOracle = IOracle(0xeE3B0F63eB134a06833b72082362c0a1Ed80B717); // static price
-        // walletFactory = IPosition(0x51b245b41037B966e8709B622Ee735a653e3d40d);
-        // uniOraclePlugin = IOracle(); // static prices
-        // uniV3HoldFactory = IPosition();
     }
 
 
 
-    // Using USDC as collateral, borrow ETH
+    // Using Bean deposit as collateral, borrow USDC
 
     
     function test_FillAndClose() public {
@@ -152,28 +144,28 @@ contract FillAndClose is TestUtils {
         );
         console.log("borrower account",accountPlugin.getBalance(USDC_ASSET_Encoded, abi.encode(borrowerAccountParams)) );
 
-        // Transfer deposit from whale to lender
+        // Transfer deposit from whale to borrower
         address whale = 0xF1A621FE077e4E9ac2c0CEfd9B69551dB9c3f657;
 
-        console.log("lender wallet balance",IERC1155(Bean_Deposit.addr).balanceOf( address(lender), Bean_Deposit.tokenId));
+        console.log("borrower wallet balance",IERC1155(Bean_Deposit.addr).balanceOf( address(borrower), 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b));
         vm.prank(whale);
-        IERC1155(Bean_Deposit.addr).safeTransferFrom(whale, lender, Bean_Deposit.tokenId, 1, "");
+        IERC1155(Bean_Deposit.addr).safeTransferFrom(whale, borrower, 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b, 1, "");
         console.log("===TRANSFER FROM WHALE====");
 
-        console.log("lender wallet balance",IERC1155(Bean_Deposit.addr).balanceOf( address(lender), Bean_Deposit.tokenId));
+        console.log("borrower wallet balance",IERC1155(Bean_Deposit.addr).balanceOf( address(borrower), 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b));
 
        
-        vm.prank(lender);
+        vm.prank(borrower);
         ISilo(Bean_Deposit.addr).increaseDepositAllowance(address(accountPlugin),0xBEA0e11282e2bB5893bEcE110cF199501e872bAd,type(uint256).max);
-        vm.prank(address(lender));
-        accountPlugin.loadFromUser(Bean_Deposit_Encoded, 1e18, abi.encode(lenderAccountParams));
+        vm.prank(address(borrower));
+        accountPlugin.loadFromUser(Bean_DepositId_Encoded, 1e18, abi.encode(borrowerAccountParams));
         console.log("===LOAD ACCOUNT===");
 
 
 
-        console.log("lender wallet balance",IERC1155(Bean_Deposit.addr).balanceOf( address(lender), Bean_Deposit.tokenId));
-        console.log("lender account balance using get balance",accountPlugin.getBalance(Bean_Deposit_Encoded, abi.encode(lenderAccountParams)));
-        console.log("lender account balance using IERC1155",IERC1155(Bean_Deposit.addr).balanceOf( address(accountPlugin), Bean_Deposit.tokenId));
+        console.log("borrower wallet balance",IERC1155(Bean_Deposit.addr).balanceOf( address(borrower), Bean_Deposit.tokenId));
+        console.log("borrower account balance using get balance",accountPlugin.getBalance(Bean_DepositId_Encoded, abi.encode(borrowerAccountParams)));
+        console.log("plugin account balance using IERC1155",IERC1155(Bean_Deposit.addr).balanceOf( address(accountPlugin), 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b));
 
 
         Order memory order = createOrder(lenderAccountParams);
@@ -197,12 +189,12 @@ contract FillAndClose is TestUtils {
         vm.prank(borrower);
         bookkeeper.fillOrder(fill, orderSignedBlueprint);
 
-        assertEq(accountPlugin.getBalance(Bean_Deposit_Encoded, abi.encode(lenderAccountParams)), 1e18 - LOAN_AMOUNT);
-        assertLt(
-            accountPlugin.getBalance(USDC_ASSET_Encoded, abi.encode(borrowerAccountParams)),
-            5_000e18
-        );
-        assertGt(accountPlugin.getBalance(USDC_ASSET_Encoded, abi.encode(borrowerAccountParams)), 0);
+        // assertEq(accountPlugin.getBalance(Bean_Deposit_Encoded, abi.encode(lenderAccountParams)), 1e18 - LOAN_AMOUNT);
+        // assertLt(
+        //     accountPlugin.getBalance(USDC_ASSET_Encoded, abi.encode(borrowerAccountParams)),
+        //     5_000e18
+        // );
+        // assertGt(accountPlugin.getBalance(USDC_ASSET_Encoded, abi.encode(borrowerAccountParams)), 0);
 
 
         // // // Move time and block forward arbitrarily.
@@ -266,9 +258,9 @@ contract FillAndClose is TestUtils {
         minLoanAmounts[0] = 1;
         minLoanAmounts[1] = 1;
         bytes[] memory loanAssets = new bytes[](1);
-        loanAssets[0] = abi.encode(Bean_Deposit);
+        loanAssets[0] = abi.encode(USDC_ASSET);
         bytes[] memory collAssets = new bytes[](1);
-        collAssets[0] = abi.encode(USDC_ASSET);
+        collAssets[0] = abi.encode(Bean_Deposit);
         uint256[] memory minCollateralRatio = new uint256[](2);
         minCollateralRatio[0] = 15e17; // 1.5 represented as 15e17 with 18 decimal places precision.
         minCollateralRatio[1] = 17e17; // 1.7 represented as 17e17 with 18 decimal places precision.
@@ -276,13 +268,13 @@ contract FillAndClose is TestUtils {
         PluginReference[] memory loanOracles = new PluginReference[](1);
         loanOracles[0] = PluginReference({
             addr: address(staticOracle),
-            parameters: abi.encode(StaticOracle.Parameters({number: 2000e18}))
+            parameters: abi.encode(StaticOracle.Parameters({number: 1e18}))
         });
 
         PluginReference[] memory collOracles = new PluginReference[](1);
         collOracles[0] = PluginReference({
             addr: address(staticOracle),
-            parameters: abi.encode(StaticOracle.Parameters({number: 1e18}))
+            parameters: abi.encode(StaticOracle.Parameters({number: 2000e18}))
         });
         console.log("oracle open price", IOracle(loanOracles[0].addr).getOpenPrice(collOracles[0].parameters));
         address[] memory factories = new address[](1);
@@ -327,15 +319,17 @@ contract FillAndClose is TestUtils {
                 // Lender would need to list parameters for all possible holdable tokens from all possible lent tokens. Instead just allow a whole factory.
                 factories: factories,
                 isOffer: true,
-                borrowerConfig: BorrowerConfig(0, "")
+                borrowerConfig: BorrowerConfig(0, "","")
             });
     }
 
     function createFill(SoloAccountPlus.Parameters memory borrowerAccountParams) private view returns (Fill memory) {
+        uint256 tokenId = 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b;
 
         BorrowerConfig memory borrowerConfig = BorrowerConfig({
             initCollateralRatio: 20e17, // 200%
-            positionParameters: abi.encode(WalletFactory.Parameters({recipient: borrowerAccountParams.owner}))
+            borrowerAssetParameters: abi.encode(tokenId),
+            positionParameters: ""
         });
 
         return

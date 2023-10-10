@@ -23,9 +23,12 @@ import {IOracle} from "src/interfaces/IOracle.sol";
 
 contract WalletFactory is Position {
     struct Parameters {
-        address recipient;
+        address owner;
+        bytes32 salt;
     }
-
+        struct BorrowerAssetParameters{
+        uint256 tokenId;
+    }
 
     constructor(address protocolAddr) Position(protocolAddr) {}
 
@@ -39,16 +42,16 @@ contract WalletFactory is Position {
     }
     /// @dev assumes assets are already in Position.
     function _open(Agreement calldata agreement) internal override {
-        Parameters memory params = abi.decode(agreement.position.parameters, (Parameters));
-         Asset memory asset = abi.decode(agreement.loanAsset, (Asset));
+        Parameters memory params = abi.decode(agreement.borrowerAccount.parameters, (Parameters));
+        Asset memory asset = abi.decode(agreement.loanAsset, (Asset));
         uint256 decAdjAmount = agreement.loanAmount * 10**(asset.decimals)/C.RATIO_FACTOR;
 
             if (asset.standard == 1) {  // ERC-20
-                LibUtilsPublic.safeErc20Transfer(asset.addr, params.recipient, decAdjAmount);
+                LibUtilsPublic.safeErc20Transfer(asset.addr, params.owner, decAdjAmount);
             } else if (asset.standard == 2) {  // ERC-721
-                LibUtilsPublic.safeErc721TransferFrom(asset.addr,  address(this),params.recipient, asset.tokenId, asset.data);
+                LibUtilsPublic.safeErc721TransferFrom(asset.addr,  address(this),params.owner, asset.tokenId, asset.data);
             } else if (asset.standard == 3) {  // ERC-1155
-                LibUtilsPublic.safeErc1155TransferFrom(asset.addr, address(this),params.recipient, asset.tokenId, decAdjAmount, asset.data);
+                LibUtilsPublic.safeErc1155TransferFrom(asset.addr, address(this),params.owner, asset.tokenId, decAdjAmount, asset.data);
 
             } else {
                 revert("Unsupported asset standard");
@@ -112,6 +115,10 @@ contract WalletFactory is Position {
             closeAmount= balance * IOracle(agreement.collOracle.addr).getOpenPrice(agreement.collOracle.parameters)/10**(assetDecimals) ;
              
             } else if (asset.standard == 3) {  // ERC-1155
+            BorrowerAssetParameters memory borrowerAssetParam = abi.decode(agreement.borrowerConfig.borrowerAssetParameters,(BorrowerAssetParameters));
+
+            bytes  memory adjAssetData = abi.encode(Asset({standard:asset.standard, addr: asset.addr, decimals: asset.decimals, tokenId: borrowerAssetParam.tokenId, data: asset.data}));
+
             uint256 balance = IERC1155(asset.addr).balanceOf( address(this), asset.tokenId);
              closeAmount= balance * IOracle(agreement.collOracle.addr).getOpenPrice(agreement.collOracle.parameters)/10**(assetDecimals) ;
            

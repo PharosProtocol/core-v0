@@ -128,7 +128,6 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         );
         signedBlueprint.blueprint.endTime = type(uint256).max;
         signedBlueprint.blueprintHash = getBlueprintHash(signedBlueprint.blueprint);
-        // SECURITY Is is possible to intentionally manufacture a blueprint with different data that creates the same hash?
         signBlueprint(signedBlueprint.blueprintHash);
         // publishBlueprint(signedBlueprint); // These verifiable blueprints will be used to interact with positions.
     }
@@ -144,13 +143,15 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
             agreement.position.addr,
             agreement.loanAsset,
             agreement.loanAmount,
-            agreement.lenderAccount.parameters
+            agreement.lenderAccount.parameters,
+            agreement.borrowerConfig.borrowerAssetData
         );
         IAccount(agreement.borrowerAccount.addr).unloadToPosition(
             agreement.position.addr,
             agreement.collAsset,
             agreement.collAmount,
-            agreement.borrowerAccount.parameters
+            agreement.borrowerAccount.parameters,
+            agreement.borrowerConfig.borrowerAssetData
         );
 
         IPosition(agreement.position.addr).open(agreement);

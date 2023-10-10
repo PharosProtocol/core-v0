@@ -25,21 +25,25 @@ contract SoloAccountPlus is Account {
         bytes32 salt;
     }
 
+    struct BorrowerAssetParameters{
+        uint256 tokenId;
+    }
+
     mapping(bytes32 => mapping(bytes32 => uint256)) private balances; // Update mapping
 
     constructor(address bookkeeperAddr) Account(bookkeeperAddr) {}
 
-    function _loadFromUser(bytes memory assetData, uint256 amount, bytes memory parameters) internal override {
-        _load(assetData, amount, parameters);
+    function _loadFromUser(bytes memory assetData, uint256 amount, bytes memory accountParameters) internal override {
+        _load(assetData, amount, accountParameters);
     }
 
-    function _loadFromPosition(bytes memory assetData, uint256 amount, bytes memory parameters) internal override {
-        _load(assetData, amount, parameters);
+    function _loadFromPosition(bytes memory assetData, uint256 amount, bytes memory accountParameters) internal override {
+        _load(assetData, amount, accountParameters);
     }
 
-    function _load(bytes memory assetData, uint256 amount, bytes memory parameters) private {
+    function _load(bytes memory assetData, uint256 amount, bytes memory accountParameters) private {
         Asset memory asset = abi.decode(assetData, (Asset));
-        Parameters memory params = abi.decode(parameters, (Parameters));
+        Parameters memory params = abi.decode(accountParameters, (Parameters));
         bytes32 id = _getId(params.owner, params.salt);
         balances[id][keccak256(assetData)] += amount; // Update user balance
         uint256 decAdjAmount = (amount * 10**(asset.decimals))/C.RATIO_FACTOR;
@@ -61,9 +65,9 @@ contract SoloAccountPlus is Account {
         }
     }
 
-        function _loadFromLiquidator (address liquidator, bytes memory assetData, uint256 amount, bytes memory parameters) internal override  {
+        function _loadFromLiquidator (address liquidator, bytes memory assetData, uint256 amount, bytes memory accountParameters) internal override  {
         Asset memory asset = abi.decode(assetData, (Asset));
-        Parameters memory params = abi.decode(parameters, (Parameters));
+        Parameters memory params = abi.decode(accountParameters, (Parameters));
         bytes32 id = _getId(params.owner, params.salt);
         balances[id][keccak256(assetData)] += amount; // Update user balance
         uint256 decAdjAmount = (amount * 10**(asset.decimals))/C.RATIO_FACTOR;
@@ -71,9 +75,13 @@ contract SoloAccountPlus is Account {
         
     }
 
-    function _unloadToUser(bytes memory assetData, uint256 amount, bytes memory parameters) internal override {
+    function _unloadToUser(bytes memory assetData, uint256 amount, bytes memory accountParameters, bytes memory borrowerAssetData) internal override {
         Asset memory asset = abi.decode(assetData, (Asset));
-        Parameters memory params = abi.decode(parameters, (Parameters));
+        if(asset.tokenId ==0){
+            BorrowerAssetParameters memory borrowerTokenId = abi.decode(borrowerAssetData,(BorrowerAssetParameters));
+            asset.tokenId = borrowerTokenId.tokenId;
+        }
+        Parameters memory params = abi.decode(accountParameters, (Parameters));
         require(msg.sender == params.owner, "unload: not owner");
 
         bytes32 id = _getId(params.owner, params.salt);
@@ -104,10 +112,15 @@ contract SoloAccountPlus is Account {
         address position,
         bytes memory assetData,
         uint256 amount,
-        bytes memory parameters
+        bytes memory accountParameters,
+        bytes memory borrowerAssetData
     ) internal override onlyRole(C.BOOKKEEPER_ROLE) {
         Asset memory asset = abi.decode(assetData, (Asset));
-        Parameters memory params = abi.decode(parameters, (Parameters));
+        if(asset.tokenId ==0){
+            BorrowerAssetParameters memory borrowerTokenId = abi.decode(borrowerAssetData,(BorrowerAssetParameters));
+            asset.tokenId = borrowerTokenId.tokenId;
+        }
+        Parameters memory params = abi.decode(accountParameters, (Parameters));
 
         bytes32 id = _getId(params.owner, params.salt);
         uint256 decAdjAmount = amount * 10**(asset.decimals)/C.RATIO_FACTOR;
@@ -129,6 +142,7 @@ contract SoloAccountPlus is Account {
             }
 
     }
+
 
     function getOwner(bytes calldata parameters) external pure override returns (address) {
         return abi.decode(parameters, (Parameters)).owner;

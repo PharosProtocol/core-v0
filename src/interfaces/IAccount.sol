@@ -10,31 +10,25 @@ pragma solidity 0.8.19;
 
 interface IAccount {
     /// @notice Transfer asset and increment account balance. Pulls asset from sender or uses msg.value.
-    function loadFromUser(bytes calldata assetData, uint256 amount, bytes calldata parameters) external payable;
+    function loadFromUser(bytes calldata assetData, uint256 amount, bytes calldata accountParameters ) external payable;
 
     /// @notice Transfer asset and increment account balance. Pulls asset from sender or uses msg.value.
     /// @dev Assets may not literally be coming from a position.
-    function loadFromPosition(bytes calldata assetData, uint256 amount, bytes calldata parameters) external payable;
+    function loadFromPosition(bytes calldata assetData, uint256 amount, bytes calldata accountParameters) external payable;
 
     /// @notice Transfer asset and increment account balance. Pulls asset from sender or uses msg.value.
-    function loadFromLiquidator(address liquidator, bytes calldata assetData, uint256 amount, bytes calldata parameters) external payable;
+    function loadFromLiquidator(address liquidator, bytes calldata assetData, uint256 amount, bytes calldata accountParameters) external payable;
 
     /// @notice Transfer asset out and decrement account balance. Pushes asset to sender.
-    function unloadToUser(bytes calldata assetData, uint256 amount, bytes calldata parameters) external;
+    function unloadToUser(bytes calldata assetData, uint256 amount, bytes calldata accountParameters, bytes calldata borrowerAssetData) external;
 
     /// @notice Transfer loan or collateral asset from account to Position MPC. Pushes.
-    function unloadToPosition(
-        address position,
-        bytes calldata assetData,
-        uint256 amount,
-        bytes calldata parameters
-    ) external;
-
+    function unloadToPosition( address position, bytes calldata assetData, uint256 amount, bytes calldata accountParameters, bytes calldata borrowerAssetData) external;
 
     // NOTE is is possible to (securely) require the owner addr to be the first parameter so that owner can
     // be determined without external calls? To save gas.
-    function getOwner(bytes calldata parameters) external view returns (address);
+    function getOwner(bytes calldata accountParameters) external view returns (address);
 
-    function getBalance(bytes calldata assetData, bytes calldata parameters) external view returns (uint256);
+    function getBalance(bytes calldata assetData, bytes calldata accountParameters) external view returns (uint256);
 
 }

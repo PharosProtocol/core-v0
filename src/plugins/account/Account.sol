@@ -7,12 +7,13 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
 import {C} from "src/libraries/C.sol";
 import {IAccount} from "src/interfaces/IAccount.sol";
 
+
 abstract contract Account is IAccount, AccessControl, ReentrancyGuard {
-    event LoadedFromUser(bytes assetData, uint256 amount, bytes parameters);
-    event LoadedFromPosition(bytes assetData, uint256 amount, bytes parameters);
+    event LoadedFromUser(bytes assetData, uint256 amount, bytes accountParameters);
+    event LoadedFromPosition(bytes assetData, uint256 amount, bytes accountParameters);
     event LoadedFromLiquidator(address liquidator, bytes assetData, uint256 amount, bytes parameters);
-    event UnloadedToUser(bytes assetData, uint256 amount, bytes parameters);
-    event UnloadedToPosition(address position, bytes assetData, uint256 amount, bytes parameters);
+    event UnloadedToUser(bytes assetData, uint256 amount, bytes parameters, bytes borrowerAssetData);
+    event UnloadedToPosition(address position, bytes assetData, uint256 amount, bytes parameters, bytes borrowerAssetData);
 
     constructor(address bookkeeperAddr) {
         _setupRole(C.BOOKKEEPER_ROLE, bookkeeperAddr);
@@ -21,30 +22,30 @@ abstract contract Account is IAccount, AccessControl, ReentrancyGuard {
     function loadFromUser(
         bytes calldata assetData,
         uint256 amount,
-        bytes calldata parameters
+        bytes calldata accountParameters
     ) external payable override nonReentrant {
-        _loadFromUser(assetData, amount, parameters);
-        emit LoadedFromUser(assetData, amount, parameters);
+        _loadFromUser(assetData, amount, accountParameters );
+        emit LoadedFromUser(assetData, amount, accountParameters);
     }
 
 
     function loadFromPosition(
         bytes calldata assetData,
         uint256 amount,
-        bytes calldata parameters
+        bytes calldata accountParameters
     ) external payable override nonReentrant {
-        _loadFromPosition(assetData, amount, parameters);
-        emit LoadedFromPosition(assetData, amount, parameters);
+        _loadFromPosition(assetData, amount, accountParameters) ;
+        emit LoadedFromPosition(assetData, amount, accountParameters );
     }
 
-            function loadFromLiquidator(
+    function loadFromLiquidator(
         address liquidator,
         bytes calldata assetData,
         uint256 amount,
-        bytes calldata parameters
+        bytes calldata accountParameters
     ) external payable override nonReentrant {
-        _loadFromLiquidator(liquidator, assetData, amount, parameters);
-        emit LoadedFromLiquidator(liquidator, assetData, amount, parameters);
+        _loadFromLiquidator(liquidator, assetData, amount, accountParameters);
+        emit LoadedFromLiquidator(liquidator, assetData, amount, accountParameters);
     }
 
 
@@ -52,32 +53,31 @@ abstract contract Account is IAccount, AccessControl, ReentrancyGuard {
     function unloadToUser(
         bytes calldata assetData,
         uint256 amount,
-        bytes calldata parameters
+        bytes calldata accountParameters,
+        bytes calldata borrowerAssetData
     ) external override nonReentrant {
-        _unloadToUser(assetData, amount, parameters);
-        emit UnloadedToUser(assetData, amount, parameters);
+        _unloadToUser(assetData, amount, accountParameters,borrowerAssetData);
+        emit UnloadedToUser(assetData, amount, accountParameters,borrowerAssetData);
     }
 
     function unloadToPosition(
         address position,
         bytes calldata assetData,
         uint256 amount,
-        bytes calldata parameters
+        bytes calldata accountParameters,
+        bytes calldata borrowerAssetData
     ) external override onlyRole(C.BOOKKEEPER_ROLE) {
-        _unloadToPosition(position, assetData, amount, parameters);
-        emit UnloadedToPosition(position, assetData, amount, parameters);
+        _unloadToPosition(position, assetData, amount, accountParameters,borrowerAssetData);
+        emit UnloadedToPosition(position, assetData, amount, accountParameters,borrowerAssetData);
     }
 
-    function _loadFromUser(bytes memory assetData, uint256 amount, bytes memory parameters) internal virtual;
 
-    function _loadFromPosition(bytes memory assetData, uint256 amount, bytes memory parameters) internal virtual;
-    function _loadFromLiquidator(address liquidator, bytes memory assetData, uint256 amount, bytes memory parameters) internal virtual;
-    function _unloadToUser(bytes memory assetData, uint256 amount, bytes memory parameters) internal virtual;
 
-    function _unloadToPosition(
-        address position,
-        bytes memory assetData,
-        uint256 amount,
-        bytes memory parameters
-    ) internal virtual;
+    function _loadFromUser(bytes memory assetData, uint256 amount, bytes memory accountParameters) internal virtual;
+    function _loadFromPosition(bytes memory assetData, uint256 amount, bytes memory accountParameters) internal virtual;
+
+    function _loadFromLiquidator(address liquidator, bytes memory assetData, uint256 amount, bytes memory accountParameters) internal virtual;
+    function _unloadToUser(bytes memory assetData, uint256 amount, bytes memory accountParameters,bytes memory borrowerAssetData) internal virtual;
+    function _unloadToPosition(address position, bytes memory assetData, uint256 amount, bytes memory accountParameters, bytes memory borrowerAssetData ) internal virtual;
+
 }

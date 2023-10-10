@@ -4,6 +4,8 @@ out = 'out'
 libs = ['lib']
 solc = "0.8.19"
 evm_version = "shanghai"
+gas_reports = ["*"]
+
 
 [profile.default.fuzz]
 seed = 1
@@ -31,3 +33,4 @@ sepolia = "${SEPOLIA_RPC_URL}"
 # multiline_func_header = "params_first"
 # quote_style = "double"
 # number_underscore = "thousands"
+
