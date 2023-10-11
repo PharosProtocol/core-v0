@@ -8,12 +8,12 @@ import {Agreement} from "src/libraries/LibBookkeeper.sol";
 abstract contract Liquidator is ILiquidator {
     function getReward(
         Agreement calldata agreement
-    ) external view returns (uint256 amount) {
+    ) external  returns (uint256 amount) {
         (amount) = _getReward(agreement);
         
     }
 
     function _getReward(
         Agreement calldata agreement
-    ) internal view virtual returns (uint256 amount);
+    ) internal  virtual returns (uint256 amount);
 }

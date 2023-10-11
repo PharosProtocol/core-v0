@@ -24,10 +24,11 @@ contract SoloAccountPlus is Account {
         address owner;
         bytes32 salt;
     }
-
-    struct BorrowerAssetParameters{
+    struct FillerData{
         uint256 tokenId;
+        address account;
     }
+
 
     mapping(bytes32 => mapping(bytes32 => uint256)) private balances; // Update mapping
 
@@ -75,11 +76,11 @@ contract SoloAccountPlus is Account {
         
     }
 
-    function _unloadToUser(bytes memory assetData, uint256 amount, bytes memory accountParameters, bytes memory borrowerAssetData) internal override {
-        Asset memory asset = abi.decode(assetData, (Asset));
-        if(asset.tokenId ==0){
-            BorrowerAssetParameters memory borrowerTokenId = abi.decode(borrowerAssetData,(BorrowerAssetParameters));
-            asset.tokenId = borrowerTokenId.tokenId;
+    function _unloadToUser(bytes memory assetData, uint256 amount, bytes memory accountParameters, bytes memory fillerData) internal override {
+         Asset memory asset = abi.decode(assetData, (Asset));
+         if ((asset.standard == 2 || asset.standard == 3) && asset.tokenId == 0){
+            FillerData memory fillerDataDecoded = abi.decode(fillerData,(FillerData));
+            asset.tokenId = fillerDataDecoded.tokenId;
             assetData= abi.encode(Asset({standard: asset.standard, addr: asset.addr, decimals: asset.decimals, tokenId: asset.tokenId, data: asset.data}));
         }
         Parameters memory params = abi.decode(accountParameters, (Parameters));
@@ -116,12 +117,12 @@ contract SoloAccountPlus is Account {
         bytes memory assetData,
         uint256 amount,
         bytes memory accountParameters,
-        bytes memory borrowerAssetData
+        bytes memory fillerData
     ) internal override onlyRole(C.BOOKKEEPER_ROLE) {
         Asset memory asset = abi.decode(assetData, (Asset));
          if ((asset.standard == 2 || asset.standard == 3) && asset.tokenId == 0){
-            BorrowerAssetParameters memory borrowerTokenId = abi.decode(borrowerAssetData,(BorrowerAssetParameters));
-            asset.tokenId=borrowerTokenId.tokenId;
+            FillerData memory fillerDataDecoded = abi.decode(fillerData,(FillerData));
+            asset.tokenId = fillerDataDecoded.tokenId;
             assetData= abi.encode(Asset({standard: asset.standard, addr: asset.addr, decimals: asset.decimals, tokenId: asset.tokenId, data: asset.data}));
         }
         Parameters memory params = abi.decode(accountParameters, (Parameters));

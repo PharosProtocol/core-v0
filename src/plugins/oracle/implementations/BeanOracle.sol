@@ -23,11 +23,11 @@ contract BeanOracle is Oracle {
         uint8 input; //1 for Bean, 2 for Bean:ETH and 3 for Bean:3CRV
     }
 
-    function getOpenPrice(bytes calldata parameters) external view returns (uint256) {
+    function getOpenPrice(bytes calldata parameters, bytes calldata fillerData) external view returns (uint256) {
         return _value(parameters);
     }
 
-    function getClosePrice(bytes calldata parameters) external view returns (uint256) {
+    function getClosePrice(bytes calldata parameters, bytes calldata fillerData) external view returns (uint256) {
         return _value(parameters);
     }
 

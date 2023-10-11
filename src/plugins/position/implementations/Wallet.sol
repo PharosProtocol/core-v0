@@ -26,9 +26,7 @@ contract WalletFactory is Position {
         address owner;
         bytes32 salt;
     }
-        struct BorrowerAssetParameters{
-        uint256 tokenId;
-    }
+
 
     constructor(address protocolAddr) Position(protocolAddr) {}
 
@@ -96,12 +94,11 @@ contract WalletFactory is Position {
 
     // Public Helpers.
 
-    function _getCloseAmount(Agreement calldata agreement) internal view override returns (uint256) {
+    function _getCloseAmount(Agreement memory agreement) internal  override returns (uint256) {
         
         Asset memory asset = abi.decode(agreement.collAsset, (Asset));
-        if(asset.tokenId ==0){
-            BorrowerAssetParameters memory borrowerTokenId = abi.decode(agreement.borrowerConfig.borrowerAssetData,(BorrowerAssetParameters));
-            asset.tokenId = borrowerTokenId.tokenId;
+         if ((asset.standard == 2 || asset.standard == 3) && asset.tokenId == 0){
+            agreement.collOracle.parameters = agreement.fillerData;
         }
         address assetAddress = asset.addr;
         uint8 assetDecimals = asset.decimals;
@@ -109,18 +106,18 @@ contract WalletFactory is Position {
 
         if (asset.standard == 1) {  // ERC-20
             uint256 balance = IERC20(assetAddress).balanceOf(address(this));
-             closeAmount= balance * IOracle(agreement.collOracle.addr).getOpenPrice(agreement.collOracle.parameters)/10**(assetDecimals) ;
+             closeAmount= balance * IOracle(agreement.collOracle.addr).getOpenPrice(agreement.collOracle.parameters,agreement.fillerData)/10**(assetDecimals) ;
                     
             } else if (asset.standard == 2) {  // ERC-721
             uint256 balance;
             address owner = IERC721(asset.addr).ownerOf(asset.tokenId);
             if(owner==address(this)){balance =1;}else{balance=0;}
 
-            closeAmount= balance * IOracle(agreement.collOracle.addr).getOpenPrice(agreement.collOracle.parameters)/10**(assetDecimals) ;
+            closeAmount= balance * IOracle(agreement.collOracle.addr).getOpenPrice(agreement.collOracle.parameters,agreement.fillerData)/10**(assetDecimals) ;
              
             } else if (asset.standard == 3) {  // ERC-1155
             uint256 balance = IERC1155(asset.addr).balanceOf( address(this), asset.tokenId);
-             closeAmount= balance * IOracle(agreement.collOracle.addr).getOpenPrice(agreement.collOracle.parameters)/10**(assetDecimals) ;
+             closeAmount= balance * IOracle(agreement.collOracle.addr).getOpenPrice(agreement.collOracle.parameters,agreement.fillerData)/10**(assetDecimals) ;
            
             } else {
                 revert("Unsupported asset standard");

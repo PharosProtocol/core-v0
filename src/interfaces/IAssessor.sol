@@ -10,5 +10,5 @@ interface IAssessor {
     /// @notice Returns the cost of a loan (not including principle)
     function getCost(
         Agreement calldata agreement
-    ) external view returns ( uint256 amount);
+    ) external  returns ( uint256 amount);
 }

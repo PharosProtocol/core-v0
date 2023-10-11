@@ -19,7 +19,7 @@ contract StandardLiquidator is Liquidator {
 
     function _getReward(
         Agreement calldata agreement
-    ) internal view override returns (uint256 amount){
+    ) internal  override returns (uint256 amount){
     Parameters memory params = abi.decode(agreement.liquidator.parameters, (Parameters));
 
     uint256 closeAmount = (IPosition(agreement.position.addr).getCloseAmount(agreement));

@@ -42,7 +42,6 @@ struct Order {
 
 struct BorrowerConfig {
     uint256 initCollateralRatio; // Borrower chooses starting health.
-    bytes borrowerAssetData; // If borrower needs to input assetData like in ERC-1155
     bytes positionParameters; // Should lenders be allowing specified parameters?
 }
 
@@ -54,6 +53,7 @@ struct Fill {
     uint256 loanAssetIdx; // need to verify with the oracle
     uint256 collAssetIdx; // need to verify with the oracle
     uint256 factoryIdx;
+    bytes fillerData; // If filler needs to input any data like tokenId for ERC-1155
     // Sided config
     bool isOfferFill;
     BorrowerConfig borrowerConfig; // Only set when filling Offers
@@ -81,7 +81,7 @@ struct Agreement {
     address factory;
     PluginReference position; // addr set by bookkeeper.
     uint256 deploymentTime; // set by bookkeeper
-    BorrowerConfig borrowerConfig;
+    bytes fillerData;
 }
 
 library LibBookkeeper {
@@ -119,11 +119,11 @@ library LibBookkeeper {
         agreement.minCollateralRatio = order.minCollateralRatio[fill.collAssetIdx];
         agreement.factory = order.factories[fill.factoryIdx];
         agreement.loanAmount = fill.loanAmount;
-        agreement.borrowerConfig= fill.borrowerConfig;
+        agreement.fillerData= fill.fillerData;
     }
 
 /// @dev Liquidation based on expiration or CR 
-function isLiquidatable(Agreement memory agreement) internal view returns (bool) {
+function isLiquidatable(Agreement memory agreement) internal returns (bool) {
     IPosition position = IPosition(agreement.position.addr);
 
     // If past expiration, liquidatable.
@@ -136,7 +136,7 @@ function isLiquidatable(Agreement memory agreement) internal view returns (bool)
     uint256 assessorCost = IAssessor(agreement.assessor.addr).getCost(agreement);
 
     // Check for liquidation based on collateral ratio
-    uint256 loanOraclePrice = IOracle(agreement.loanOracle.addr).getClosePrice(agreement.loanOracle.parameters);
+    uint256 loanOraclePrice = IOracle(agreement.loanOracle.addr).getClosePrice(agreement.loanOracle.parameters, agreement.fillerData);
     uint256 openLoanValue = agreement.loanAmount * loanOraclePrice / C.RATIO_FACTOR  + assessorCost;
 
     uint256 collateralRatio = closeAmount *C.RATIO_FACTOR / openLoanValue;

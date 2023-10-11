@@ -8,12 +8,12 @@ import {Agreement} from "src/libraries/LibBookkeeper.sol";
 abstract contract Assessor is IAssessor {
     function getCost(
         Agreement calldata agreement
-    ) external view returns (uint256 amount) {
+    ) external  returns (uint256 amount) {
         (amount) = _getCost(agreement);
         
     }
 
     function _getCost(
         Agreement calldata agreement
-    ) internal view virtual returns (uint256 amount);
+    ) internal  virtual returns (uint256 amount);
 }

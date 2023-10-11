@@ -19,13 +19,13 @@ contract StandardAssessor is Assessor {
 
     function _getCost(
         Agreement calldata agreement
-    ) internal view override returns (uint256 amount) {
+    ) internal  override returns (uint256 amount) {
         Parameters memory params = abi.decode(agreement.assessor.parameters, (Parameters));
 
         // Use oracle to get the value conversion
 
-        uint256 resistantValue = IOracle(agreement.loanOracle.addr).getOpenPrice( agreement.loanOracle.parameters);
-        uint256 spotValue = IOracle(agreement.loanOracle.addr).getClosePrice( agreement.loanOracle.parameters);
+        uint256 resistantValue = IOracle(agreement.loanOracle.addr).getOpenPrice( agreement.loanOracle.parameters, agreement.fillerData);
+        uint256 spotValue = IOracle(agreement.loanOracle.addr).getClosePrice( agreement.loanOracle.parameters, agreement.fillerData);
         uint256 higherValue = resistantValue > spotValue ? resistantValue : spotValue;
         
         // Get currentAmount from position and convert to loanAsset

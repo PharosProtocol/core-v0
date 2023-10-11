@@ -25,7 +25,6 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
     string public constant PROTOCOL_VERSION = "0.2.0";
 
     mapping(bytes32 => bool) public agreementClosed;
-    mapping(bytes32 => bool) public liquidationLock;
 
     event OrderFilled(SignedBlueprint agreement, bytes32 orderBlueprintHash, address taker);
     event PositionClosed(
@@ -67,7 +66,7 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         Agreement memory agreement = LibBookkeeper.agreementFromOrder(fill, order);
 
         uint256 loanValue = (agreement.loanAmount *
-            IOracle(agreement.loanOracle.addr).getOpenPrice(agreement.loanOracle.parameters)) / C.RATIO_FACTOR;
+        IOracle(agreement.loanOracle.addr).getOpenPrice(agreement.loanOracle.parameters, agreement.fillerData)) / C.RATIO_FACTOR;
         uint256 collateralValue;
 
         if (agreement.isLeverage) {
@@ -106,7 +105,7 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
 
         agreement.collAmount =
             (collateralValue * C.RATIO_FACTOR) /
-            IOracle(agreement.collOracle.addr).getOpenPrice(agreement.collOracle.parameters);
+            IOracle(agreement.collOracle.addr).getOpenPrice(agreement.collOracle.parameters, agreement.fillerData);
 
         // Set Position data that cannot be computed off chain by caller.
         agreement.deploymentTime = block.timestamp;
@@ -144,14 +143,14 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
             agreement.loanAsset,
             agreement.loanAmount,
             agreement.lenderAccount.parameters,
-            agreement.borrowerConfig.borrowerAssetData
+            agreement.fillerData
         );
         IAccount(agreement.borrowerAccount.addr).unloadToPosition(
             agreement.position.addr,
             agreement.collAsset,
             agreement.collAmount,
             agreement.borrowerAccount.parameters,
-            agreement.borrowerConfig.borrowerAssetData
+            agreement.fillerData
         );
 
         IPosition(agreement.position.addr).open(agreement);
@@ -176,7 +175,7 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         IAccount lenderAccount = IAccount(agreement.lenderAccount.addr);
         uint256 closeAmount = position.getCloseAmount(agreement);
         uint256 assessorCost = IAssessor(agreement.assessor.addr).getCost(agreement);
-        uint256 loanOraclePrice = IOracle(agreement.loanOracle.addr).getClosePrice(agreement.loanOracle.parameters);
+        uint256 loanOraclePrice = IOracle(agreement.loanOracle.addr).getClosePrice(agreement.loanOracle.parameters, agreement.fillerData);
         uint256 lenderBalanceBefore = lenderAccount.getBalance(agreement.loanAsset, agreement.lenderAccount.parameters);
         uint256 amountToLender = agreement.loanAmount + ((assessorCost * C.RATIO_FACTOR) / loanOraclePrice);
         
@@ -238,8 +237,8 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
 
         // Get reward and amounts to distribute
         uint256 assessorCost = IAssessor(agreement.assessor.addr).getCost(agreement);
-        uint256 loanOraclePrice = IOracle(agreement.loanOracle.addr).getClosePrice(agreement.loanOracle.parameters);
-        uint256 collOraclePrice = IOracle(agreement.collOracle.addr).getClosePrice(agreement.collOracle.parameters);
+        uint256 loanOraclePrice = IOracle(agreement.loanOracle.addr).getClosePrice(agreement.loanOracle.parameters, agreement.fillerData);
+        uint256 collOraclePrice = IOracle(agreement.collOracle.addr).getClosePrice(agreement.collOracle.parameters, agreement.fillerData);
         uint256 amountToLender = agreement.loanAmount + ((assessorCost * C.RATIO_FACTOR) / loanOraclePrice);
         uint256 closeAmount = position.getCloseAmount(agreement);
         uint256 amountToLiquidator = ILiquidator(agreement.liquidator.addr).getReward(agreement);

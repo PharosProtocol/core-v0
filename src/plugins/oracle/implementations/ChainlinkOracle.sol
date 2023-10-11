@@ -13,12 +13,12 @@ struct Parameters {
         address addr; //chainlink price feed address .
     }
 
-    function getOpenPrice(bytes calldata parameters) external view returns (uint256) {
+    function getOpenPrice(bytes calldata parameters, bytes calldata fillerData) external view returns (uint256) {
         Parameters memory params = abi.decode(parameters, (Parameters));
         return _value(params.addr);
     }
 
-    function getClosePrice(bytes calldata parameters) external view returns (uint256) {
+    function getClosePrice(bytes calldata parameters, bytes calldata fillerData) external view returns (uint256) {
         Parameters memory params = abi.decode(parameters, (Parameters));
         return _value(params.addr);
     }

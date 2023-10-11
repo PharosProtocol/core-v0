@@ -8,6 +8,6 @@ import {Agreement} from "src/libraries/LibBookkeeper.sol";
 
 interface ILiquidator {
     function getReward(Agreement calldata agreement
-    ) external view returns ( uint256 amount);
+    ) external  returns ( uint256 amount);
 
 }

@@ -120,7 +120,7 @@ contract BeanstalkSiloFactory is Position {
 
     // Public Helpers.
 
-    function _getCloseAmount(Agreement calldata agreement) internal view override returns (uint256) {
+    function _getCloseAmount(Agreement memory agreement) internal  override returns (uint256) {
         address BEAN_ETH_WELL = 0xBEA0e11282e2bB5893bEcE110cF199501e872bAd;
         address BEANSTALK = 0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5;
         address BEAN_ORACLE = 0xCcC52959fBc0859321e78216C374911be3c50eB6;
@@ -133,7 +133,7 @@ contract BeanstalkSiloFactory is Position {
         });
         bytes memory encodedParams1 = abi.encode(params1);
 
-        uint256 closeAmount = (IOracle(BEAN_ORACLE).getOpenPrice(encodedParams1) * (totalBDV)) / C.RATIO_FACTOR; // in USD
+        uint256 closeAmount = (IOracle(BEAN_ORACLE).getOpenPrice(encodedParams1, agreement.fillerData) * (totalBDV)) / C.RATIO_FACTOR; // in USD
         return closeAmount;
 
     }
