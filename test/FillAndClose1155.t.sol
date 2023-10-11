@@ -45,7 +45,7 @@ import "src/libraries/LibUtils.sol";
 import {LibUtilsPublic} from "src/libraries/LibUtilsPublic.sol";
 
 
-struct BorrowerAssetParameters{
+struct FillerData{
         uint256 tokenId;
         address account;
     }
@@ -103,7 +103,7 @@ contract FillAndClose is TestUtils {
     uint256 LENDER_PRIVATE_KEY = 111;
     uint256 BORROWER_PRIVATE_KEY = 222;
     uint256 LIQUIDATOR_PRIVATE_KEY = 333;
-    uint256 LOAN_AMOUNT = 1000e18 ;
+    uint256 LOAN_AMOUNT = 200e18 ;
     Asset[] ASSETS;
 
     constructor() {
@@ -157,7 +157,7 @@ contract FillAndClose is TestUtils {
 
         // Transfer deposit from whale to borrower
         address whale = 0xF1A621FE077e4E9ac2c0CEfd9B69551dB9c3f657;
-        console.log("LP amount under Bean Deposit in whale's wallet", IOracle(address(beanDepositOracle)).getClosePrice("",abi.encode(BorrowerAssetParameters({tokenId: 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b, account: whale})))) ;
+        console.log("LP amount under Bean Deposit in whale's wallet", IOracle(address(beanDepositOracle)).getClosePrice("",abi.encode(FillerData({tokenId: 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b, account: whale})))) ;
         console.log("whale wallet balance",IERC1155(Bean_Deposit.addr).balanceOf( whale, 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b));
 
 
@@ -181,7 +181,7 @@ contract FillAndClose is TestUtils {
         console.log("borrower wallet balance",IERC1155(Bean_Deposit.addr).balanceOf( address(borrower), Bean_Deposit.tokenId));
         console.log("borrower account balance using get balance",accountPlugin.getBalance(Bean_DepositId_Encoded, abi.encode(borrowerAccountParams)));
         console.log("plugin account address", address(accountPlugin) );
-        console.log("Deposit price in USD", IOracle(address(beanDepositOracle)).getClosePrice("",abi.encode(BorrowerAssetParameters({tokenId: 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b, account: address(accountPlugin)})))) ;
+        console.log("Deposit price in USD", IOracle(address(beanDepositOracle)).getClosePrice("",abi.encode(FillerData({tokenId: 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b, account: address(accountPlugin)})))) ;
 
 
 
@@ -202,24 +202,21 @@ contract FillAndClose is TestUtils {
         // console.logBytes(orderBlueprint.data);
         SignedBlueprint memory orderSignedBlueprint = createSignedBlueprint(orderBlueprint, LENDER_PRIVATE_KEY);
 
-        // Fill memory fill = createFill(borrowerAccountParams);
-        // vm.prank(borrower);
-        // bookkeeper.fillOrder(fill, orderSignedBlueprint);
-
-        // assertEq(accountPlugin.getBalance(Bean_Deposit_Encoded, abi.encode(lenderAccountParams)), 1e18 - LOAN_AMOUNT);
-        // assertLt(
-        //     accountPlugin.getBalance(USDC_ASSET_Encoded, abi.encode(borrowerAccountParams)),
-        //     5_000e18
-        // );
-        // assertGt(accountPlugin.getBalance(USDC_ASSET_Encoded, abi.encode(borrowerAccountParams)), 0);
-
-
+        Fill memory fill = createFill(borrowerAccountParams);
+        vm.prank(borrower);
+        bookkeeper.fillOrder(fill, orderSignedBlueprint);
+        console.log("===ORDER FILLED===");
+       
         // // // Move time and block forward arbitrarily.
         // // vm.warp(block.timestamp + 5 days);
         // // vm.roll(block.number + (5 days / 12));
         
-        // (SignedBlueprint memory agreementSignedBlueprint, Agreement memory agreement) = retrieveAgreementFromLogs();
-        // Asset memory decodedAsset = abi.decode(agreement.collAsset, (Asset));
+        (SignedBlueprint memory agreementSignedBlueprint, Agreement memory agreement) = retrieveAgreementFromLogs();
+        Asset memory decodedAsset = abi.decode(agreement.collAsset, (Asset));
+
+        console.log("collateral in MPC using using IERC1155",IERC1155(Bean_Deposit.addr).balanceOf( address(agreement.position.addr), 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b));
+        console.log("collateral in MPC using getCloseAmount", IPosition(agreement.position.addr).getCloseAmount(agreement));
+
 
         // console.log("lender account", accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)));
         // console.log("collateral in MPC using IERC20",IERC20(decodedAsset.addr).balanceOf(agreement.position.addr));
@@ -343,7 +340,7 @@ contract FillAndClose is TestUtils {
         uint256 tokenId = 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b;
         
         BorrowerConfig memory borrowerConfig = BorrowerConfig({
-            initCollateralRatio: 20e17, // 200%
+            collAmount: 11327804468626582811, // 200%
             positionParameters: ""
         });
 
@@ -355,7 +352,7 @@ contract FillAndClose is TestUtils {
                 loanAssetIdx: 0,
                 collAssetIdx: 0,
                 factoryIdx: 0,
-                fillerData: abi.encode(BorrowerAssetParameters({tokenId: tokenId, account: address(accountPlugin)})),
+                fillerData: abi.encode(FillerData({tokenId: tokenId, account: address(accountPlugin)})),
                 isOfferFill: true,
                 borrowerConfig: borrowerConfig
             });

@@ -36,14 +36,6 @@ contract BeanDepositOracle is Oracle {
         return _value(parameters,fillerData);
     }
 
-    function _getAmount(uint256 tokenId, address token, int96 stem, address account) internal  returns (uint256){
-
-        uint256 depositId = IBeanstalk(BEANSTALK).getDepositId(token, stem);
-        uint256 amount = IBeanstalk(BEANSTALK).balanceOf(account, depositId);
-        
-        // Save the amount into the mapping
-        tokenIdAmount[tokenId] = amount;
-    }
 
     function _value(bytes calldata parameters, bytes calldata fillerData) internal  returns (uint256) {
         uint256 value;
@@ -51,12 +43,8 @@ contract BeanDepositOracle is Oracle {
         if (parameters.length == 0) {
             effectiveParameters = fillerData;
         }
-        (uint256 tokenId, address account) = abi.decode(effectiveParameters, (uint256, address));
-        (address token, int96 stem) = (address(uint160(tokenId >> 96)), int96(int256(tokenId)));
-
-        if (tokenIdAmount[tokenId] == 0) {_getAmount(tokenId,token,stem,account);}
-        uint256 amount=tokenIdAmount[tokenId] ;
-       
+        (uint256 tokenId) = abi.decode(effectiveParameters, (uint256));
+        (address token,) = (address(uint160(tokenId >> 96)), int96(int256(tokenId)));
 
         //get ETH:BEAN price from BEANSTALK_PUMP = 0xBA510f10E3095B83a0F33aa9ad2544E22570a87C , BEAN:ETH_WELL = 0xBEA0e11282e2bB5893bEcE110cF199501e872bAd
         uint[] memory reserves = IInstantaneousPump(BEANSTALK_PUMP).readInstantaneousReserves(
@@ -74,18 +62,18 @@ contract BeanDepositOracle is Oracle {
         beanUsdValue = (ethUsdValue * C.RATIO_FACTOR) / ethBeanvalue; // price of Bean in USD in 18 dec precision
         if (token == 0xBEA0000029AD1c77D3d5D23Ba2D8893dB9d1Efab) {
             // return BEAN:USD (number of USD per Bean) price with 18 dec precision
-            value= beanUsdValue*amount/10**(6);
+            value= beanUsdValue;
 
         } else if (token == 0xBEA0e11282e2bB5893bEcE110cF199501e872bAd) {
             // return BeanEthLP:USD (number of USD per Bean:ETH LP) price with 18 dec precision
             uint256 wellBDV = IBeanstalk(BEANSTALK).wellBdv(BEAN_ETH_WELL, 1e18);
-            value= ((beanUsdValue * wellBDV*amount)/(10**(6)*C.RATIO_FACTOR));
+            value= ((beanUsdValue * wellBDV)/(10**(6)));
 
 
         } else if (token == 0xc9C32cd16Bf7eFB85Ff14e0c8603cc90F6F2eE49 ) 
         {   // return 3CRV:USD (number of USD per 3CRV) price with 18 dec precision
             uint256 crvBDV = IBeanstalk(BEANSTALK).curveToBDV(1e18);
-            value= ((beanUsdValue * crvBDV*amount)/(10**(6)*C.RATIO_FACTOR));
+            value= ((beanUsdValue * crvBDV)/(10**(6)));
         }
         return value;
     }

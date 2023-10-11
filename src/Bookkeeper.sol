@@ -46,7 +46,7 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
     ) external nonReentrant verifySignature(orderBlueprint) {
         // decode order blueprint data and ensure blueprint metadata is valid pairing with embedded data
         (bytes1 blueprintDataType, bytes memory blueprintData) = unpackDataField(orderBlueprint.blueprint.data);
-        require(uint8(blueprintDataType) == uint8(BlueprintDataType.ORDER), "BKDTMM");
+        require(uint8(blueprintDataType) == uint8(BlueprintDataType.ORDER), "Blueprint not an Order type");
 
         // Verify publishers own accounts. May or may not be EOA.
         require(
@@ -56,7 +56,7 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         Order memory order = abi.decode(blueprintData, (Order));
         require(
             orderBlueprint.blueprint.publisher == IAccount(order.account.addr).getOwner(order.account.parameters),
-            "BKPOMM"
+            "Publisher does not own lender account "
         );
         if (order.fillers.length > 0) {
             require(order.fillers[fill.takerIdx] == msg.sender, "Bookkeeper: Invalid taker");
@@ -65,49 +65,16 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         LibBookkeeper.verifyFill(fill, order);
         Agreement memory agreement = LibBookkeeper.agreementFromOrder(fill, order);
 
-        uint256 loanValue = (agreement.loanAmount *
-        IOracle(agreement.loanOracle.addr).getOpenPrice(agreement.loanOracle.parameters, agreement.fillerData)) / C.RATIO_FACTOR;
-        uint256 collateralValue;
-
-        if (agreement.isLeverage) {
-            uint256 initCollateralRatio = order.isOffer
-                ? fill.borrowerConfig.initCollateralRatio
-                : order.borrowerConfig.initCollateralRatio;
-
-            if (order.isOffer) {
-                agreement.lenderAccount = order.account;
-                agreement.borrowerAccount = fill.account;
-            } else {
-                agreement.lenderAccount = fill.account;
-                agreement.borrowerAccount = order.account;
-            }
-
-            collateralValue = (loanValue * (initCollateralRatio - 1e18)) / C.RATIO_FACTOR;
-        } else {
-            uint256 initCollateralRatio = order.isOffer
-                ? fill.borrowerConfig.initCollateralRatio
-                : order.borrowerConfig.initCollateralRatio;
-
-            if (order.isOffer) {
-                agreement.lenderAccount = order.account;
-                agreement.borrowerAccount = fill.account;
-            } else {
-                agreement.lenderAccount = fill.account;
-                agreement.borrowerAccount = order.account;
-            }
-
-            collateralValue = (loanValue * initCollateralRatio) / C.RATIO_FACTOR;
+        uint256 loanValue = (agreement.loanAmount*IOracle(agreement.loanOracle.addr).getOpenPrice(agreement.loanOracle.parameters, agreement.fillerData)) / C.RATIO_FACTOR;
+        uint256 collValue = (agreement.collAmount*IOracle(agreement.collOracle.addr).getOpenPrice(agreement.collOracle.parameters, agreement.fillerData)) / C.RATIO_FACTOR; 
+        uint256 initCollateralRatio;
+        if(order.isLeverage) {
+         initCollateralRatio = (loanValue + collValue)*C.RATIO_FACTOR/loanValue;
+        } else{
+         initCollateralRatio= collValue*C.RATIO_FACTOR/loanValue;
         }
+        require(initCollateralRatio >= agreement.minCollateralRatio , "not enough collateral");
 
-        agreement.position.parameters = order.isOffer
-            ? fill.borrowerConfig.positionParameters
-            : order.borrowerConfig.positionParameters;
-
-        agreement.collAmount =
-            (collateralValue * C.RATIO_FACTOR) /
-            IOracle(agreement.collOracle.addr).getOpenPrice(agreement.collOracle.parameters, agreement.fillerData);
-
-        // Set Position data that cannot be computed off chain by caller.
         agreement.deploymentTime = block.timestamp;
 
         _openPosition(agreement);

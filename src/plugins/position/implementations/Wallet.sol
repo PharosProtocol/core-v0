@@ -38,6 +38,9 @@ contract WalletFactory is Position {
         uint256 tokenId; // for ERC721 and ERC1155
         bytes data;
     }
+    struct FillerData{
+        uint256 tokenId;
+    }
     /// @dev assumes assets are already in Position.
     function _open(Agreement calldata agreement) internal override {
         Parameters memory params = abi.decode(agreement.borrowerAccount.parameters, (Parameters));
@@ -97,8 +100,10 @@ contract WalletFactory is Position {
     function _getCloseAmount(Agreement memory agreement) internal  override returns (uint256) {
         
         Asset memory asset = abi.decode(agreement.collAsset, (Asset));
+        FillerData memory borrowerAsset = abi.decode(agreement.fillerData, (FillerData));
+
          if ((asset.standard == 2 || asset.standard == 3) && asset.tokenId == 0){
-            agreement.collOracle.parameters = agreement.fillerData;
+            asset.tokenId = borrowerAsset.tokenId;
         }
         address assetAddress = asset.addr;
         uint8 assetDecimals = asset.decimals;

@@ -41,8 +41,8 @@ struct Order {
 }
 
 struct BorrowerConfig {
-    uint256 initCollateralRatio; // Borrower chooses starting health.
-    bytes positionParameters; // Should lenders be allowing specified parameters?
+    uint256 collAmount; // Borrower chooses starting health by setting amount of collateral.
+    bytes positionParameters; //Borrower parameters if needed by position
 }
 
 /// @notice Taker defined Position configuration that is compatible with an offer or a request.
@@ -88,17 +88,13 @@ library LibBookkeeper {
     /// @notice verify that a fill is valid for an order.
     /// @dev Reverts with reason if not valid.
     function verifyFill(Fill calldata fill, Order memory order) internal pure {
-        BorrowerConfig memory borrowerConfig;
         if (!order.isOffer) {
             require(!fill.isOfferFill, "offer fill of offer");
-            borrowerConfig = order.borrowerConfig;
         } else {
             require(fill.isOfferFill, "request fill of request");
-            borrowerConfig = fill.borrowerConfig;
         }
 
         require(fill.loanAmount >= order.minLoanAmounts[fill.loanAssetIdx], "loanAmount too small");
-        require(borrowerConfig.initCollateralRatio >= order.minCollateralRatio[fill.collAssetIdx], "initCollateralRatio too small");
 
     }
 
@@ -111,7 +107,6 @@ library LibBookkeeper {
         agreement.maxDuration = order.maxDuration;
         agreement.assessor = order.assessor;
         agreement.liquidator = order.liquidator;
-        agreement.isLeverage = order.isLeverage ;
         agreement.loanAsset = order.loanAssets[fill.loanAssetIdx];
         agreement.loanOracle = order.loanOracles[fill.loanAssetIdx];
         agreement.collAsset = order.collAssets[fill.collAssetIdx];
@@ -119,7 +114,19 @@ library LibBookkeeper {
         agreement.minCollateralRatio = order.minCollateralRatio[fill.collAssetIdx];
         agreement.factory = order.factories[fill.factoryIdx];
         agreement.loanAmount = fill.loanAmount;
+        agreement.collAmount=fill.borrowerConfig.collAmount;
         agreement.fillerData= fill.fillerData;
+        if (order.isOffer) {
+        agreement.lenderAccount = order.account;
+        agreement.borrowerAccount = fill.account;
+        agreement.position.parameters = fill.borrowerConfig.positionParameters;
+    } else {
+        agreement.lenderAccount = fill.account;
+        agreement.borrowerAccount = order.account;
+        agreement.position.parameters = order.borrowerConfig.positionParameters;
+        }
+        
+
     }
 
 /// @dev Liquidation based on expiration or CR 
