@@ -217,34 +217,25 @@ contract FillAndClose is TestUtils {
         deal(USDC_ASSET.addr, agreement.position.addr, 5_000 * (10 ** TC.USDC_DECIMALS), true);
         console.log("USDC in MPC",IERC20(USDC_ASSET.addr).balanceOf(agreement.position.addr));
       
-        // vm.prank(borrower);
-        // bookkeeper.closePosition(agreementSignedBlueprint);
-        // console.log("====AGREEMENT CLOSED====");
-        // console.log("USDC in MPC",IERC20(USDC_ASSET.addr).balanceOf(agreement.position.addr));
-        // console.log("borrower wallet balance",IERC1155(Bean_Deposit.addr).balanceOf( address(borrower), 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b));
-        // console.log("collateral in MPC using getCloseAmount", IPosition(agreement.position.addr).getCloseAmount(agreement));
-        // console.log("collateral in MPC using using IERC1155",IERC1155(Bean_Deposit.addr).balanceOf( address(agreement.position.addr), 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b));
-       
         // Move time and block forward arbitrarily.
         vm.warp(block.timestamp + 10 days);
         vm.roll(block.number + (10 days / 12));
-
-        bytes memory liquidatorLogic= prepareLiquidatorLogic(agreement,abi.encode(lenderAccountParams),abi.encode(borrowerAccountParams));
-
+        
+        console.log("Liquidator reward", liquidatorPlugin.getReward(agreement));
+        uint256 liquidatorRewardInColl = liquidatorPlugin.getReward(agreement)*C.RATIO_FACTOR/IOracle(agreement.collOracle.addr).getClosePrice(agreement.collOracle.parameters, agreement.fillerData);
+        bytes memory liquidatorLogic= prepareLiquidatorLogic(agreement,abi.encode(lenderAccountParams),abi.encode(borrowerAccountParams),liquidatorRewardInColl);
+        vm.deal(agreement.position.addr, 2e18);
+        
+        //console.log("lender account USDC", accountPlugin.getBalance(USDC_ASSET_Encoded, abi.encode(lenderAccountParams),agreement.fillerData));
         //Liquidate the agreement
         vm.prank(liquidatorAddr);
         bookkeeper.triggerLiquidation(agreementSignedBlueprint,liquidatorLogic);
         console.log("====AGREEMENT LIQUIDATED====");
-
-        // console.log("USDC in MPC using IERC20",IERC20(decodedAsset.addr).balanceOf(agreement.position.addr));
-        // console.log("USDC in MPC using getCloseAmount", IPosition(agreement.position.addr).getCloseAmount(agreement));
-        // console.log("WETH lender account", accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)));
-        // console.log("borrower account USDC", accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)));
-        // console.log("agreement collAmount", agreement.collAmount);
-        // console.log("USDC in Account plugin using IERC20",IERC20(decodedAsset.addr).balanceOf(agreement.borrowerAccount.addr));
-        // console.log("WETH in Account plugin using IERC20",IERC20(WETH_ASSETT.addr).balanceOf(agreement.lenderAccount.addr));
-
-
+        //console.log("lender account USDC", accountPlugin.getBalance(USDC_ASSET_Encoded, abi.encode(lenderAccountParams),agreement.fillerData));
+        console.log("borrower account Bean Deposit", accountPlugin.getBalance(Bean_DepositId_Encoded, abi.encode(borrowerAccountParams),agreement.fillerData));
+        console.log("collateral in MPC using getCloseAmount", IPosition(agreement.position.addr).getCloseAmount(agreement));
+        console.log("collateral in MPC using using IERC1155",IERC1155(Bean_Deposit.addr).balanceOf( address(agreement.position.addr), 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b));
+       
     }
 
 
@@ -413,7 +404,8 @@ contract FillAndClose is TestUtils {
   function prepareLiquidatorLogic(
     Agreement memory agreement,
     bytes memory lenderAccountParams,
-    bytes memory borrowerAccountParams
+    bytes memory borrowerAccountParams,
+    uint256 liquidatorReward
 ) internal view returns (bytes memory liquidatorLogic) {
     // Define the destinations, data, and delegateCalls arrays
     address payable[] memory destinations = new address payable[](4);
@@ -457,8 +449,8 @@ contract FillAndClose is TestUtils {
 
     // ABI encode the function call to approve
     data[2] = abi.encodeWithSignature(
-        "approveDeposit(address spender, address token, uint256 amount)",
-        agreement.lenderAccount.addr,
+        "approveDeposit(address,address,uint256)",
+        agreement.borrowerAccount.addr,
         0xBEA0e11282e2bB5893bEcE110cF199501e872bAd,
         agreement.collAmount 
     );
@@ -467,11 +459,11 @@ contract FillAndClose is TestUtils {
     delegateCalls[2] = false;
 
     // Set the destination to the address of the contract with the loadFromPosition function
-    destinations[3] = payable(agreement.lenderAccount.addr);
+    destinations[3] = payable(agreement.borrowerAccount.addr);
 
     // Prepare the data for the loadFromPosition function call
     bytes memory assetData2 = Bean_DepositId_Encoded;
-    uint256 amount2 = agreement.collAmount;
+    uint256 amount2 = agreement.collAmount - liquidatorReward;
     bytes memory accountParameters2 = borrowerAccountParams;
 
     // ABI encode the function call to loadFromPosition
