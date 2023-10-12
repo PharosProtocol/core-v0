@@ -15,7 +15,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import {Blueprint, SignedBlueprint, Tractor} from "@tractor/Tractor.sol";
 
-import {SoloAccountPlus} from "src/plugins/account/implementations/SoloAccountPlus.sol";
+import {SoloAccount} from "src/plugins/account/implementations/SoloAccount.sol";
 //import {SoloAccount} from "src/plugins/account/implementations/SoloAccount.sol";
 import {IAssessor} from "src/interfaces/IAssessor.sol";
 import {IPosition} from "src/interfaces/IPosition.sol";
@@ -118,7 +118,7 @@ contract FillAndClose is TestUtils {
 
         // For local deploy of contracts latest local changes.
         bookkeeper = IBookkeeper(address(new Bookkeeper()));
-        accountPlugin = IAccount(address(new SoloAccountPlus(address(bookkeeper))));
+        accountPlugin = IAccount(address(new SoloAccount(address(bookkeeper))));
         assessorPlugin = IAssessor(address(new StandardAssessor()));
         staticOracle = IOracle(address(new StaticOracle()));
         beanDepositOracle = IOracle(address(new BeanDepositOracle()));
@@ -139,8 +139,8 @@ contract FillAndClose is TestUtils {
         address lender = vm.addr(LENDER_PRIVATE_KEY);
         address borrower = vm.addr(BORROWER_PRIVATE_KEY);
 
-        SoloAccountPlus.Parameters memory lenderAccountParams = SoloAccountPlus.Parameters({owner: lender, salt: bytes32(0)});
-        SoloAccountPlus.Parameters memory borrowerAccountParams = SoloAccountPlus.Parameters({
+        SoloAccount.Parameters memory lenderAccountParams = SoloAccount.Parameters({owner: lender, salt: bytes32(0)});
+        SoloAccount.Parameters memory borrowerAccountParams = SoloAccount.Parameters({
             owner: borrower,
             salt: bytes32(0)
         });
@@ -239,7 +239,7 @@ contract FillAndClose is TestUtils {
     }
 
 
-    function fundAccount(SoloAccountPlus.Parameters memory accountParams) private {
+    function fundAccount(SoloAccount.Parameters memory accountParams) private {
         vm.deal(accountParams.owner, 2e18);
         wethDeal(accountParams.owner, 12e18);
         deal(USDC_ASSET.addr, accountParams.owner, 5_000 * (10 ** TC.USDC_DECIMALS), true);
@@ -253,7 +253,7 @@ contract FillAndClose is TestUtils {
         vm.stopPrank();
     }
 
-    function createOrder(SoloAccountPlus.Parameters memory accountParams) private view returns (Order memory) {
+    function createOrder(SoloAccount.Parameters memory accountParams) private view returns (Order memory) {
         // Set individual structs here for cleanliness and solidity ease.
         PluginReference memory account = PluginReference({
             addr: address(accountPlugin),
@@ -329,7 +329,7 @@ contract FillAndClose is TestUtils {
             });
     }
 
-    function createFill(SoloAccountPlus.Parameters memory borrowerAccountParams) private view returns (Fill memory) {
+    function createFill(SoloAccount.Parameters memory borrowerAccountParams) private view returns (Fill memory) {
         uint256 tokenId = 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b;
         
         BorrowerConfig memory borrowerConfig = BorrowerConfig({
