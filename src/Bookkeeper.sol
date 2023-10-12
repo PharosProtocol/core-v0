@@ -140,7 +140,8 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
 
         IPosition position = IPosition(agreement.position.addr);
         IAccount lenderAccount = IAccount(agreement.lenderAccount.addr);
-        uint256 closeAmount = position.getCloseAmount(agreement);
+
+        uint256 closeAmount = position.getCloseAmount(agreement); // only used for event, consider removing
         uint256 assessorCost = IAssessor(agreement.assessor.addr).getCost(agreement);
         uint256 loanOraclePrice = IOracle(agreement.loanOracle.addr).getClosePrice(agreement.loanOracle.parameters, agreement.fillerData);
         uint256 lenderBalanceBefore = lenderAccount.getBalance(agreement.loanAsset, agreement.lenderAccount.parameters);
@@ -155,14 +156,7 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         // Mark the position as closed from the Bookkeeper's point of view.
         agreementClosed[keccak256(abi.encodePacked(agreement.position.addr))] = true;
 
-        emit PositionClosed(
-            agreementBlueprint,
-            agreement.position.addr,
-            msg.sender,
-            closeAmount,
-            loanOraclePrice,
-            assessorCost
-        );
+        emit PositionClosed( agreementBlueprint, agreement.position.addr, msg.sender, closeAmount,loanOraclePrice, assessorCost);
         position.transferContract(msg.sender);
     }
 
@@ -180,9 +174,8 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters);
         require(isBorrower, "error: caller is not the borrower");
 
-        IPosition position = IPosition(agreement.position.addr);
+        IPosition(agreement.position.addr).unwind(agreement);
 
-        position.unwind(agreement);
     }
 
     // Liquidate
@@ -232,14 +225,7 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         // Mark the position as closed from the Bookkeeper's point of view.
         agreementClosed[keccak256(abi.encodePacked(agreement.position.addr))] = true;
 
-        emit PositionClosed(
-            agreementBlueprint,
-            agreement.position.addr,
-            msg.sender,
-            closeAmount,
-            loanOraclePrice,
-            assessorCost
-        );
+        emit PositionClosed(agreementBlueprint, agreement.position.addr, msg.sender, closeAmount, loanOraclePrice, assessorCost);
         //Transfer Position to caller
         position.transferContract(msg.sender);
     }

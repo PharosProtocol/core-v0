@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/motasem/Repos/pharos/code/core-v0/src/Bookkeeper.sol": {
-      "lastModificationDate": 1696704908384,
-      "contentHash": "a019db22ccb5e274162c1acf58725fb3",
+      "lastModificationDate": 1697059402396,
+      "contentHash": "c8f8200e432dd090bd54cc29e0877766",
       "sourceName": "src/Bookkeeper.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -48,8 +48,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/interfaces/IAccount.sol": {
-      "lastModificationDate": 1696784480202,
-      "contentHash": "0fa9c468ad9b487604eb3b5eab5e83d4",
+      "lastModificationDate": 1696902765600,
+      "contentHash": "6ceb6bec4ad997a4a3667a7eb879fcb7",
       "sourceName": "src/interfaces/IAccount.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -83,8 +83,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/interfaces/IOracle.sol": {
-      "lastModificationDate": 1695349995092,
-      "contentHash": "23a31077cf0cb5a0e0fbdfda1dca96f7",
+      "lastModificationDate": 1696965953916,
+      "contentHash": "2b0de1b87a20a1af29673f0e7873a2b0",
       "sourceName": "src/interfaces/IOracle.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -118,8 +118,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/interfaces/IPosition.sol": {
-      "lastModificationDate": 1696553029020,
-      "contentHash": "c5ee9827ad6e812b1718775d3e2b3a4f",
+      "lastModificationDate": 1696955969919,
+      "contentHash": "bb1cb39b395e0b8797f2ffa05d90db9e",
       "sourceName": "src/interfaces/IPosition.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -156,8 +156,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/interfaces/ILiquidator.sol": {
-      "lastModificationDate": 1696381310213,
-      "contentHash": "32c990b0c0d66457b63f7e3d140ed995",
+      "lastModificationDate": 1696966607956,
+      "contentHash": "6f90c596af072abca240de142ea77f94",
       "sourceName": "src/interfaces/ILiquidator.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -194,8 +194,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/interfaces/IAssessor.sol": {
-      "lastModificationDate": 1695247177916,
-      "contentHash": "e11020a466b465b96e1c35cf9b911d95",
+      "lastModificationDate": 1696966673392,
+      "contentHash": "ef818cab8eab0c3e3be4706c14deb479",
       "sourceName": "src/interfaces/IAssessor.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -266,8 +266,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/libraries/LibBookkeeper.sol": {
-      "lastModificationDate": 1696355541167,
-      "contentHash": "07811f092e32040b814d72724ca166e8",
+      "lastModificationDate": 1697056602079,
+      "contentHash": "81be2976209c7933048ad13492af2ed0",
       "sourceName": "src/libraries/LibBookkeeper.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -894,8 +894,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/account/Account.sol": {
-      "lastModificationDate": 1696439124227,
-      "contentHash": "e32133d3594912cc06dc586a5a1e7ef7",
+      "lastModificationDate": 1696902756879,
+      "contentHash": "5abc22ec5ff7da00c2f495e13fe4cfd8",
       "sourceName": "src/plugins/account/Account.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -934,8 +934,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/account/implementations/SoloAccount.sol": {
-      "lastModificationDate": 1696784486965,
-      "contentHash": "91f24231771a95468f4105e4b8f47ac4",
+      "lastModificationDate": 1696810194108,
+      "contentHash": "8309b2113bd65cf562bf482721f9409f",
       "sourceName": "src/plugins/account/implementations/SoloAccount.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -960,19 +960,9 @@
           }
         }
       },
-      "imports": [
-        "src/libraries/C.sol",
-        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
-        "src/interfaces/external/IWETH9.sol",
-        "../Account.sol",
-        "src/libraries/LibUtilsPublic.sol"
-      ],
-      "versionPragmas": [
-        "0.8.19"
-      ],
-      "artifacts": [
-        "SoloAccount"
-      ]
+      "imports": [],
+      "versionPragmas": [],
+      "artifacts": []
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/interfaces/external/IWETH9.sol": {
       "lastModificationDate": 1695247177917,
@@ -1566,8 +1556,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/position/Position.sol": {
-      "lastModificationDate": 1696553071326,
-      "contentHash": "50713baa8fb4b4ca5276ddce2d5f97e9",
+      "lastModificationDate": 1696955981098,
+      "contentHash": "ed02f9dc3a9ff44737505a6106e405a2",
       "sourceName": "src/plugins/position/Position.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -1610,8 +1600,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/position/implementations/Wallet.sol": {
-      "lastModificationDate": 1696789340225,
-      "contentHash": "408927bc4f9d9d6b4a6361e9d5c6cd2f",
+      "lastModificationDate": 1697056784128,
+      "contentHash": "9afee6e80044427f6f7235c5e2be6a03",
       "sourceName": "src/plugins/position/implementations/Wallet.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -1656,8 +1646,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/position/implementations/BeanstalkSilo.sol": {
-      "lastModificationDate": 1696557138180,
-      "contentHash": "a94acf142ced4013465139ce117542ac",
+      "lastModificationDate": 1696966350459,
+      "contentHash": "779ea9d0a14a40d795233ca910da5e58",
       "sourceName": "src/plugins/position/implementations/BeanstalkSilo.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -1816,8 +1806,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/oracle/implementations/BeanOracle.sol": {
-      "lastModificationDate": 1696539412168,
-      "contentHash": "d95f03fc91199ff6aefe4df770a7cb45",
+      "lastModificationDate": 1696965985841,
+      "contentHash": "3d40378b596d3c5055ed678ee10287c4",
       "sourceName": "src/plugins/oracle/implementations/BeanOracle.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -1965,8 +1955,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/oracle/implementations/ChainlinkOracle.sol": {
-      "lastModificationDate": 1695831033577,
-      "contentHash": "1f95ff22c97e4b14a38f1835838c77b1",
+      "lastModificationDate": 1696965978430,
+      "contentHash": "a939ef382fc318afdd36ed024d315530",
       "sourceName": "src/plugins/oracle/implementations/ChainlinkOracle.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -2004,8 +1994,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/oracle/implementations/StaticOracle.sol": {
-      "lastModificationDate": 1695831033577,
-      "contentHash": "98b1bdaa427b6be71ccf81d58b8d7476",
+      "lastModificationDate": 1696965969970,
+      "contentHash": "62a77b38bb47db59970359a3409237c1",
       "sourceName": "src/plugins/oracle/implementations/StaticOracle.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -2042,8 +2032,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/liquidator/Liquidator.sol": {
-      "lastModificationDate": 1696381210621,
-      "contentHash": "8393901e2312f75c80dac64a8206a39d",
+      "lastModificationDate": 1696966603249,
+      "contentHash": "c0ed3cbedd0ec98203119c739425cffa",
       "sourceName": "src/plugins/liquidator/Liquidator.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -2156,8 +2146,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/assessor/implementations/StandardAssessor.sol": {
-      "lastModificationDate": 1696281183186,
-      "contentHash": "81ac27770422dad4358959d5df9199ce",
+      "lastModificationDate": 1696966658309,
+      "contentHash": "b3b84613d4cf706db9dee56037d61683",
       "sourceName": "src/plugins/assessor/implementations/StandardAssessor.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -2197,8 +2187,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/assessor/Assessor.sol": {
-      "lastModificationDate": 1695247177901,
-      "contentHash": "0ce8a4e07e8128614faed2a2e596b955",
+      "lastModificationDate": 1696966664840,
+      "contentHash": "1ed312cfff6af2d5e2ab2b1cbbc34b05",
       "sourceName": "src/plugins/assessor/Assessor.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -2266,8 +2256,8 @@
       "artifacts": []
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/liquidator/implementations/StandardLiquidator.sol": {
-      "lastModificationDate": 1696434902974,
-      "contentHash": "4c981c0f41f2f18438a1104b57bfb446",
+      "lastModificationDate": 1696966590811,
+      "contentHash": "c8c06ab3caf414391833ce5c0894f4f9",
       "sourceName": "src/plugins/liquidator/implementations/StandardLiquidator.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -2307,8 +2297,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/account/implementations/SoloAccountPlus.sol": {
-      "lastModificationDate": 1696789261878,
-      "contentHash": "dac48717e551006c0284d816ca2168c7",
+      "lastModificationDate": 1696970302783,
+      "contentHash": "76afc470129652e96c78196c6c21f182",
       "sourceName": "src/plugins/account/implementations/SoloAccountPlus.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -2420,6 +2410,48 @@
       ],
       "artifacts": [
         "IERC721"
+      ]
+    },
+    "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/oracle/implementations/BeanDepositOracle.sol": {
+      "lastModificationDate": 1697054106513,
+      "contentHash": "729971c9c52e220599a1ea4c0a5280fd",
+      "sourceName": "src/plugins/oracle/implementations/BeanDepositOracle.sol",
+      "solcConfig": {
+        "version": "0.8.19",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "src/libraries/C.sol",
+        "src/plugins/oracle/Oracle.sol",
+        "lib/Beanstalk/IWell.sol",
+        "lib/Beanstalk/IInstantaneousPump.sol",
+        "@chainlink/AggregatorV2V3Interface.sol"
+      ],
+      "versionPragmas": [
+        "0.8.19"
+      ],
+      "artifacts": [
+        "BeanDepositOracle",
+        "IBeanstalk"
       ]
     }
   }

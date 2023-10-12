@@ -24,5 +24,8 @@
     "@nomicfoundation/hardhat-foundry": "^1.1.1",
     "@nomicfoundation/hardhat-toolbox": "^3.0.0",
     "hardhat": "^2.17.3"
+  },
+  "dependencies": {
+    "solidity-code-metrics": "^0.0.23"
   }
 }

@@ -12,11 +12,6 @@ import {C} from "src/libraries/C.sol";
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
 import {CloneFactory} from "src/plugins/CloneFactory.sol";
 
-// Implementation should not allow user to enter a position in such a way that they
-// would be unable to exit. Lender does not necessarily agree to the parameters, so they
-// cannot be configured in any way that would allow locking of assets. Griefing.
-// TODO SECURITY this is probably possible in current Uni Hold Position impl. Need to verify exit
-// path at enter time.
 
 abstract contract Position is IPosition, CloneFactory {
     event ControlTransferred(address previousController, address newController);
@@ -32,7 +27,6 @@ abstract contract Position is IPosition, CloneFactory {
         _open(agreement);
     }
 
-
     function close(
         Agreement calldata agreement, uint256 amountToClose
     ) external override proxyExecution onlyRole(C.ADMIN_ROLE)  {
@@ -45,7 +39,7 @@ abstract contract Position is IPosition, CloneFactory {
         _unwind(agreement);
     }
 
-    function getCloseAmount(Agreement memory agreement) external  override proxyExecution returns (uint256) {
+    function getCloseAmount(Agreement memory agreement) external override proxyExecution returns (uint256) {
         return _getCloseAmount(agreement);
     }
 
@@ -55,11 +49,9 @@ abstract contract Position is IPosition, CloneFactory {
     function _close( Agreement calldata agreement, uint256 amountToClose) internal virtual;
     
     function _unwind( Agreement calldata agreement) internal virtual;
-
     
     function _getCloseAmount(Agreement memory agreement) internal  virtual returns (uint256);
     
-
 
     // Transfer Contract Ownership
     function transferContract(address controller) external override proxyExecution onlyRole(C.ADMIN_ROLE) {

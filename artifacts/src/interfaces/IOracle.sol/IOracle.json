@@ -9,6 +9,11 @@
           "internalType": "bytes",
           "name": "parameters",
           "type": "bytes"
+        },
+        {
+          "internalType": "bytes",
+          "name": "fillerData",
+          "type": "bytes"
         }
       ],
       "name": "getClosePrice",
@@ -19,7 +24,7 @@
           "type": "uint256"
         }
       ],
-      "stateMutability": "view",
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -27,6 +32,11 @@
         {
           "internalType": "bytes",
           "name": "parameters",
+          "type": "bytes"
+        },
+        {
+          "internalType": "bytes",
+          "name": "fillerData",
           "type": "bytes"
         }
       ],
@@ -38,7 +48,7 @@
           "type": "uint256"
         }
       ],
-      "stateMutability": "view",
+      "stateMutability": "nonpayable",
       "type": "function"
     }
   ],

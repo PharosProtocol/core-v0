@@ -175,10 +175,7 @@ contract FillAndClose is TestUtils {
         accountPlugin.loadFromUser(Bean_DepositId_Encoded, 11327804468626582811, abi.encode(borrowerAccountParams));
         console.log("===LOAD ACCOUNT===");
         console.log("plugin account balance using IERC1155",IERC1155(Bean_Deposit.addr).balanceOf( address(accountPlugin), 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b));
-
-
-
-        console.log("borrower wallet balance",IERC1155(Bean_Deposit.addr).balanceOf( address(borrower), Bean_Deposit.tokenId));
+        console.log("borrower wallet balance",IERC1155(Bean_Deposit.addr).balanceOf( address(borrower), 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b));
         console.log("borrower account balance using get balance",accountPlugin.getBalance(Bean_DepositId_Encoded, abi.encode(borrowerAccountParams)));
         console.log("plugin account address", address(accountPlugin) );
         console.log("Deposit price in USD", IOracle(address(beanDepositOracle)).getClosePrice("",abi.encode(FillerData({tokenId: 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b, account: address(accountPlugin)})))) ;
@@ -212,27 +209,23 @@ contract FillAndClose is TestUtils {
         // // vm.roll(block.number + (5 days / 12));
         
         (SignedBlueprint memory agreementSignedBlueprint, Agreement memory agreement) = retrieveAgreementFromLogs();
-        Asset memory decodedAsset = abi.decode(agreement.collAsset, (Asset));
 
         console.log("collateral in MPC using using IERC1155",IERC1155(Bean_Deposit.addr).balanceOf( address(agreement.position.addr), 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b));
         console.log("collateral in MPC using getCloseAmount", IPosition(agreement.position.addr).getCloseAmount(agreement));
 
 
-        // console.log("lender account", accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)));
-        // console.log("collateral in MPC using IERC20",IERC20(decodedAsset.addr).balanceOf(agreement.position.addr));
-        // console.log("collateral in MPC using getCloseAmount", IPosition(agreement.position.addr).getCloseAmount(agreement));
-        // // console.log("Bean:ETH LP",IERC20(0xBEA0e11282e2bB5893bEcE110cF199501e872bAd).balanceOf(agreement.position.addr));
-        // console.log("borrower account USDC", accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)));
+        deal(USDC_ASSET.addr, agreement.position.addr, 5_000 * (10 ** TC.USDC_DECIMALS), true);
+        console.log("USDC in MPC",IERC20(USDC_ASSET.addr).balanceOf(agreement.position.addr));
+      
+        vm.prank(borrower);
+        bookkeeper.closePosition(agreementSignedBlueprint);
+        console.log("====AGREEMENT CLOSED====");
+        console.log("USDC in MPC",IERC20(USDC_ASSET.addr).balanceOf(agreement.position.addr));
+        console.log("borrower wallet balance",IERC1155(Bean_Deposit.addr).balanceOf( address(borrower), 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b));
+        console.log("collateral in MPC using getCloseAmount", IPosition(agreement.position.addr).getCloseAmount(agreement));
+        console.log("collateral in MPC using using IERC1155",IERC1155(Bean_Deposit.addr).balanceOf( address(agreement.position.addr), 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b));
+       
 
-        // wethDeal(agreement.position.addr, 12e18);
-        // console.log("WETH MPC",IERC20(WETH_ASSET.addr).balanceOf(agreement.position.addr));
-        // console.log("USDC in Account plugin using IERC20",IERC20(decodedAsset.addr).balanceOf(agreement.borrowerAccount.addr));
-        // console.log("WETH in Account plugin using IERC20",IERC20(WETH_ASSET.addr).balanceOf(agreement.lenderAccount.addr));
-        // console.log("WETH in Account plugin using IERC20",IERC20(WETH_ASSET.addr).balanceOf(agreement.lenderAccount.addr));
-
-        // // vm.prank(borrower);
-        // // bookkeeper.closePosition(agreementSignedBlueprint);
-        // // console.log("====AGREEMENT CLOSED====");
 
         // console.log("USDC in MPC using IERC20",IERC20(decodedAsset.addr).balanceOf(agreement.position.addr));
         // console.log("USDC in MPC using getCloseAmount", IPosition(agreement.position.addr).getCloseAmount(agreement));

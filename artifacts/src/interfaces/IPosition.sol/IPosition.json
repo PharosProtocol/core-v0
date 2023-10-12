@@ -245,6 +245,11 @@
               "internalType": "uint256",
               "name": "deploymentTime",
               "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "fillerData",
+              "type": "bytes"
             }
           ],
           "internalType": "struct Agreement",
@@ -429,6 +434,11 @@
               "internalType": "uint256",
               "name": "deploymentTime",
               "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "fillerData",
+              "type": "bytes"
             }
           ],
           "internalType": "struct Agreement",
@@ -444,7 +454,7 @@
           "type": "uint256"
         }
       ],
-      "stateMutability": "view",
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -675,6 +685,11 @@
               "internalType": "uint256",
               "name": "deploymentTime",
               "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "fillerData",
+              "type": "bytes"
             }
           ],
           "internalType": "struct Agreement",
@@ -937,6 +952,11 @@
               "internalType": "uint256",
               "name": "deploymentTime",
               "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "fillerData",
+              "type": "bytes"
             }
           ],
           "internalType": "struct Agreement",

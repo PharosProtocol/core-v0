@@ -12,7 +12,7 @@
         },
         {
           "internalType": "bytes",
-          "name": "parameters",
+          "name": "accountParameters",
           "type": "bytes"
         }
       ],
@@ -31,7 +31,7 @@
       "inputs": [
         {
           "internalType": "bytes",
-          "name": "parameters",
+          "name": "accountParameters",
           "type": "bytes"
         }
       ],
@@ -65,7 +65,7 @@
         },
         {
           "internalType": "bytes",
-          "name": "parameters",
+          "name": "accountParameters",
           "type": "bytes"
         }
       ],
@@ -88,7 +88,7 @@
         },
         {
           "internalType": "bytes",
-          "name": "parameters",
+          "name": "accountParameters",
           "type": "bytes"
         }
       ],
@@ -111,7 +111,7 @@
         },
         {
           "internalType": "bytes",
-          "name": "parameters",
+          "name": "accountParameters",
           "type": "bytes"
         }
       ],
@@ -139,7 +139,12 @@
         },
         {
           "internalType": "bytes",
-          "name": "parameters",
+          "name": "accountParameters",
+          "type": "bytes"
+        },
+        {
+          "internalType": "bytes",
+          "name": "borrowerAssetData",
           "type": "bytes"
         }
       ],
@@ -162,7 +167,12 @@
         },
         {
           "internalType": "bytes",
-          "name": "parameters",
+          "name": "accountParameters",
+          "type": "bytes"
+        },
+        {
+          "internalType": "bytes",
+          "name": "borrowerAssetData",
           "type": "bytes"
         }
       ],
