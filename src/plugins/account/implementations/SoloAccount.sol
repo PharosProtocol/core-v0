@@ -29,7 +29,6 @@ contract SoloAccount is Account {
         address account;
     }
 
-
     mapping(bytes32 => mapping(bytes32 => uint256)) private balances; // Update mapping
 
     constructor(address bookkeeperAddr) Account(bookkeeperAddr) {}
@@ -66,16 +65,6 @@ contract SoloAccount is Account {
         }
     }
 
-        function _loadFromLiquidator (address liquidator, bytes memory assetData, uint256 amount, bytes memory accountParameters) internal override  {
-        Asset memory asset = abi.decode(assetData, (Asset));
-        Parameters memory params = abi.decode(accountParameters, (Parameters));
-        bytes32 id = _getId(params.owner, params.salt);
-        balances[id][keccak256(assetData)] += amount; // Update user balance
-        uint256 decAdjAmount = (amount * 10**(asset.decimals))/C.RATIO_FACTOR;
-        LibUtilsPublic.safeErc20TransferFrom(asset.addr, liquidator, address(this), decAdjAmount);
-        
-    }
-
     function _unloadToUser(bytes memory assetData, uint256 amount, bytes memory accountParameters, bytes memory fillerData) internal override {
          Asset memory asset = abi.decode(assetData, (Asset));
          if ((asset.standard == 2 || asset.standard == 3) && asset.tokenId == 0){
@@ -109,8 +98,6 @@ contract SoloAccount is Account {
             }
         }
     }
-
-    
 
     function _unloadToPosition(
         address position,
@@ -152,10 +139,17 @@ contract SoloAccount is Account {
     }
 
     function getBalance(
-        bytes calldata assetData,
-        bytes calldata parameters
+        bytes memory assetData,
+        bytes calldata parameters,
+        bytes calldata fillerData
     ) external view override returns (uint256 amounts) {
         Parameters memory params = abi.decode(parameters, (Parameters));
+         Asset memory asset = abi.decode(assetData, (Asset));
+         if ((asset.standard == 2 || asset.standard == 3) && asset.tokenId == 0){
+            FillerData memory fillerDataDecoded = abi.decode(fillerData,(FillerData));
+            asset.tokenId = fillerDataDecoded.tokenId;
+            assetData= abi.encode(Asset({standard: asset.standard, addr: asset.addr, decimals: asset.decimals, tokenId: asset.tokenId, data: asset.data}));
+        }
         bytes32 accountId = _getId(params.owner, params.salt);
         return balances[accountId][keccak256(assetData)];
     }

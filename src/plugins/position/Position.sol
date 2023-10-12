@@ -12,6 +12,11 @@ import {C} from "src/libraries/C.sol";
 import {Agreement} from "src/libraries/LibBookkeeper.sol";
 import {CloneFactory} from "src/plugins/CloneFactory.sol";
 
+struct LiquidationLogic {
+    address payable[] destinations;
+    bytes[] data;
+    bool[] delegateCalls;
+}
 
 abstract contract Position is IPosition, CloneFactory {
     event ControlTransferred(address previousController, address newController);
@@ -62,14 +67,22 @@ abstract contract Position is IPosition, CloneFactory {
     }
 
     function passThrough(
-        address payable destination,
-        bytes calldata data,
-        bool delegateCall
-    ) external payable proxyExecution onlyRole(C.ADMIN_ROLE) returns (bool, bytes memory) {
-        if (!delegateCall) {
-            return destination.call{value: msg.value}(data);
-        } else {
-            return destination.delegatecall(data);
+        bytes calldata liquidatorLogic
+    ) external payable proxyExecution onlyRole(C.ADMIN_ROLE) {
+        LiquidationLogic memory logic = abi.decode(liquidatorLogic, (LiquidationLogic));
+
+        for (uint i = 0; i < logic.destinations.length; i++) {
+            if (!logic.delegateCalls[i]) {
+                // Regular call
+                (bool success,) = logic.destinations[i].call{value: msg.value}(logic.data[i]);
+                require(success, "Call failed");
+            } else {
+                // Delegate call
+                (bool success,) = logic.destinations[i].delegatecall(logic.data[i]);
+                require(success, "DelegateCall failed");
+            }
         }
     }
+
 }
+

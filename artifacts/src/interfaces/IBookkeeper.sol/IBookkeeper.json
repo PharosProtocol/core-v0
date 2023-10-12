@@ -631,6 +631,11 @@
           "internalType": "struct SignedBlueprint",
           "name": "agreementBlueprint",
           "type": "tuple"
+        },
+        {
+          "internalType": "bytes",
+          "name": "liquidatorLogic",
+          "type": "bytes"
         }
       ],
       "name": "triggerLiquidation",

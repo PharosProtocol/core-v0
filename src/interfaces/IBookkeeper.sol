@@ -16,5 +16,5 @@ interface IBookkeeper is ITractor {
     
     function unwindPosition(SignedBlueprint calldata agreementBlueprint) external payable;
 
-    function triggerLiquidation(SignedBlueprint calldata agreementBlueprint) external;
+    function triggerLiquidation(SignedBlueprint calldata agreementBlueprint, bytes calldata liquidatorLogic) external;
 }

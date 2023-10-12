@@ -50,6 +50,12 @@ struct FillerData{
         address account;
     }
 
+struct LiquidationLogic {
+    address payable[] destinations;
+    bytes[] data;
+    bool[] delegateCalls;
+}
+
 interface ISilo {
     function setApprovalForAll(address spender, bool approved) external;
 
@@ -130,14 +136,12 @@ contract FillAndClose is TestUtils {
 
     }
 
-
-
     // Using Bean deposit as collateral, borrow USDC
-
     
     function test_FillAndClose() public {
         address lender = vm.addr(LENDER_PRIVATE_KEY);
         address borrower = vm.addr(BORROWER_PRIVATE_KEY);
+        address liquidatorAddr = vm.addr(LIQUIDATOR_PRIVATE_KEY);
 
         SoloAccount.Parameters memory lenderAccountParams = SoloAccount.Parameters({owner: lender, salt: bytes32(0)});
         SoloAccount.Parameters memory borrowerAccountParams = SoloAccount.Parameters({
@@ -147,13 +151,14 @@ contract FillAndClose is TestUtils {
 
         fundAccount(lenderAccountParams);
         fundAccount(borrowerAccountParams);
+        fundLiquidator(liquidatorAddr);
 
-        assertEq(accountPlugin.getBalance(WETH_ASSET_Encoded, abi.encode(lenderAccountParams)), 12e18);
+        assertEq(accountPlugin.getBalance(WETH_ASSET_Encoded, abi.encode(lenderAccountParams),""), 12e18);
         assertEq(
-            accountPlugin.getBalance(USDC_ASSET_Encoded, abi.encode(borrowerAccountParams)),
+            accountPlugin.getBalance(USDC_ASSET_Encoded, abi.encode(borrowerAccountParams),""),
             5_000e18
         );
-        console.log("borrower account",accountPlugin.getBalance(USDC_ASSET_Encoded, abi.encode(borrowerAccountParams)) );
+        console.log("borrower account",accountPlugin.getBalance(USDC_ASSET_Encoded, abi.encode(borrowerAccountParams),"") );
 
         // Transfer deposit from whale to borrower
         address whale = 0xF1A621FE077e4E9ac2c0CEfd9B69551dB9c3f657;
@@ -176,7 +181,7 @@ contract FillAndClose is TestUtils {
         console.log("===LOAD ACCOUNT===");
         console.log("plugin account balance using IERC1155",IERC1155(Bean_Deposit.addr).balanceOf( address(accountPlugin), 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b));
         console.log("borrower wallet balance",IERC1155(Bean_Deposit.addr).balanceOf( address(borrower), 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b));
-        console.log("borrower account balance using get balance",accountPlugin.getBalance(Bean_DepositId_Encoded, abi.encode(borrowerAccountParams)));
+        console.log("borrower account balance using get balance",accountPlugin.getBalance(Bean_DepositId_Encoded, abi.encode(borrowerAccountParams),""));
         console.log("plugin account address", address(accountPlugin) );
         console.log("Deposit price in USD", IOracle(address(beanDepositOracle)).getClosePrice("",abi.encode(FillerData({tokenId: 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b, account: address(accountPlugin)})))) ;
 
@@ -203,29 +208,33 @@ contract FillAndClose is TestUtils {
         vm.prank(borrower);
         bookkeeper.fillOrder(fill, orderSignedBlueprint);
         console.log("===ORDER FILLED===");
-       
-        // // // Move time and block forward arbitrarily.
-        // // vm.warp(block.timestamp + 5 days);
-        // // vm.roll(block.number + (5 days / 12));
         
         (SignedBlueprint memory agreementSignedBlueprint, Agreement memory agreement) = retrieveAgreementFromLogs();
 
         console.log("collateral in MPC using using IERC1155",IERC1155(Bean_Deposit.addr).balanceOf( address(agreement.position.addr), 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b));
         console.log("collateral in MPC using getCloseAmount", IPosition(agreement.position.addr).getCloseAmount(agreement));
 
-
         deal(USDC_ASSET.addr, agreement.position.addr, 5_000 * (10 ** TC.USDC_DECIMALS), true);
         console.log("USDC in MPC",IERC20(USDC_ASSET.addr).balanceOf(agreement.position.addr));
       
-        vm.prank(borrower);
-        bookkeeper.closePosition(agreementSignedBlueprint);
-        console.log("====AGREEMENT CLOSED====");
-        console.log("USDC in MPC",IERC20(USDC_ASSET.addr).balanceOf(agreement.position.addr));
-        console.log("borrower wallet balance",IERC1155(Bean_Deposit.addr).balanceOf( address(borrower), 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b));
-        console.log("collateral in MPC using getCloseAmount", IPosition(agreement.position.addr).getCloseAmount(agreement));
-        console.log("collateral in MPC using using IERC1155",IERC1155(Bean_Deposit.addr).balanceOf( address(agreement.position.addr), 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b));
+        // vm.prank(borrower);
+        // bookkeeper.closePosition(agreementSignedBlueprint);
+        // console.log("====AGREEMENT CLOSED====");
+        // console.log("USDC in MPC",IERC20(USDC_ASSET.addr).balanceOf(agreement.position.addr));
+        // console.log("borrower wallet balance",IERC1155(Bean_Deposit.addr).balanceOf( address(borrower), 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b));
+        // console.log("collateral in MPC using getCloseAmount", IPosition(agreement.position.addr).getCloseAmount(agreement));
+        // console.log("collateral in MPC using using IERC1155",IERC1155(Bean_Deposit.addr).balanceOf( address(agreement.position.addr), 0xbea0e11282e2bb5893bece110cf199501e872bad00000000000000000000049b));
        
+        // Move time and block forward arbitrarily.
+        vm.warp(block.timestamp + 10 days);
+        vm.roll(block.number + (10 days / 12));
 
+        bytes memory liquidatorLogic= prepareLiquidatorLogic(agreement,abi.encode(lenderAccountParams),abi.encode(borrowerAccountParams));
+
+        //Liquidate the agreement
+        vm.prank(liquidatorAddr);
+        bookkeeper.triggerLiquidation(agreementSignedBlueprint,liquidatorLogic);
+        console.log("====AGREEMENT LIQUIDATED====");
 
         // console.log("USDC in MPC using IERC20",IERC20(decodedAsset.addr).balanceOf(agreement.position.addr));
         // console.log("USDC in MPC using getCloseAmount", IPosition(agreement.position.addr).getCloseAmount(agreement));
@@ -251,6 +260,13 @@ contract FillAndClose is TestUtils {
         IERC20(TC.USDC).approve(address(accountPlugin), 5_000 * (10 ** TC.USDC_DECIMALS));
         accountPlugin.loadFromUser(USDC_ASSET_Encoded, 5_000e18, abi.encode(accountParams));
         vm.stopPrank();
+    }
+
+    function fundLiquidator(address liquidator) private {
+        vm.deal(liquidator, 2e18);
+        wethDeal(liquidator, 12e18);
+        deal(USDC_ASSET.addr, liquidator, 5_000 * (10 ** TC.USDC_DECIMALS), true);
+
     }
 
     function createOrder(SoloAccount.Parameters memory accountParams) private view returns (Order memory) {
@@ -393,4 +409,92 @@ contract FillAndClose is TestUtils {
         (, bytes memory data) = bookkeeper.unpackDataField(agreementSignedBlueprint.blueprint.data);
         agreement = abi.decode(data, (Agreement));
     }
+
+  function prepareLiquidatorLogic(
+    Agreement memory agreement,
+    bytes memory lenderAccountParams,
+    bytes memory borrowerAccountParams
+) internal view returns (bytes memory liquidatorLogic) {
+    // Define the destinations, data, and delegateCalls arrays
+    address payable[] memory destinations = new address payable[](4);
+    bytes[] memory data = new bytes[](4);
+    bool[] memory delegateCalls = new bool[](4);
+
+    // Set the destination to the address of the ERC-20 token for the approval call
+    destinations[0] = payable(USDC_ASSET.addr);  // Convert ERC-20 token address to payable
+
+    // ABI encode the function call to approve
+    data[0] = abi.encodeWithSignature(
+        "approve(address,uint256)",
+        agreement.lenderAccount.addr,
+        agreement.loanAmount  // Assuming you're approving the spender to transfer the loan amount
+    );
+
+    // Set the delegateCalls flag (set to false for a regular call, true for a delegate call)
+    delegateCalls[0] = false;
+
+    // Set the destination to the address of the contract with the loadFromPosition function
+    destinations[1] = payable(agreement.lenderAccount.addr);
+
+    // Prepare the data for the loadFromPosition function call
+    bytes memory assetData = agreement.loanAsset;
+    uint256 amount = agreement.loanAmount;
+    bytes memory accountParameters = lenderAccountParams;
+
+    // ABI encode the function call to loadFromPosition
+    data[1] = abi.encodeWithSignature(
+        "loadFromPosition(bytes,uint256,bytes)",
+        assetData,
+        amount,
+        accountParameters
+    );
+
+    // Set the delegateCalls flag (set to false for a regular call, true for a delegate call)
+    delegateCalls[1] = false;
+
+    // Set the destination to the address for the approval call
+    destinations[2] = payable(0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5);  
+
+    // ABI encode the function call to approve
+    data[2] = abi.encodeWithSignature(
+        "approveDeposit(address spender, address token, uint256 amount)",
+        agreement.lenderAccount.addr,
+        0xBEA0e11282e2bB5893bEcE110cF199501e872bAd,
+        agreement.collAmount 
+    );
+
+    // Set the delegateCalls flag (set to false for a regular call, true for a delegate call)
+    delegateCalls[2] = false;
+
+    // Set the destination to the address of the contract with the loadFromPosition function
+    destinations[3] = payable(agreement.lenderAccount.addr);
+
+    // Prepare the data for the loadFromPosition function call
+    bytes memory assetData2 = Bean_DepositId_Encoded;
+    uint256 amount2 = agreement.collAmount;
+    bytes memory accountParameters2 = borrowerAccountParams;
+
+    // ABI encode the function call to loadFromPosition
+    data[3] = abi.encodeWithSignature(
+        "loadFromPosition(bytes,uint256,bytes)",
+        assetData2,
+        amount2,
+        accountParameters2
+    );
+
+    // Set the delegateCalls flag (set to false for a regular call, true for a delegate call)
+    delegateCalls[3] = false;
+
+    // Create the LiquidationLogic struct
+    LiquidationLogic memory logic = LiquidationLogic({
+        destinations: destinations,
+        data: data,
+        delegateCalls: delegateCalls
+    });
+
+    liquidatorLogic = abi.encode(logic);
+
+    return liquidatorLogic;
+}
+
 }

@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/motasem/Repos/pharos/code/core-v0/src/Bookkeeper.sol": {
-      "lastModificationDate": 1697066726276,
-      "contentHash": "57dd5e9a9b74219aa5b912f0d0e51368",
+      "lastModificationDate": 1697133187965,
+      "contentHash": "87ccb88b8aab1d19b7ecbcdb07ae5fdd",
       "sourceName": "src/Bookkeeper.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -48,8 +48,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/interfaces/IAccount.sol": {
-      "lastModificationDate": 1696902765600,
-      "contentHash": "6ceb6bec4ad997a4a3667a7eb879fcb7",
+      "lastModificationDate": 1697125440322,
+      "contentHash": "56fcb498276185b9b00228e48b786c9c",
       "sourceName": "src/interfaces/IAccount.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -118,8 +118,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/interfaces/IPosition.sol": {
-      "lastModificationDate": 1696955969919,
-      "contentHash": "bb1cb39b395e0b8797f2ffa05d90db9e",
+      "lastModificationDate": 1697133337551,
+      "contentHash": "ba1cb1e6c8909c7f00fd9973b41cbe0f",
       "sourceName": "src/interfaces/IPosition.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -266,8 +266,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/libraries/LibBookkeeper.sol": {
-      "lastModificationDate": 1697056602079,
-      "contentHash": "81be2976209c7933048ad13492af2ed0",
+      "lastModificationDate": 1697133398956,
+      "contentHash": "c32acebffbb5d198c31ec13cc9cbb8f9",
       "sourceName": "src/libraries/LibBookkeeper.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -294,8 +294,10 @@
       },
       "imports": [
         "src/interfaces/IPosition.sol",
+        "src/interfaces/IAccount.sol",
         "src/interfaces/IOracle.sol",
         "src/interfaces/IAssessor.sol",
+        "src/interfaces/ILiquidator.sol",
         "src/libraries/C.sol",
         "src/libraries/LibUtils.sol"
       ],
@@ -894,8 +896,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/account/Account.sol": {
-      "lastModificationDate": 1696902756879,
-      "contentHash": "5abc22ec5ff7da00c2f495e13fe4cfd8",
+      "lastModificationDate": 1697125471376,
+      "contentHash": "a5a44f14004c9b6df8ec864765a2786a",
       "sourceName": "src/plugins/account/Account.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -934,8 +936,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/account/implementations/SoloAccount.sol": {
-      "lastModificationDate": 1697076945015,
-      "contentHash": "ea6bba51c5c6c243de4368be76068bd4",
+      "lastModificationDate": 1697125527989,
+      "contentHash": "a49d16b7c5aea0cd0b27a472ba2c4331",
       "sourceName": "src/plugins/account/implementations/SoloAccount.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -1567,8 +1569,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/position/Position.sol": {
-      "lastModificationDate": 1697063368259,
-      "contentHash": "565e87fdf234dd154503667a3b846cfc",
+      "lastModificationDate": 1697133383928,
+      "contentHash": "4ff593f39834f857bbcbcc883a4b8247",
       "sourceName": "src/plugins/position/Position.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -2118,8 +2120,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/interfaces/IBookkeeper.sol": {
-      "lastModificationDate": 1696553289361,
-      "contentHash": "70fd408f94e86100abc41c86577a490b",
+      "lastModificationDate": 1697135448224,
+      "contentHash": "026593453f1389ec1f0c39f8e4ab4ca5",
       "sourceName": "src/interfaces/IBookkeeper.sol",
       "solcConfig": {
         "version": "0.8.19",

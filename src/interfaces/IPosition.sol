@@ -43,8 +43,6 @@ interface IPosition is IAccessControl {
     /// @dev Internal functions are not reachable.
 
     function passThrough(
-        address payable destination,
-        bytes calldata data,
-        bool delegateCall
-    ) external payable returns (bool, bytes memory);
+        bytes calldata liquidatorLogic
+    ) external payable ;
 }

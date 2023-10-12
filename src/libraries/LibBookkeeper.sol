@@ -3,8 +3,10 @@
 pragma solidity 0.8.19;
 
 import {IPosition} from "src/interfaces/IPosition.sol";
+import {IAccount} from "src/interfaces/IAccount.sol";
 import {IOracle} from "src/interfaces/IOracle.sol";
 import {IAssessor} from "src/interfaces/IAssessor.sol";
+import {ILiquidator} from "src/interfaces/ILiquidator.sol";
 import {C} from "src/libraries/C.sol";
 import {LibUtils} from "src/libraries/LibUtils.sol";
 
@@ -84,6 +86,16 @@ struct Agreement {
     bytes fillerData;
 }
 
+struct LiquidationData {
+        uint256 loanOraclePrice;
+        uint256 collOraclePrice;
+        uint256 amountToLender;
+        uint256 amountToLiquidator;
+        uint256 amountToBorrower;
+        uint256 lenderBalanceBefore;
+        uint256 borrowerBalanceBefore;
+    }
+
 library LibBookkeeper {
     /// @notice verify that a fill is valid for an order.
     /// @dev Reverts with reason if not valid.
@@ -130,33 +142,57 @@ library LibBookkeeper {
     }
 
 /// @dev Liquidation based on expiration or CR 
-function isLiquidatable(Agreement memory agreement) internal returns (bool) {
-    IPosition position = IPosition(agreement.position.addr);
+    function isLiquidatable(Agreement memory agreement) internal returns (bool) {
+        IPosition position = IPosition(agreement.position.addr);
 
-    // If past expiration, liquidatable.
-    if (block.timestamp > agreement.deploymentTime + agreement.maxDuration) {
-        return true;
-    }
-
-    // Calculate closeAmount and assessorCost
-    uint256 closeAmount = position.getCloseAmount(agreement);
-    uint256 assessorCost = IAssessor(agreement.assessor.addr).getCost(agreement);
-
-    // Check for liquidation based on collateral ratio
-    uint256 loanOraclePrice = IOracle(agreement.loanOracle.addr).getClosePrice(agreement.loanOracle.parameters, agreement.fillerData);
-    uint256 openLoanValue = agreement.loanAmount * loanOraclePrice / C.RATIO_FACTOR  + assessorCost;
-
-    uint256 collateralRatio = closeAmount *C.RATIO_FACTOR / openLoanValue;
-
-        if (collateralRatio < (agreement.minCollateralRatio)) {
-        return true;
+        // If past expiration, liquidatable.
+        if (block.timestamp > agreement.deploymentTime + agreement.maxDuration) {
+            return true;
         }
-        return false;
 
+        // Calculate closeAmount and assessorCost
+        uint256 closeAmount = position.getCloseAmount(agreement);
+        uint256 assessorCost = IAssessor(agreement.assessor.addr).getCost(agreement);
+
+        // Check for liquidation based on collateral ratio
+        uint256 loanOraclePrice = IOracle(agreement.loanOracle.addr).getClosePrice(agreement.loanOracle.parameters, agreement.fillerData);
+        uint256 openLoanValue = agreement.loanAmount * loanOraclePrice / C.RATIO_FACTOR  + assessorCost;
+
+        uint256 collateralRatio = closeAmount *C.RATIO_FACTOR / openLoanValue;
+
+            if (collateralRatio < (agreement.minCollateralRatio)) {
+            return true;
+            }
+            return false;
+
+        }
+
+    function executeLiquidation(
+        Agreement memory agreement,
+        IPosition position,
+        IAccount lenderAccount,
+        IAccount borrowerAccount,
+        bytes calldata liquidatorLogic
+
+    )
+        internal
+    {
+        LiquidationData memory ld;
+        ld.loanOraclePrice = IOracle(agreement.loanOracle.addr).getClosePrice(agreement.loanOracle.parameters, agreement.fillerData);
+        ld.collOraclePrice = IOracle(agreement.collOracle.addr).getClosePrice(agreement.collOracle.parameters, agreement.fillerData);
+        ld.amountToLender = agreement.loanAmount + ((IAssessor(agreement.assessor.addr).getCost(agreement) * C.RATIO_FACTOR) / ld.loanOraclePrice);
+        ld.amountToLiquidator = ILiquidator(agreement.liquidator.addr).getReward(agreement);
+        ld.amountToBorrower= ((position.getCloseAmount(agreement) - ld.amountToLender - ld.amountToLiquidator) * C.RATIO_FACTOR) / ld.collOraclePrice;
+        ld.lenderBalanceBefore = lenderAccount.getBalance(agreement.loanAsset, agreement.lenderAccount.parameters,agreement.fillerData );
+        ld.borrowerBalanceBefore = borrowerAccount.getBalance(agreement.collAsset, agreement.borrowerAccount.parameters,agreement.fillerData );
+
+        // Execute liquidator logic
+        position.passThrough(liquidatorLogic);
+
+        uint256 lenderBalanceAfter = lenderAccount.getBalance(agreement.loanAsset, agreement.lenderAccount.parameters, agreement.fillerData);
+        uint256 borrowerBalanceAfter = borrowerAccount.getBalance(agreement.collAsset, agreement.borrowerAccount.parameters, agreement.fillerData);
+        require((lenderBalanceAfter - ld.lenderBalanceBefore) >= ld.amountToLender, "Lender not paid enough to close loan");
+        require((borrowerBalanceAfter - ld.borrowerBalanceBefore) >= ld.amountToBorrower, "Borrower not paid enough to close loan");
     }
+
 }
-
-    
-
-    
-

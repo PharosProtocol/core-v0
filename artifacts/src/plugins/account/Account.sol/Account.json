@@ -8,37 +8,6 @@
       "inputs": [
         {
           "indexed": false,
-          "internalType": "address",
-          "name": "liquidator",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "bytes",
-          "name": "assetData",
-          "type": "bytes"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "bytes",
-          "name": "parameters",
-          "type": "bytes"
-        }
-      ],
-      "name": "LoadedFromLiquidator",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": false,
           "internalType": "bytes",
           "name": "assetData",
           "type": "bytes"
@@ -342,34 +311,6 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "liquidator",
-          "type": "address"
-        },
-        {
-          "internalType": "bytes",
-          "name": "assetData",
-          "type": "bytes"
-        },
-        {
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        },
-        {
-          "internalType": "bytes",
-          "name": "accountParameters",
-          "type": "bytes"
-        }
-      ],
-      "name": "loadFromLiquidator",
-      "outputs": [],
-      "stateMutability": "payable",
       "type": "function"
     },
     {

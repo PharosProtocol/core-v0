@@ -11,7 +11,6 @@ import {IAccount} from "src/interfaces/IAccount.sol";
 abstract contract Account is IAccount, AccessControl, ReentrancyGuard {
     event LoadedFromUser(bytes assetData, uint256 amount, bytes accountParameters);
     event LoadedFromPosition(bytes assetData, uint256 amount, bytes accountParameters);
-    event LoadedFromLiquidator(address liquidator, bytes assetData, uint256 amount, bytes parameters);
     event UnloadedToUser(bytes assetData, uint256 amount, bytes parameters, bytes borrowerAssetData);
     event UnloadedToPosition(address position, bytes assetData, uint256 amount, bytes parameters, bytes borrowerAssetData);
 
@@ -38,18 +37,6 @@ abstract contract Account is IAccount, AccessControl, ReentrancyGuard {
         emit LoadedFromPosition(assetData, amount, accountParameters );
     }
 
-    function loadFromLiquidator(
-        address liquidator,
-        bytes calldata assetData,
-        uint256 amount,
-        bytes calldata accountParameters
-    ) external payable override nonReentrant {
-        _loadFromLiquidator(liquidator, assetData, amount, accountParameters);
-        emit LoadedFromLiquidator(liquidator, assetData, amount, accountParameters);
-    }
-
-
-
     function unloadToUser(
         bytes calldata assetData,
         uint256 amount,
@@ -71,13 +58,8 @@ abstract contract Account is IAccount, AccessControl, ReentrancyGuard {
         emit UnloadedToPosition(position, assetData, amount, accountParameters,borrowerAssetData);
     }
     
-
-
-
     function _loadFromUser(bytes memory assetData, uint256 amount, bytes memory accountParameters) internal virtual;
     function _loadFromPosition(bytes memory assetData, uint256 amount, bytes memory accountParameters) internal virtual;
-
-    function _loadFromLiquidator(address liquidator, bytes memory assetData, uint256 amount, bytes memory accountParameters) internal virtual;
     function _unloadToUser(bytes memory assetData, uint256 amount, bytes memory accountParameters,bytes memory borrowerAssetData) internal virtual;
     function _unloadToPosition(address position, bytes memory assetData, uint256 amount, bytes memory accountParameters, bytes memory borrowerAssetData ) internal virtual;
 

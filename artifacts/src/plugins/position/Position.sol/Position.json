@@ -809,34 +809,13 @@
     {
       "inputs": [
         {
-          "internalType": "address payable",
-          "name": "destination",
-          "type": "address"
-        },
-        {
           "internalType": "bytes",
-          "name": "data",
+          "name": "liquidatorLogic",
           "type": "bytes"
-        },
-        {
-          "internalType": "bool",
-          "name": "delegateCall",
-          "type": "bool"
         }
       ],
       "name": "passThrough",
-      "outputs": [
-        {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
-        },
-        {
-          "internalType": "bytes",
-          "name": "",
-          "type": "bytes"
-        }
-      ],
+      "outputs": [],
       "stateMutability": "payable",
       "type": "function"
     },
