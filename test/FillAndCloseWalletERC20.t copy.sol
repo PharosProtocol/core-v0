@@ -197,16 +197,6 @@ contract FillAndClose is TestUtils {
         console.log("borrower wallet balance",IERC20(WETH_ASSET.addr).balanceOf(address(borrower)));
         console.log("Value of collateral in MPC using getCloseAmount", IPosition(agreement.position.addr).getCloseAmount(agreement));
 
-
-        // console.log("USDC in MPC using IERC20",IERC20(decodedAsset.addr).balanceOf(agreement.position.addr));
-        // console.log("USDC in MPC using getCloseAmount", IPosition(agreement.position.addr).getCloseAmount(agreement));
-        // console.log("WETH lender account", accountPlugin.getBalance(WETH_ASSET, abi.encode(lenderAccountParams)));
-        // console.log("borrower account USDC", accountPlugin.getBalance(USDC_ASSET, abi.encode(borrowerAccountParams)));
-        // console.log("agreement collAmount", agreement.collAmount);
-        // console.log("USDC in Account plugin using IERC20",IERC20(decodedAsset.addr).balanceOf(agreement.borrowerAccount.addr));
-        // console.log("WETH in Account plugin using IERC20",IERC20(WETH_ASSETT.addr).balanceOf(agreement.lenderAccount.addr));
-
-
     }
 
 
