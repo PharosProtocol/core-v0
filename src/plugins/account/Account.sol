@@ -11,7 +11,7 @@ import {IAccount} from "src/interfaces/IAccount.sol";
 abstract contract Account is IAccount, AccessControl, ReentrancyGuard {
     event LoadedFromUser(bytes assetData, uint256 amount, bytes accountParameters);
     event LoadedFromPosition(bytes assetData, uint256 amount, bytes accountParameters);
-    event UnloadedToUser(bytes assetData, uint256 amount, bytes parameters, bytes borrowerAssetData);
+    event UnloadedToUser(bytes assetData, uint256 amount, bytes parameters);
     event UnloadedToPosition(address position, bytes assetData, uint256 amount, bytes parameters, bytes borrowerAssetData);
 
     constructor(address bookkeeperAddr) {
@@ -40,11 +40,10 @@ abstract contract Account is IAccount, AccessControl, ReentrancyGuard {
     function unloadToUser(
         bytes calldata assetData,
         uint256 amount,
-        bytes calldata accountParameters,
-        bytes calldata borrowerAssetData
+        bytes calldata accountParameters
     ) external override nonReentrant {
-        _unloadToUser(assetData, amount, accountParameters,borrowerAssetData);
-        emit UnloadedToUser(assetData, amount, accountParameters,borrowerAssetData);
+        _unloadToUser(assetData, amount, accountParameters);
+        emit UnloadedToUser(assetData, amount, accountParameters);
     }
 
     function unloadToPosition(
@@ -60,7 +59,7 @@ abstract contract Account is IAccount, AccessControl, ReentrancyGuard {
     
     function _loadFromUser(bytes memory assetData, uint256 amount, bytes memory accountParameters) internal virtual;
     function _loadFromPosition(bytes memory assetData, uint256 amount, bytes memory accountParameters) internal virtual;
-    function _unloadToUser(bytes memory assetData, uint256 amount, bytes memory accountParameters,bytes memory borrowerAssetData) internal virtual;
+    function _unloadToUser(bytes memory assetData, uint256 amount, bytes memory accountParameters) internal virtual;
     function _unloadToPosition(address position, bytes memory assetData, uint256 amount, bytes memory accountParameters, bytes memory borrowerAssetData ) internal virtual;
 
 }

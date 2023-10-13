@@ -14,7 +14,7 @@ interface IAccount {
     function loadFromPosition(bytes calldata assetData, uint256 amount, bytes calldata accountParameters) external payable;
 
     /// @notice Transfer asset out and decrement account balance. Pushes asset to sender.
-    function unloadToUser(bytes calldata assetData, uint256 amount, bytes calldata accountParameters, bytes calldata borrowerAssetData) external;
+    function unloadToUser(bytes calldata assetData, uint256 amount, bytes calldata accountParameters) external;
 
     /// @notice Transfer loan or collateral asset from account to Position MPC. Pushes.
     function unloadToPosition( address position, bytes calldata assetData, uint256 amount, bytes calldata accountParameters, bytes calldata borrowerAssetData) external;

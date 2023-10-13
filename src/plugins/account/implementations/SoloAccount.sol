@@ -65,13 +65,8 @@ contract SoloAccount is Account {
         }
     }
 
-    function _unloadToUser(bytes memory assetData, uint256 amount, bytes memory accountParameters, bytes memory fillerData) internal override {
+    function _unloadToUser(bytes memory assetData, uint256 amount, bytes memory accountParameters) internal override {
          Asset memory asset = abi.decode(assetData, (Asset));
-         if ((asset.standard == 2 || asset.standard == 3) && asset.tokenId == 0){
-            FillerData memory fillerDataDecoded = abi.decode(fillerData,(FillerData));
-            asset.tokenId = fillerDataDecoded.tokenId;
-            assetData= abi.encode(Asset({standard: asset.standard, addr: asset.addr, decimals: asset.decimals, tokenId: asset.tokenId, data: asset.data}));
-        }
         Parameters memory params = abi.decode(accountParameters, (Parameters));
         require(msg.sender == params.owner, "unload: not owner");
 

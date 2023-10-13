@@ -33,13 +33,13 @@ contract DeployScript is Script {
         // string memory seedPhrase = vm.readFile(".secret");
         // uint256 privateKey = vm.deriveKey(seedPhrase, 0);
         vm.startBroadcast();
-        //Bookkeeper bookkeeper = new Bookkeeper();
-        //new SoloAccount(address(bookkeeper));
-        //new StandardAssessor();
-        //new StaticOracle();
-        new BeanOracle();
-        //new StandardLiquidator();
-        //new WalletFactory(address(bookkeeper));
+        Bookkeeper bookkeeper = new Bookkeeper();
+        new SoloAccount(address(bookkeeper));
+        new StandardAssessor();
+        new StaticOracle();
+        //new BeanOracle();
+        new StandardLiquidator();
+        new WalletFactory(address(bookkeeper));
         //new UniV3Oracle();
 
         vm.stopBroadcast();

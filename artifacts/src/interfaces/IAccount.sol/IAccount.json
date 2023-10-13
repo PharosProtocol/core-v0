@@ -146,11 +146,6 @@
           "internalType": "bytes",
           "name": "accountParameters",
           "type": "bytes"
-        },
-        {
-          "internalType": "bytes",
-          "name": "borrowerAssetData",
-          "type": "bytes"
         }
       ],
       "name": "unloadToUser",

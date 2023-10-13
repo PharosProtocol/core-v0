@@ -197,6 +197,12 @@ contract FillAndClose is TestUtils {
         console.log("borrower wallet balance",IERC20(WETH_ASSET.addr).balanceOf(address(borrower)));
         console.log("Value of collateral in MPC using getCloseAmount", IPosition(agreement.position.addr).getCloseAmount(agreement));
 
+        vm.prank(borrower);
+        accountPlugin.unloadToUser(WETH_ASSET_Encoded, 1e17, abi.encode(borrowerAccountParams));
+        console.log("====UNLOAD====");
+
+        console.log("borrower wallet balance",IERC20(WETH_ASSET.addr).balanceOf(address(borrower)));
+
     }
 
 
