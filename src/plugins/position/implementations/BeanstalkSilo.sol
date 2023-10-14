@@ -39,11 +39,15 @@ interface ISilo {
 contract BeanstalkSiloFactory is Position {
 
     uint256 lpDeposit;
+    uint256 plantedBeans;
     int96 stem;
 
-   struct Asset {
-        address addr;
-        uint8 decimals;
+    struct Asset {
+        uint8 standard; // asset type, 1 for ERC20, 2 for ERC721, 3 for ERC1155
+        address addr; 
+        uint8 decimals; //not used if ERC721
+        uint256 tokenId; // for ERC721 and ERC1155
+        bytes data;
     }
     struct Parameters {
         uint256 beanAsset;
@@ -85,22 +89,31 @@ contract BeanstalkSiloFactory is Position {
     function _close(Agreement calldata agreement, uint256 amountToLender) internal override {
 
         Asset memory loanAsset = abi.decode(agreement.loanAsset, (Asset));
-        IERC20 loanERC20 = IERC20(loanAsset.addr);
 
         if (amountToLender > 0) {
-            loanERC20.approve(agreement.lenderAccount.addr, amountToLender);
+            IERC20 loanToken = IERC20(loanAsset.addr);
+            address lenderAccount = agreement.lenderAccount.addr;
+            uint256 currentAllowance = loanToken.allowance(agreement.position.addr, lenderAccount);
+    
+            // If the current allowance is non-zero, reset it to zero
+            if (currentAllowance > 0) {
+            require(loanToken.approve(lenderAccount, 0), "Reset allowance failed");
+            }
+            // set new allowance
+            require(loanToken.approve(lenderAccount, amountToLender), "Approval failed");
             IAccount(agreement.lenderAccount.addr).loadFromPosition(
-                agreement.loanAsset,
-                amountToLender,
-                agreement.lenderAccount.parameters
-            );
+            agreement.loanAsset,
+            amountToLender,
+            agreement.lenderAccount.parameters
+        );
 
         }
     }
 
     function plant() external payable {
-    address BEANSTALK = 0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5;
-        ISilo(BEANSTALK).plant();
+        address BEANSTALK = 0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5;
+        (uint256 beans,)=ISilo(BEANSTALK).plant();
+        plantedBeans += beans;
     }
 
     function _unwind(Agreement calldata agreement) internal override {
@@ -115,7 +128,7 @@ contract BeanstalkSiloFactory is Position {
     function mow() external payable {
     address BEAN_ETH_WELL = 0xBEA0e11282e2bB5893bEcE110cF199501e872bAd;
     address BEANSTALK = 0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5;
-        ISilo(BEANSTALK).mow(msg.sender, BEAN_ETH_WELL);
+    ISilo(BEANSTALK).mow(address(this), BEAN_ETH_WELL);
     }
 
     // Public Helpers.
@@ -123,18 +136,14 @@ contract BeanstalkSiloFactory is Position {
     function _getCloseAmount(Agreement memory agreement) internal  override returns (uint256) {
         address BEAN_ETH_WELL = 0xBEA0e11282e2bB5893bEcE110cF199501e872bAd;
         address BEANSTALK = 0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5;
-        address BEAN_ORACLE = 0xCcC52959fBc0859321e78216C374911be3c50eB6;
+        address BEAN_ORACLE = 0xB467BB2D164283a38eaAe615DD8e8Ecdbd1C89e9;
 
         uint256 earnedBeans = ISilo(BEANSTALK).balanceOfEarnedBeans(agreement.position.addr);
         uint256 wellLPBDV = ISilo(BEANSTALK).wellBdv(BEAN_ETH_WELL, lpDeposit);
-        uint256 totalBDV = ((earnedBeans + wellLPBDV) * C.RATIO_FACTOR) / 10 ** (6); //Total BDV in 18 dec precision
-        OracleParameters memory params1 = OracleParameters({
-            input: 1 // 1 for Bean
-        });
-        bytes memory encodedParams1 = abi.encode(params1);
-
-        uint256 closeAmount = (IOracle(BEAN_ORACLE).getOpenPrice(encodedParams1, agreement.fillerData) * (totalBDV)) / C.RATIO_FACTOR; // in USD
+        uint256 totalBDV = ((earnedBeans + wellLPBDV + plantedBeans) * C.RATIO_FACTOR) / 10 ** (6); //Total BDV in 18 dec precision
+        uint256 closeAmount = (IOracle(BEAN_ORACLE).getOpenPrice(abi.encode(1), "") * (totalBDV)) / C.RATIO_FACTOR; // in USD
         return closeAmount;
+
 
     }
 }

@@ -50,22 +50,12 @@
 //     IPosition public beanstalkSiloFactory;
 
 
-//     bytes constant WETH_ASSET = abi.encode(Asset({addr: C.WETH, decimals: 18}));
-//     bytes constant USDC_ASSET = abi.encode(Asset({addr: TC.USDC, decimals: TC.USDC_DECIMALS}));
-//     Asset WETH_ASSETT = Asset({addr: C.WETH, decimals: 18});
-//     Asset USDC_ASSETT = Asset({addr: TC.USDC, decimals: TC.USDC_DECIMALS});
-
 //     uint256 LENDER_PRIVATE_KEY = 111;
 //     uint256 BORROWER_PRIVATE_KEY = 222;
 //     uint256 LIQUIDATOR_PRIVATE_KEY = 333;
 //     uint256 LOAN_AMOUNT = 1e18 ;
 //     Asset[] ASSETS;
 
-//     constructor() {
-//         // ASSETS.push(Asset({standard: ETH_STANDARD, addr: address(0), id: 0, data: ""})); // Tests expect 0 index to be ETH
-//         ASSETS.push(Asset({addr: C.WETH, decimals: 18})); // Tests expect 0 index to be WETH
-//         ASSETS.push(Asset({addr: TC.USDC, decimals: TC.USDC_DECIMALS})); // Tests expect 1 index to be an ERC20
-//     }
 
 //     function setUp() public {
 //         vm.recordLogs();
@@ -98,9 +88,9 @@
 
 //     // test oracle
 //     function test_Oracle() public {
-//         uint256 beanPrice = IOracle(beanOracle).getOpenPrice(abi.encode(1));
-//         uint256 beanEthPrice = IOracle(beanOracle).getOpenPrice(abi.encode(2));
-//         uint256 bean3CRVPrice = IOracle(beanOracle).getOpenPrice(abi.encode(3));
+//         uint256 beanPrice = IOracle(beanOracle).getOpenPrice(abi.encode(1),"");
+//         uint256 beanEthPrice = IOracle(beanOracle).getOpenPrice(abi.encode(2),"");
+//         uint256 bean3CRVPrice = IOracle(beanOracle).getOpenPrice(abi.encode(3),"");
 
 
 //     console.log("Bean Price", beanPrice);

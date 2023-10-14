@@ -49,31 +49,11 @@
 //         uint256 tokenId;
 //         address account;
 //     }
-
-// interface ISilo {
-//     function setApprovalForAll(address spender, bool approved) external;
-
-//     function increaseDepositAllowance(
-//         address spender,
-//         address token,
-//         uint256 addedValue
-//     ) external returns (bool);
-
-//     function depositAllowance(
-//         address owner,
-//         address spender,
-//         address token
-//     ) external view returns (uint256);
-
-//     function safeTransferFrom(
-//         address sender, 
-//         address recipient, 
-//         uint256 depositId, 
-//         uint256 amount,
-//         bytes calldata
-//     ) external;
+// struct LiquidationLogic {
+//     address payable[] destinations;
+//     bytes[] data;
+//     bool[] delegateCalls;
 // }
-
 
 
 // contract FillAndClose is TestUtils {
@@ -138,6 +118,7 @@
 //     function test_FillAndClose() public {
 //         address lender = vm.addr(LENDER_PRIVATE_KEY);
 //         address borrower = vm.addr(BORROWER_PRIVATE_KEY);
+//         address liquidatorAddr = vm.addr(LIQUIDATOR_PRIVATE_KEY);
 
 //         SoloAccount.Parameters memory lenderAccountParams = SoloAccount.Parameters({owner: lender, salt: bytes32(0)});
 //         SoloAccount.Parameters memory borrowerAccountParams = SoloAccount.Parameters({
@@ -147,6 +128,8 @@
 
 //         fundAccount(lenderAccountParams);
 //         fundAccount(borrowerAccountParams);
+//         fundLiquidator(liquidatorAddr);
+
 
 //         assertEq(accountPlugin.getBalance(WETH_ASSET_Encoded, abi.encode(lenderAccountParams),""), 12e18);
 //         assertEq(
@@ -177,10 +160,6 @@
 //         bookkeeper.fillOrder(fill, orderSignedBlueprint);
 //         console.log("===ORDER FILLED===");
        
-//         // // // Move time and block forward arbitrarily.
-//         // // vm.warp(block.timestamp + 5 days);
-//         // // vm.roll(block.number + (5 days / 12));
-        
 //         (SignedBlueprint memory agreementSignedBlueprint, Agreement memory agreement) = retrieveAgreementFromLogs();
 
 //         console.log("Value of collateral in MPC using getCloseAmount", IPosition(agreement.position.addr).getCloseAmount(agreement));
@@ -190,25 +169,31 @@
 //         console.log("USDC in MPC",IERC20(USDC_ASSET.addr).balanceOf(agreement.position.addr));
 //         console.log("borrower wallet balance",IERC20(WETH_ASSET.addr).balanceOf(address(borrower)));
 
-//         vm.prank(borrower);
-//         bookkeeper.closePosition(agreementSignedBlueprint);
-//         console.log("====AGREEMENT CLOSED====");
-//         console.log("USDC in MPC",IERC20(USDC_ASSET.addr).balanceOf(agreement.position.addr));
+//        // Move time and block forward arbitrarily.
+//         vm.warp(block.timestamp + 10 days);
+//         vm.roll(block.number + (10 days / 12));
+        
+//         console.log("Liquidator reward", liquidatorPlugin.getReward(agreement));
+//         uint256 liquidatorRewardInColl = liquidatorPlugin.getReward(agreement)*C.RATIO_FACTOR/IOracle(agreement.collOracle.addr).getClosePrice(agreement.collOracle.parameters, agreement.fillerData);
+//         bytes memory liquidatorLogic= prepareLiquidatorLogic(agreement,abi.encode(lenderAccountParams),abi.encode(borrowerAccountParams),liquidatorRewardInColl);
+//         vm.deal(agreement.position.addr, 2e18);
+        
+//         console.log("lender account USDC", accountPlugin.getBalance(USDC_ASSET_Encoded, abi.encode(lenderAccountParams),agreement.fillerData));
+//         console.log("borrower account WETH", accountPlugin.getBalance(WETH_ASSET_Encoded, abi.encode(borrowerAccountParams),agreement.fillerData));
+
+//         console.log("WETH in MPC",IERC20(WETH_ASSET.addr).balanceOf(agreement.position.addr));
 //         console.log("Value of collateral in MPC using getCloseAmount", IPosition(agreement.position.addr).getCloseAmount(agreement));
-//         console.log("borrower WETH wallet balance",IERC20(WETH_ASSET.addr).balanceOf(address(borrower)));
-//         console.log("lender USDC wallet balance",IERC20(USDC_ASSET.addr).balanceOf(address(lender)));
 
-//         vm.prank(borrower);
-//         accountPlugin.unloadToUser(WETH_ASSET_Encoded, 1e17, abi.encode(borrowerAccountParams));
-//         vm.prank(lender);
-//         accountPlugin.unloadToUser(USDC_ASSET_Encoded, 500e18, abi.encode(lenderAccountParams));
-//         console.log("====UNLOAD====");
-//         console.log("lender USDC wallet balance",IERC20(USDC_ASSET.addr).balanceOf(address(lender)));
-
-//         console.log("borrower WETH wallet balance",IERC20(WETH_ASSET.addr).balanceOf(address(borrower)));
-
+//         //Liquidate the agreement
+//         vm.prank(liquidatorAddr);
+//         bookkeeper.triggerLiquidation(agreementSignedBlueprint,liquidatorLogic);
+//         console.log("====AGREEMENT LIQUIDATED====");
+//         //console.log("lender account USDC", accountPlugin.getBalance(USDC_ASSET_Encoded, abi.encode(lenderAccountParams),agreement.fillerData));
+//         console.log("WETH in MPC",IERC20(WETH_ASSET.addr).balanceOf(agreement.position.addr));
+//         console.log("Value of collateral in MPC using getCloseAmount", IPosition(agreement.position.addr).getCloseAmount(agreement));
+//         console.log("chainlink ETH Price",chainlinkOracle.getOpenPrice(abi.encode(0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419),""));
+//         console.log("chainlink USDC Price",chainlinkOracle.getOpenPrice(abi.encode(0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6),""));
 //     }
-
 
 //     function fundAccount(SoloAccount.Parameters memory accountParams) private {
 //         vm.deal(accountParams.owner, 2e18);
@@ -371,4 +356,92 @@
 //         (, bytes memory data) = bookkeeper.unpackDataField(agreementSignedBlueprint.blueprint.data);
 //         agreement = abi.decode(data, (Agreement));
 //     }
+
+//   function prepareLiquidatorLogic(
+//     Agreement memory agreement,
+//     bytes memory lenderAccountParams,
+//     bytes memory borrowerAccountParams,
+//     uint256 liquidatorReward
+// ) internal view returns (bytes memory liquidatorLogic) {
+//     // Define the destinations, data, and delegateCalls arrays
+//     address payable[] memory destinations = new address payable[](4);
+//     bytes[] memory data = new bytes[](4);
+//     bool[] memory delegateCalls = new bool[](4);
+
+//     // Set the destination to the address of the ERC-20 token for the approval call
+//     destinations[0] = payable(USDC_ASSET.addr);  // Convert ERC-20 token address to payable
+
+//     // ABI encode the function call to approve
+//     data[0] = abi.encodeWithSignature(
+//         "approve(address,uint256)",
+//         agreement.lenderAccount.addr,
+//         agreement.loanAmount  // Assuming you're approving the spender to transfer the loan amount
+//     );
+
+//     // Set the delegateCalls flag (set to false for a regular call, true for a delegate call)
+//     delegateCalls[0] = false;
+
+//     // Set the destination to the address of the contract with the loadFromPosition function
+//     destinations[1] = payable(agreement.lenderAccount.addr);
+
+//     // Prepare the data for the loadFromPosition function call
+//     bytes memory assetData = agreement.loanAsset;
+//     uint256 amount = agreement.loanAmount;
+//     bytes memory accountParameters = lenderAccountParams;
+
+//     // ABI encode the function call to loadFromPosition
+//     data[1] = abi.encodeWithSignature(
+//         "loadFromPosition(bytes,uint256,bytes)",
+//         assetData,
+//         amount,
+//         accountParameters
+//     );
+
+//     // Set the delegateCalls flag (set to false for a regular call, true for a delegate call)
+//     delegateCalls[1] = false;
+
+//     // Set the destination to the address for the approval call
+//     destinations[2] = payable(WETH_ASSET.addr);  
+
+//     // ABI encode the function call to approve
+//     data[2] = abi.encodeWithSignature(
+//         "approve(address,uint256)",
+//         agreement.borrowerAccount.addr,
+//         agreement.collAmount 
+//     );
+
+//     // Set the delegateCalls flag (set to false for a regular call, true for a delegate call)
+//     delegateCalls[2] = false;
+
+//     // Set the destination to the address of the contract with the loadFromPosition function
+//     destinations[3] = payable(agreement.borrowerAccount.addr);
+
+//     // Prepare the data for the loadFromPosition function call
+//     bytes memory assetData2 = WETH_ASSET_Encoded;
+//     uint256 amount2 = agreement.collAmount - liquidatorReward;
+//     bytes memory accountParameters2 = borrowerAccountParams;
+
+//     // ABI encode the function call to loadFromPosition
+//     data[3] = abi.encodeWithSignature(
+//         "loadFromPosition(bytes,uint256,bytes)",
+//         assetData2,
+//         amount2,
+//         accountParameters2
+//     );
+
+//     // Set the delegateCalls flag (set to false for a regular call, true for a delegate call)
+//     delegateCalls[3] = false;
+
+//     // Create the LiquidationLogic struct
+//     LiquidationLogic memory logic = LiquidationLogic({
+//         destinations: destinations,
+//         data: data,
+//         delegateCalls: delegateCalls
+//     });
+
+//     liquidatorLogic = abi.encode(logic);
+
+//     return liquidatorLogic;
+// }
+
 // }

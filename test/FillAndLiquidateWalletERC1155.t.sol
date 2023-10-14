@@ -57,7 +57,6 @@
 // }
 
 // interface ISilo {
-//     function setApprovalForAll(address spender, bool approved) external;
 
 //     function increaseDepositAllowance(
 //         address spender,
@@ -71,16 +70,7 @@
 //         address token
 //     ) external view returns (uint256);
 
-//     function safeTransferFrom(
-//         address sender, 
-//         address recipient, 
-//         uint256 depositId, 
-//         uint256 amount,
-//         bytes calldata
-//     ) external;
 // }
-
-
 
 // contract FillAndClose is TestUtils {
 //     IBookkeeper public bookkeeper;
