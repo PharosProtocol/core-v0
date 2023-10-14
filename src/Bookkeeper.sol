@@ -27,14 +27,7 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
     mapping(bytes32 => bool) public agreementClosed;
 
     event OrderFilled(SignedBlueprint agreement, bytes32 orderBlueprintHash, address taker);
-    event PositionClosed(
-        SignedBlueprint agreement,
-        address position,
-        address closer,
-        uint256 closeValue,
-        uint256 loanOrcale,
-        uint256 assessorCost
-    );
+    event PositionClosed( SignedBlueprint agreement, address position, address closer, uint256 closeValue, uint256 loanOracle, uint256 assessorCost);
     event PositionLiquidated(SignedBlueprint agreement, address position, address liquidator);
 
     constructor() Tractor(PROTOCOL_NAME, PROTOCOL_VERSION) {}
