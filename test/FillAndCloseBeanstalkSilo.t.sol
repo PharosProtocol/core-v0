@@ -155,12 +155,9 @@ contract FillAndClose is TestUtils {
         
         (SignedBlueprint memory agreementSignedBlueprint, Agreement memory agreement) = retrieveAgreementFromLogs();
 
-        console.log("Value of collateral in MPC using getCloseAmount", IPosition(agreement.position.addr).getCloseAmount(agreement));
-        console.log("collateral in MPC using IERC20",IERC20(WETH_ASSET.addr).balanceOf(agreement.position.addr));
 
-        deal(USDC_ASSET.addr, agreement.position.addr, 5_000 * (10 ** TC.USDC_DECIMALS), true);
-        console.log("USDC in MPC",IERC20(USDC_ASSET.addr).balanceOf(agreement.position.addr));
-        console.log("borrower wallet balance",IERC20(WETH_ASSET.addr).balanceOf(address(borrower)));
+        console.log("WETH in MPC",IERC20(WETH_ASSET.addr).balanceOf(agreement.position.addr));
+        console.log("Value of collateral in MPC using getCloseAmount", IPosition(agreement.position.addr).getCloseAmount(agreement));
 
         vm.prank(borrower);
         bookkeeper.unwindPosition(agreementSignedBlueprint);
@@ -173,17 +170,6 @@ contract FillAndClose is TestUtils {
         console.log("====AGREEMENT CLOSED====");
         console.log("WETH in MPC",IERC20(WETH_ASSET.addr).balanceOf(agreement.position.addr));
         console.log("Value of collateral in MPC using getCloseAmount", IPosition(agreement.position.addr).getCloseAmount(agreement));
-        console.log("borrower WETH wallet balance",IERC20(WETH_ASSET.addr).balanceOf(address(borrower)));
-        console.log("lender WETH wallet balance",IERC20(WETH_ASSET.addr).balanceOf(address(lender)));
-
-        // vm.prank(borrower);
-        // accountPlugin.unloadToUser(WETH_ASSET_Encoded, 1e17, abi.encode(borrowerAccountParams));
-        // vm.prank(lender);
-        // accountPlugin.unloadToUser(USDC_ASSET_Encoded, 500e18, abi.encode(lenderAccountParams));
-        // console.log("====UNLOAD====");
-        // console.log("lender USDC wallet balance",IERC20(USDC_ASSET.addr).balanceOf(address(lender)));
-
-        // console.log("borrower WETH wallet balance",IERC20(WETH_ASSET.addr).balanceOf(address(borrower)));
 
     }
 

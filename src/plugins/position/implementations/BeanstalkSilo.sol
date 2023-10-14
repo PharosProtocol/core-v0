@@ -13,6 +13,8 @@ import {LibUtilsPublic} from "src/libraries/LibUtilsPublic.sol";
 import {IOracle} from "src/interfaces/IOracle.sol";
 import {IWell} from "lib/Beanstalk/IWell.sol";
 import "lib/Beanstalk/LibTransfer.sol";
+import "@chainlink/AggregatorV2V3Interface.sol";
+
 
 /*
  * Swaps WETH to Bean:ETH well LP tokens and deposits in Beanstalk Silo.
@@ -41,6 +43,7 @@ contract BeanstalkSiloFactory is Position {
     uint256 lpDeposit;
     uint256 plantedBeans;
     int96 stem;
+    bool unwound;
 
     struct Asset {
         uint8 standard; // asset type, 1 for ERC20, 2 for ERC721, 3 for ERC1155
@@ -122,6 +125,7 @@ contract BeanstalkSiloFactory is Position {
 
         ISilo(BEANSTALK).withdrawDeposit(BEAN_ETH_WELL,stem,lpDeposit, LibTransfer.To.EXTERNAL);
         IWell(BEAN_ETH_WELL).removeLiquidityOneToken(lpDeposit,IERC20(C.WETH),0, agreement.position.addr, block.timestamp * 2);
+        unwound = true;
        
         }
 
@@ -134,15 +138,21 @@ contract BeanstalkSiloFactory is Position {
     // Public Helpers.
 
     function _getCloseAmount(Agreement memory agreement) internal  override returns (uint256) {
+       if(unwound==true){
+        (, int256 answer, , , ) = AggregatorV3Interface(0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419).latestRoundData();
+        uint256 ethUsdValue = (uint256(answer) * C.RATIO_FACTOR) / (10 ** (8));
+        uint256 amount = IERC20(C.WETH).balanceOf(agreement.position.addr);
+        return ethUsdValue*amount/C.RATIO_FACTOR;
+       } else {
+       
         address BEAN_ETH_WELL = 0xBEA0e11282e2bB5893bEcE110cF199501e872bAd;
         address BEANSTALK = 0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5;
         address BEAN_ORACLE = 0xB467BB2D164283a38eaAe615DD8e8Ecdbd1C89e9;
-
         uint256 earnedBeans = ISilo(BEANSTALK).balanceOfEarnedBeans(agreement.position.addr);
         uint256 wellLPBDV = ISilo(BEANSTALK).wellBdv(BEAN_ETH_WELL, lpDeposit);
         uint256 totalBDV = ((earnedBeans + wellLPBDV + plantedBeans) * C.RATIO_FACTOR) / 10 ** (6); //Total BDV in 18 dec precision
         uint256 closeAmount = (IOracle(BEAN_ORACLE).getOpenPrice(abi.encode(1), "") * (totalBDV)) / C.RATIO_FACTOR; // in USD
-        return closeAmount;
+        return closeAmount;}
 
 
     }
