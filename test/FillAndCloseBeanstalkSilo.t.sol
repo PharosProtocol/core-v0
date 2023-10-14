@@ -155,7 +155,6 @@ contract FillAndClose is TestUtils {
         
         (SignedBlueprint memory agreementSignedBlueprint, Agreement memory agreement) = retrieveAgreementFromLogs();
 
-
         console.log("WETH in MPC",IERC20(WETH_ASSET.addr).balanceOf(agreement.position.addr));
         console.log("Value of collateral in MPC using getCloseAmount", IPosition(agreement.position.addr).getCloseAmount(agreement));
 
