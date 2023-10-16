@@ -3,11 +3,6 @@
 
 // pragma solidity 0.8.19;
 
-// /**
-//  * This is the standard set of tests used to verify an arbitrary Account implementation. It is not expected to be
-//  * comprehensive as each unique implementation will likely need its own unique tests.
-//  */
-
 // import "@forge-std/Test.sol";
 // import "@forge-std/console.sol";
 

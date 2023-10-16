@@ -76,22 +76,18 @@ contract SoloAccount is Account {
         balances[id][keccak256(assetData)] -= amount;
 
         uint256 decAdjAmount = amount * 10**(asset.decimals)/C.RATIO_FACTOR;
+        
+        if (asset.standard == 1) {  // ERC-20
+            LibUtilsPublic.safeErc20Transfer(asset.addr, msg.sender, decAdjAmount);
+        } else if (asset.standard == 2) {  // ERC-721
+            LibUtilsPublic.safeErc721TransferFrom(asset.addr,  address(this),msg.sender, asset.tokenId, asset.data);
+        } else if (asset.standard == 3) {  // ERC-1155
+            LibUtilsPublic.safeErc1155TransferFrom(asset.addr, address(this),msg.sender, asset.tokenId, decAdjAmount, asset.data);
 
-       if (asset.addr == C.WETH && msg.value > 0) {
-            require(msg.value == amount, "ETH amount mismatch");
-            IWETH9(C.WETH).deposit{value: msg.value}();
         } else {
-            if (asset.standard == 1) {  // ERC-20
-                LibUtilsPublic.safeErc20Transfer(asset.addr, msg.sender, decAdjAmount);
-            } else if (asset.standard == 2) {  // ERC-721
-                LibUtilsPublic.safeErc721TransferFrom(asset.addr,  address(this),msg.sender, asset.tokenId, asset.data);
-            } else if (asset.standard == 3) {  // ERC-1155
-                LibUtilsPublic.safeErc1155TransferFrom(asset.addr, address(this),msg.sender, asset.tokenId, decAdjAmount, asset.data);
-
-            } else {
-                revert("Unsupported asset standard");
-            }
+            revert("Unsupported asset standard");
         }
+    
     }
 
     function _unloadToPosition(
