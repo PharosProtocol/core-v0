@@ -6,7 +6,7 @@ pragma solidity 0.8.19;
 import "@forge-std/Test.sol";
 import "@forge-std/console.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {PharosToken}from "src/libraries/PHRS-ERC20.sol";
+import {PharosToken}from "src/libraries/PHRS.sol";
 import {TestUtils} from "test/TestUtils.sol";
 import {C} from "src/libraries/C.sol";
 import {TC} from "test/TC.sol";

@@ -76,23 +76,8 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
         emit OrderFilled(signedBlueprint, orderBlueprint.blueprintHash, msg.sender);
     }
 
-    // Sign Agreement
-
-    function _signAgreement(Agreement memory agreement) private returns (SignedBlueprint memory signedBlueprint) {
-        // Create blueprint to store signed Agreement off chain via events.
-        signedBlueprint.blueprint.publisher = address(this);
-        signedBlueprint.blueprint.data = packDataField(
-            bytes1(uint8(BlueprintDataType.AGREEMENT)),
-            abi.encode(agreement)
-        );
-        signedBlueprint.blueprint.endTime = type(uint256).max;
-        signedBlueprint.blueprintHash = getBlueprintHash(signedBlueprint.blueprint);
-        signBlueprint(signedBlueprint.blueprintHash);
-        // publishBlueprint(signedBlueprint); // These verifiable blueprints will be used to interact with positions.
-    }
-
     // Open Position
-    function _openPosition(Agreement memory agreement) private {
+    function _openPosition(Agreement memory agreement) internal {
         (bool success, bytes memory data) = agreement.factory.call(abi.encodeWithSignature("createClone()"));
         require(success, "factory error: create clone failed");
 
@@ -117,6 +102,24 @@ contract Bookkeeper is Tractor, ReentrancyGuard {
 
         require(!LibBookkeeper.isLiquidatable(agreement), "unhealthy deployment");
     }
+
+
+    // Sign Agreement
+
+    function _signAgreement(Agreement memory agreement) private returns (SignedBlueprint memory signedBlueprint) {
+        // Create blueprint to store signed Agreement off chain via events.
+        signedBlueprint.blueprint.publisher = address(this);
+        signedBlueprint.blueprint.data = packDataField(
+            bytes1(uint8(BlueprintDataType.AGREEMENT)),
+            abi.encode(agreement)
+        );
+        signedBlueprint.blueprint.endTime = type(uint256).max;
+        signedBlueprint.blueprintHash = getBlueprintHash(signedBlueprint.blueprint);
+        signBlueprint(signedBlueprint.blueprintHash);
+        // publishBlueprint(signedBlueprint); // These verifiable blueprints will be used to interact with positions.
+    }
+
+    
 
     // Close Position
 

@@ -136,10 +136,11 @@ library LibBookkeeper {
         agreement.lenderAccount = fill.account;
         agreement.borrowerAccount = order.account;
         agreement.position.parameters = order.borrowerConfig.positionParameters;
-        }
-        
+        } 
 
     }
+
+
 
 /// @dev Liquidation based on expiration or CR 
     function isLiquidatable(Agreement memory agreement) internal returns (bool) {

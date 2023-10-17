@@ -2,15 +2,15 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/motasem/Repos/pharos/code/core-v0/src/Bookkeeper.sol": {
-      "lastModificationDate": 1697326478771,
-      "contentHash": "d374ca9dd0ed1849369f41bbf5d4e7d2",
+      "lastModificationDate": 1697490389330,
+      "contentHash": "b24de75cf29a0bbb6d849a75ea78ec58",
       "sourceName": "src/Bookkeeper.sol",
       "solcConfig": {
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -55,8 +55,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -90,8 +90,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -125,8 +125,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -163,8 +163,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -201,8 +201,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -231,15 +231,15 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/libraries/C.sol": {
-      "lastModificationDate": 1697230043658,
+      "lastModificationDate": 1697489300021,
       "contentHash": "690461c80413287765482eb7ae7b924e",
       "sourceName": "src/libraries/C.sol",
       "solcConfig": {
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -266,15 +266,15 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/libraries/LibBookkeeper.sol": {
-      "lastModificationDate": 1697138825535,
-      "contentHash": "3a2d3a71933e87830a4755e78d984447",
+      "lastModificationDate": 1697490373908,
+      "contentHash": "35fee0e9e29e2665505a9be0936792c8",
       "sourceName": "src/libraries/LibBookkeeper.sol",
       "solcConfig": {
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -316,8 +316,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -354,8 +354,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -393,8 +393,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -428,8 +428,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -463,8 +463,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -503,8 +503,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -538,8 +538,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -576,8 +576,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -613,8 +613,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -648,8 +648,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -683,8 +683,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -718,8 +718,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -756,8 +756,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -791,8 +791,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -822,15 +822,15 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol": {
-      "lastModificationDate": 1695246949354,
+      "lastModificationDate": 1696007215513,
       "contentHash": "7c33eaa0f6dc029429ed8b986694c3a4",
       "sourceName": "@openzeppelin/contracts/utils/cryptography/EIP712.sol",
       "solcConfig": {
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -866,8 +866,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -903,8 +903,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -943,8 +943,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -985,8 +985,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -1022,8 +1022,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -1061,8 +1061,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -1096,8 +1096,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -1136,8 +1136,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -1171,8 +1171,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -1206,8 +1206,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -1243,8 +1243,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -1285,8 +1285,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -1320,8 +1320,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -1355,8 +1355,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -1394,8 +1394,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -1429,8 +1429,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -1464,8 +1464,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -1501,8 +1501,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -1541,8 +1541,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -1576,8 +1576,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -1620,8 +1620,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -1666,8 +1666,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -1714,8 +1714,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -1751,8 +1751,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -1790,8 +1790,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -1827,8 +1827,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -1869,8 +1869,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -1906,8 +1906,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -1941,8 +1941,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -1976,8 +1976,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -2015,8 +2015,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -2053,8 +2053,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -2091,8 +2091,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -2128,8 +2128,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -2167,8 +2167,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -2208,8 +2208,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -2246,8 +2246,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -2277,8 +2277,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -2318,8 +2318,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -2355,8 +2355,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -2392,8 +2392,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -2434,8 +2434,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -2473,8 +2473,8 @@
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -2502,16 +2502,16 @@
         "IERC20Metadata"
       ]
     },
-    "/Users/motasem/Repos/pharos/code/core-v0/src/libraries/PHRS-ERC20.sol": {
-      "lastModificationDate": 1697418979283,
+    "/Users/motasem/Repos/pharos/code/core-v0/src/libraries/PHRS.sol": {
+      "lastModificationDate": 1697487540037,
       "contentHash": "e8d4ce7ec23d92b0068104fd5651ac5f",
-      "sourceName": "src/libraries/PHRS-ERC20.sol",
+      "sourceName": "src/libraries/PHRS.sol",
       "solcConfig": {
         "version": "0.8.19",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -2538,6 +2538,37 @@
       "artifacts": [
         "PharosToken"
       ]
+    },
+    "/Users/motasem/Repos/pharos/code/core-v0/src/libraries/fundraise.sol": {
+      "lastModificationDate": 1697489170749,
+      "contentHash": "acea00ca4a66ec5d0ce006e6ad8464f7",
+      "sourceName": "src/libraries/fundraise.sol",
+      "solcConfig": {
+        "version": "0.8.19",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [],
+      "artifacts": []
     }
   }
 }

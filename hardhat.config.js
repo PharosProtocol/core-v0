@@ -9,10 +9,19 @@ module.exports = {
     hardhat: {
       forking: {
         url: "https://eth-mainnet.g.alchemy.com/v2/FmZnPJ-foxmzbijvOo6wY-B-uIkaXc4O",
-        blockNumber: 18224300 // Replace with the block number you want to fork from
+        blockNumber: 18346434 // Replace with the block number you want to fork from
       },
     },
   },
 
-  solidity: "0.8.19",
+  solidity: {
+    version: "0.8.19",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 1000,
+      },
+    },
+  },
+  allowUnlimitedContractSize: true,
 };
