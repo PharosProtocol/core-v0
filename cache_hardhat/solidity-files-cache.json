@@ -1613,8 +1613,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/plugins/position/implementations/Wallet.sol": {
-      "lastModificationDate": 1697067734405,
-      "contentHash": "5a40652f691b5eb5f4ae4ab66d74f7fa",
+      "lastModificationDate": 1697589178572,
+      "contentHash": "a062951fd2c74d70feef27aa8fefeadb",
       "sourceName": "src/plugins/position/implementations/Wallet.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -2540,8 +2540,8 @@
       ]
     },
     "/Users/motasem/Repos/pharos/code/core-v0/src/libraries/fundraise.sol": {
-      "lastModificationDate": 1697489170749,
-      "contentHash": "acea00ca4a66ec5d0ce006e6ad8464f7",
+      "lastModificationDate": 1697574308271,
+      "contentHash": "f38ccea1ba2ac15da1b8a9295a995dcf",
       "sourceName": "src/libraries/fundraise.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -2566,9 +2566,17 @@
           }
         }
       },
-      "imports": [],
-      "versionPragmas": [],
-      "artifacts": []
+      "imports": [
+        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "@chainlink/AggregatorV2V3Interface.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.19"
+      ],
+      "artifacts": [
+        "IOracle",
+        "PharosSale"
+      ]
     }
   }
 }

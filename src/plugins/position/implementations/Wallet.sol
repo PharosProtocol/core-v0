@@ -25,10 +25,6 @@ contract WalletFactory is Position {
         address owner;
         bytes32 salt;
     }
-
-    constructor(address protocolAddr) Position(protocolAddr) {}
-
-    // another way to get recipient directly msg.sender == IAccount(agreement.borrowerAccount.addr).getOwner(agreement.borrowerAccount.parameters),
     struct Asset {
         uint8 standard; // asset type, 1 for ERC20, 2 for ERC721, 3 for ERC1155
         address addr; 
@@ -39,6 +35,10 @@ contract WalletFactory is Position {
     struct FillerData{
         uint256 tokenId;
     }
+
+    constructor(address protocolAddr) Position(protocolAddr) {}
+
+
 
     /// @dev assumes assets are already in Position.
     function _open(Agreement calldata agreement) internal override {
