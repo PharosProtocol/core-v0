@@ -334,7 +334,7 @@ describe("test_EndToEnd", function () {
       collOracles,
       factories,
       isOffer: true,
-      borrowerConfig: { initCollateralRatio: 0, positionParameters: "0x00" }
+      borrowerConfig: { collAmount: 0, positionParameters: "0x00" }
     };
     console.log(order);
 
@@ -344,7 +344,7 @@ describe("test_EndToEnd", function () {
     
     const borrowerConfig = {
       collAmount: BigInt(4000e18), 
-      positionParameters: "0x"
+      positionParameters: "0x00"
     };
     
     const borrowerAccount = {
@@ -385,7 +385,7 @@ describe("test_EndToEnd", function () {
     'tuple(address addr, bytes parameters)[] collOracles',
     'address[] factories',
     'bool isOffer',
-    'tuple(uint256 initCollateralRatio, bytes positionParameters) borrowerConfig'
+    'tuple(uint256 collAmount, bytes positionParameters) borrowerConfig'
 ];
 // // To print Order
 // function replacer(key, value) {
