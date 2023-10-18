@@ -8,8 +8,10 @@ module.exports = {
   networks: {
     hardhat: {
       forking: {
-        url: "https://eth-mainnet.g.alchemy.com/v2/FmZnPJ-foxmzbijvOo6wY-B-uIkaXc4O",
-        blockNumber: 18346434 // Replace with the block number you want to fork from
+        //url: "https://eth-mainnet.g.alchemy.com/v2/FmZnPJ-foxmzbijvOo6wY-B-uIkaXc4O",
+        url: "https://eth-sepolia.g.alchemy.com/v2/2c1VYx8MPBoah8sfNT4b2OOHUwOGfa48",
+
+        blockNumber: 4515779 // Replace with the block number you want to fork from
       },
     },
   },
